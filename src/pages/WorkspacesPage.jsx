@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { promptsClient } from "../lib/prompts-client";
 import { workspacesClient } from "../lib/workspaces-client";
 import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
 import WorkspaceForm from "../components/workspaces/WorkspaceForm";
@@ -7,6 +8,15 @@ import PromptViewer from "../components/workspaces/PromptViewer";
 const DEFAULT_WORKSPACE_FORM = {
   name: "",
   description: "",
+  shareMode: "private",
+  shareWith: "",
+};
+
+const DEFAULT_PROMPT_FORM = {
+  name: "",
+  workspace: "",
+  description: "",
+  content: "",
   shareMode: "private",
   shareWith: "",
 };
@@ -82,17 +92,27 @@ export default function WorkspacesPage() {
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
   const [selectedPromptName, setSelectedPromptName] = useState("");
   const [promptInputValues, setPromptInputValues] = useState({});
+  const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
   const [workspaceForm, setWorkspaceForm] = useState(DEFAULT_WORKSPACE_FORM);
   const [editingMode, setEditingMode] = useState("create");
+  const [promptEditingMode, setPromptEditingMode] = useState("create");
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [isPromptDeleteModalOpen, setIsPromptDeleteModalOpen] = useState(false);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(false);
   const [isSavingWorkspace, setIsSavingWorkspace] = useState(false);
+  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [promptErrorMessage, setPromptErrorMessage] = useState("");
 
   const handleFormChange = (field, value) => {
     setWorkspaceForm((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handlePromptFormChange = (field, value) => {
+    setPromptForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const selectedPrompt = useMemo(() => {
@@ -132,11 +152,23 @@ export default function WorkspacesPage() {
     setEditingMode("create");
   };
 
+  const resetPromptForm = () => {
+    setPromptForm({ ...DEFAULT_PROMPT_FORM, workspace: selectedWorkspaceName || "" });
+    setPromptEditingMode("create");
+  };
+
   const openCreateModal = () => {
     setErrorMessage("");
     resetWorkspaceForm();
     setIsDeleteModalOpen(false);
     setIsWorkspaceModalOpen(true);
+  };
+
+  const openCreatePromptModal = () => {
+    setPromptErrorMessage("");
+    resetPromptForm();
+    setIsPromptDeleteModalOpen(false);
+    setIsPromptModalOpen(true);
   };
 
   const openEditModal = () => {
@@ -149,6 +181,16 @@ export default function WorkspacesPage() {
     setIsWorkspaceModalOpen(true);
   };
 
+  const openEditPromptModal = () => {
+    if (!selectedPromptName) {
+      return;
+    }
+    setPromptErrorMessage("");
+    setPromptEditingMode("edit");
+    setIsPromptDeleteModalOpen(false);
+    setIsPromptModalOpen(true);
+  };
+
   const openDeleteModal = () => {
     if (!selectedWorkspaceName) {
       return;
@@ -158,12 +200,29 @@ export default function WorkspacesPage() {
     setIsDeleteModalOpen(true);
   };
 
+  const openDeletePromptModal = () => {
+    if (!selectedPromptName) {
+      return;
+    }
+    setPromptErrorMessage("");
+    setIsPromptModalOpen(false);
+    setIsPromptDeleteModalOpen(true);
+  };
+
   const closeWorkspaceModal = () => {
     setIsWorkspaceModalOpen(false);
   };
 
+  const closePromptModal = () => {
+    setIsPromptModalOpen(false);
+  };
+
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
+  };
+
+  const closePromptDeleteModal = () => {
+    setIsPromptDeleteModalOpen(false);
   };
 
   const handleBack = () => {
@@ -171,8 +230,11 @@ export default function WorkspacesPage() {
     setSelectedWorkspace(null);
     setSelectedPromptName("");
     setPromptInputValues({});
+    setPromptForm(DEFAULT_PROMPT_FORM);
     setIsWorkspaceModalOpen(false);
     setIsDeleteModalOpen(false);
+    setIsPromptModalOpen(false);
+    setIsPromptDeleteModalOpen(false);
     resetWorkspaceForm();
   };
 
@@ -208,11 +270,35 @@ export default function WorkspacesPage() {
           ? workspace.shareWith.join(", ")
           : "",
       });
+      setPromptForm((prev) => ({ ...prev, workspace: name }));
       setEditingMode("edit");
     } catch (error) {
       setErrorMessage(error.message || "Can not load workspace detail");
     } finally {
       setIsLoadingWorkspace(false);
+    }
+  };
+
+  const openPrompt = async (name) => {
+    setSelectedPromptName(name);
+    setPromptInputValues({});
+    setPromptErrorMessage("");
+
+    try {
+      const prompt = await promptsClient.getPrompt(name);
+      setPromptForm({
+        name: prompt?.name || "",
+        workspace: prompt?.workspace || selectedWorkspaceName || "",
+        description: prompt?.description || "",
+        content: prompt?.content || "",
+        shareMode: prompt?.shareMode || "private",
+        shareWith: Array.isArray(prompt?.shareWith)
+          ? prompt.shareWith.join(", ")
+          : "",
+      });
+      setPromptEditingMode("edit");
+    } catch (error) {
+      setPromptErrorMessage(error.message || "Can not load prompt detail");
     }
   };
 
@@ -275,6 +361,73 @@ export default function WorkspacesPage() {
     }
   };
 
+  const handleSavePrompt = async (event) => {
+    event.preventDefault();
+    setIsSavingPrompt(true);
+    setPromptErrorMessage("");
+
+    const payload = {
+      name: promptForm.name.trim(),
+      workspace: promptForm.workspace.trim(),
+      description: promptForm.description.trim(),
+      content: promptForm.content,
+      shareMode: promptForm.shareMode,
+      shareWith: normalizeShareWith(promptForm.shareWith),
+    };
+
+    if (!payload.name) {
+      setPromptErrorMessage("Prompt name is required");
+      setIsSavingPrompt(false);
+      return;
+    }
+
+    try {
+      if (promptEditingMode === "create") {
+        await promptsClient.createPrompt(payload);
+      } else {
+        await promptsClient.updatePrompt(payload);
+      }
+
+      const targetWorkspaceName = payload.workspace || selectedWorkspaceName;
+      if (targetWorkspaceName) {
+        await openWorkspace(targetWorkspaceName);
+      } else {
+        await refreshWorkspaceList();
+      }
+      await openPrompt(payload.name);
+      setIsPromptModalOpen(false);
+    } catch (error) {
+      setPromptErrorMessage(error.message || "Can not save prompt");
+    } finally {
+      setIsSavingPrompt(false);
+    }
+  };
+
+  const handleDeletePrompt = async () => {
+    if (!selectedPromptName) {
+      return;
+    }
+
+    setIsSavingPrompt(true);
+    setPromptErrorMessage("");
+
+    try {
+      await promptsClient.deletePrompt(selectedPromptName);
+      setSelectedPromptName("");
+      setPromptInputValues({});
+      setPromptForm({ ...DEFAULT_PROMPT_FORM, workspace: selectedWorkspaceName || "" });
+      setPromptEditingMode("create");
+      setIsPromptDeleteModalOpen(false);
+      if (selectedWorkspaceName) {
+        await openWorkspace(selectedWorkspaceName);
+      }
+    } catch (error) {
+      setPromptErrorMessage(error.message || "Can not delete prompt");
+    } finally {
+      setIsSavingPrompt(false);
+    }
+  };
+
   useEffect(() => {
     const timeoutId = window.setTimeout(() => {
       refreshWorkspaceList();
@@ -295,30 +448,39 @@ export default function WorkspacesPage() {
           selectedPromptName={selectedPromptName}
           isLoadingList={isLoadingList}
           isLoadingWorkspace={isLoadingWorkspace}
-          isSaving={isSavingWorkspace}
           onRefresh={refreshWorkspaceList}
           onSelectWorkspace={openWorkspace}
-          onSelectPrompt={(name) => {
-            setSelectedPromptName(name);
-            setPromptInputValues({});
-          }}
+          onSelectPrompt={openPrompt}
           onBack={handleBack}
-          onNew={openCreateModal}
-          onEdit={openEditModal}
-          onDelete={openDeleteModal}
         />
 
         <main className="grid content-start gap-4 p-4 md:p-6">
           {selectedPromptName ? (
             <PromptViewer
               selectedPrompt={selectedPrompt}
+              selectedPromptName={selectedPromptName}
               promptText={promptText}
               parsedTokens={parsedTokens}
               generatedPrompt={generatedPrompt}
               promptInputValues={promptInputValues}
+              promptForm={promptForm}
+              workspaceList={workspaceList}
+              promptEditingMode={promptEditingMode}
+              isSavingPrompt={isSavingPrompt}
+              promptErrorMessage={promptErrorMessage}
+              isPromptModalOpen={isPromptModalOpen}
+              isPromptDeleteModalOpen={isPromptDeleteModalOpen}
               onInputChange={(id, value) =>
                 setPromptInputValues((prev) => ({ ...prev, [id]: value }))
               }
+              onPromptFormChange={handlePromptFormChange}
+              onPromptSubmit={handleSavePrompt}
+              onNewPrompt={openCreatePromptModal}
+              onEditPrompt={openEditPromptModal}
+              onOpenDeletePrompt={openDeletePromptModal}
+              onDeletePrompt={handleDeletePrompt}
+              onClosePromptModal={closePromptModal}
+              onCloseDeletePrompt={closePromptDeleteModal}
             />
           ) : (
             <WorkspaceForm
@@ -335,6 +497,7 @@ export default function WorkspacesPage() {
               onSubmit={handleSaveWorkspace}
               onNew={openCreateModal}
               onEdit={openEditModal}
+              onOpenDelete={openDeleteModal}
               onDelete={handleDeleteWorkspace}
               onCloseModal={closeWorkspaceModal}
               onCloseDelete={closeDeleteModal}

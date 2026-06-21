@@ -19,6 +19,7 @@ export default function WorkspaceForm({
   onSubmit,
   onNew,
   onEdit,
+  onOpenDelete,
   onDelete,
   onCloseModal,
   onCloseDelete,
@@ -54,7 +55,7 @@ export default function WorkspaceForm({
               <button
                 type="button"
                 className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={onDelete}
+                onClick={onOpenDelete}
                 disabled={isSaving || !selectedWorkspaceName}
               >
                 Delete
