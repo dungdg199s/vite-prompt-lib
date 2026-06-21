@@ -1,17 +1,19 @@
 export class GasServer {
-  handlers = {};
+  constructor() {
+    this.handlers = {};
+  }
 
-  describe = (name, callback) => {
+  describe(name, callback) {
     this.handlers[name] = callback;
-  };
+  }
 
-  invoke = (name, payload) => {
+  invoke(name, payload) {
     const handler = this.handlers[name];
     if (!handler) {
       throw new Error(`Handler not found for name: ${name}`);
     }
     return handler(payload);
-  };
+  }
 
   get(url, callback) {
     this.describe("GET:" + url, (payload) => {

@@ -21,5 +21,3 @@ export function invoke(name, payload) {
     };
   }
 }
-
-global.invoke = invoke;
