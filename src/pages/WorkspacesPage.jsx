@@ -68,7 +68,11 @@ const getPromptText = (prompt) => {
   }
 
   return String(
-    prompt.content || prompt.template || prompt.prompt || prompt.description || "",
+    prompt.content ||
+      prompt.template ||
+      prompt.prompt ||
+      prompt.description ||
+      "",
   );
 };
 
@@ -80,6 +84,8 @@ export default function WorkspacesPage() {
   const [promptInputValues, setPromptInputValues] = useState({});
   const [workspaceForm, setWorkspaceForm] = useState(DEFAULT_WORKSPACE_FORM);
   const [editingMode, setEditingMode] = useState("create");
+  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(false);
   const [isSavingWorkspace, setIsSavingWorkspace] = useState(false);
@@ -94,13 +100,21 @@ export default function WorkspacesPage() {
       return null;
     }
     return (
-      selectedWorkspace.prompts.find((item) => item.name === selectedPromptName) || null
+      selectedWorkspace.prompts.find(
+        (item) => item.name === selectedPromptName,
+      ) || null
     );
   }, [selectedWorkspace, selectedPromptName]);
 
-  const promptText = useMemo(() => getPromptText(selectedPrompt), [selectedPrompt]);
+  const promptText = useMemo(
+    () => getPromptText(selectedPrompt),
+    [selectedPrompt],
+  );
 
-  const parsedTokens = useMemo(() => parsePromptTokens(promptText), [promptText]);
+  const parsedTokens = useMemo(
+    () => parsePromptTokens(promptText),
+    [promptText],
+  );
 
   const generatedPrompt = useMemo(() => {
     if (!promptText) {
@@ -118,11 +132,47 @@ export default function WorkspacesPage() {
     setEditingMode("create");
   };
 
+  const openCreateModal = () => {
+    setErrorMessage("");
+    resetWorkspaceForm();
+    setIsDeleteModalOpen(false);
+    setIsWorkspaceModalOpen(true);
+  };
+
+  const openEditModal = () => {
+    if (!selectedWorkspaceName) {
+      return;
+    }
+    setErrorMessage("");
+    setEditingMode("edit");
+    setIsDeleteModalOpen(false);
+    setIsWorkspaceModalOpen(true);
+  };
+
+  const openDeleteModal = () => {
+    if (!selectedWorkspaceName) {
+      return;
+    }
+    setErrorMessage("");
+    setIsWorkspaceModalOpen(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closeWorkspaceModal = () => {
+    setIsWorkspaceModalOpen(false);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+  };
+
   const handleBack = () => {
     setSelectedWorkspaceName("");
     setSelectedWorkspace(null);
     setSelectedPromptName("");
     setPromptInputValues({});
+    setIsWorkspaceModalOpen(false);
+    setIsDeleteModalOpen(false);
     resetWorkspaceForm();
   };
 
@@ -193,6 +243,7 @@ export default function WorkspacesPage() {
 
       await refreshWorkspaceList();
       await openWorkspace(payload.name);
+      setIsWorkspaceModalOpen(false);
     } catch (error) {
       setErrorMessage(error.message || "Can not save workspace");
     } finally {
@@ -214,6 +265,7 @@ export default function WorkspacesPage() {
       setSelectedWorkspace(null);
       setSelectedPromptName("");
       setPromptInputValues({});
+      setIsDeleteModalOpen(false);
       resetWorkspaceForm();
       await refreshWorkspaceList();
     } catch (error) {
@@ -243,6 +295,7 @@ export default function WorkspacesPage() {
           selectedPromptName={selectedPromptName}
           isLoadingList={isLoadingList}
           isLoadingWorkspace={isLoadingWorkspace}
+          isSaving={isSavingWorkspace}
           onRefresh={refreshWorkspaceList}
           onSelectWorkspace={openWorkspace}
           onSelectPrompt={(name) => {
@@ -250,29 +303,43 @@ export default function WorkspacesPage() {
             setPromptInputValues({});
           }}
           onBack={handleBack}
+          onNew={openCreateModal}
+          onEdit={openEditModal}
+          onDelete={openDeleteModal}
         />
 
         <main className="grid content-start gap-4 p-4 md:p-6">
-          <WorkspaceForm
-            form={workspaceForm}
-            editingMode={editingMode}
-            isSaving={isSavingWorkspace}
-            errorMessage={errorMessage}
-            onFormChange={handleFormChange}
-            onSubmit={handleSaveWorkspace}
-            onNew={resetWorkspaceForm}
-            onDelete={handleDeleteWorkspace}
-          />
-          <PromptViewer
-            selectedPrompt={selectedPrompt}
-            promptText={promptText}
-            parsedTokens={parsedTokens}
-            generatedPrompt={generatedPrompt}
-            promptInputValues={promptInputValues}
-            onInputChange={(id, value) =>
-              setPromptInputValues((prev) => ({ ...prev, [id]: value }))
-            }
-          />
+          {selectedPromptName ? (
+            <PromptViewer
+              selectedPrompt={selectedPrompt}
+              promptText={promptText}
+              parsedTokens={parsedTokens}
+              generatedPrompt={generatedPrompt}
+              promptInputValues={promptInputValues}
+              onInputChange={(id, value) =>
+                setPromptInputValues((prev) => ({ ...prev, [id]: value }))
+              }
+            />
+          ) : (
+            <WorkspaceForm
+              selectedWorkspaceName={selectedWorkspaceName}
+              selectedPromptName={selectedPromptName}
+              form={workspaceForm}
+              promptCount={selectedWorkspace?.prompts?.length || 0}
+              editingMode={editingMode}
+              isSaving={isSavingWorkspace}
+              errorMessage={errorMessage}
+              isModalOpen={isWorkspaceModalOpen}
+              isDeleteModalOpen={isDeleteModalOpen}
+              onFormChange={handleFormChange}
+              onSubmit={handleSaveWorkspace}
+              onNew={openCreateModal}
+              onEdit={openEditModal}
+              onDelete={handleDeleteWorkspace}
+              onCloseModal={closeWorkspaceModal}
+              onCloseDelete={closeDeleteModal}
+            />
+          )}
         </main>
       </div>
     </div>

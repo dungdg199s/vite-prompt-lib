@@ -27,6 +27,8 @@ export default function PromptsPage() {
   const [selectedPromptName, setSelectedPromptName] = useState("");
   const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
   const [editingMode, setEditingMode] = useState("create");
+  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filterWorkspace, setFilterWorkspace] = useState("");
   const [isLoadingList, setIsLoadingList] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,6 +42,40 @@ export default function PromptsPage() {
     setPromptForm(DEFAULT_PROMPT_FORM);
     setSelectedPromptName("");
     setEditingMode("create");
+  };
+
+  const openCreateModal = () => {
+    setErrorMessage("");
+    resetForm();
+    setIsDeleteModalOpen(false);
+    setIsPromptModalOpen(true);
+  };
+
+  const openEditModal = () => {
+    if (!selectedPromptName) {
+      return;
+    }
+    setErrorMessage("");
+    setEditingMode("edit");
+    setIsDeleteModalOpen(false);
+    setIsPromptModalOpen(true);
+  };
+
+  const openDeleteModal = () => {
+    if (!selectedPromptName) {
+      return;
+    }
+    setErrorMessage("");
+    setIsPromptModalOpen(false);
+    setIsDeleteModalOpen(true);
+  };
+
+  const closePromptModal = () => {
+    setIsPromptModalOpen(false);
+  };
+
+  const closeDeleteModal = () => {
+    setIsDeleteModalOpen(false);
   };
 
   const refreshPromptList = async () => {
@@ -104,6 +140,7 @@ export default function PromptsPage() {
       }
       await refreshPromptList();
       await openPrompt(payload.name);
+      setIsPromptModalOpen(false);
     } catch (error) {
       setErrorMessage(error.message || "Cannot save prompt");
     } finally {
@@ -117,6 +154,7 @@ export default function PromptsPage() {
     setErrorMessage("");
     try {
       await promptsClient.deletePrompt(selectedPromptName);
+      setIsDeleteModalOpen(false);
       resetForm();
       await refreshPromptList();
     } catch (error) {
@@ -150,15 +188,22 @@ export default function PromptsPage() {
 
         <main className="grid content-start gap-4 p-4 md:p-6">
           <PromptForm
+            selectedPromptName={selectedPromptName}
             form={promptForm}
             editingMode={editingMode}
             workspaceList={workspaceList}
             isSaving={isSaving}
             errorMessage={errorMessage}
+            isModalOpen={isPromptModalOpen}
+            isDeleteModalOpen={isDeleteModalOpen}
             onFormChange={handleFormChange}
             onSubmit={handleSave}
-            onNew={resetForm}
+            onNew={openCreateModal}
+            onEdit={openEditModal}
+            onOpenDelete={openDeleteModal}
             onDelete={handleDelete}
+            onCloseModal={closePromptModal}
+            onCloseDelete={closeDeleteModal}
           />
           <PromptContentPreview content={promptForm.content} />
         </main>
