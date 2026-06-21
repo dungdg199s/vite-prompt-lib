@@ -1,75 +1,141 @@
 export class GasServer {
   constructor() {
-    this.handlers = {};
+    this.routes = [];
   }
 
-  describe(name, callback) {
-    this.handlers[name] = callback;
+  describe(method, requestUrl, callback) {
+    this.routes.push({ method, pathPattern: requestUrl, callback });
   }
 
-  invoke(name, payload) {
-    const handler = this.handlers[name];
-    if (!handler) {
-      throw new Error(`Handler not found for name: ${name}`);
+  invoke(method, requestUrl, payload) {
+    const matchedRoute = this.routes.find((route) => {
+      if (route.method !== method) {
+        return false;
+      }
+      return this._matchPath(route.pathPattern, requestUrl) !== null;
+    });
+
+    if (!matchedRoute) {
+      throw new Error(
+        `Handler not found for method: ${method} and URL: ${requestUrl}`,
+      );
     }
-    return handler(payload);
+
+    const request = this._parseRequest(
+      matchedRoute.pathPattern,
+      requestUrl,
+      payload,
+    );
+
+    return matchedRoute.callback(request);
   }
 
   get(url, callback) {
-    this.describe("GET:" + url, (payload) => {
-      const request = this._parseRequest(url, payload);
-      return callback(request);
-    });
+    this.describe("GET", url, callback);
   }
 
   post(url, callback) {
-    this.describe("POST:" + url, (payload) => {
-      const request = this._parseRequest(url, payload);
-      return callback(request);
-    });
+    this.describe("POST", url, callback);
   }
 
   delete(url, callback) {
-    this.describe("DELETE:" + url, (payload) => {
-      const request = this._parseRequest(url, payload);
-      return callback(request);
-    });
+    this.describe("DELETE", url, callback);
   }
 
   put(url, callback) {
-    this.describe("PUT:" + url, (payload) => {
-      const request = this._parseRequest(url, payload);
-      return callback(request);
-    });
+    this.describe("PUT", url, callback);
   }
 
-  _parseRequest(url, payload) {
-    const parsedUrl = new URL(url, "http://localhost");
-    const path = parsedUrl.pathname;
+  _parseRequest(pathPattern, requestUrl, payload) {
+    const parsedPatternUrl = this._splitUrl(pathPattern);
+    const parsedRequestUrl = this._splitUrl(requestUrl);
 
-    const queryParams = {};
-    for (const [key, value] of parsedUrl.searchParams.entries()) {
-      queryParams[key] = value;
-    }
+    const queryParams = this._parseQuery(parsedRequestUrl.search);
 
-    const pathVars = {};
-    const patternSegments = parsedUrl.pathname.split("/").filter(Boolean);
-    const pathSegments = path.split("/").filter(Boolean);
-
-    for (let i = 0; i < patternSegments.length; i++) {
-      if (patternSegments[i].startsWith(":")) {
-        const varName = patternSegments[i].substring(1);
-        pathVars[varName] = pathSegments[i];
-      }
-    }
+    const pathVars = this._matchPath(
+      parsedPatternUrl.pathname,
+      parsedRequestUrl.pathname,
+    );
 
     const request = {
-      path: pathVars,
-      params: queryParams,
+      params: pathVars || {},
+      query: queryParams,
       body: payload,
     };
 
     return request;
+  }
+
+  _splitUrl(rawUrl) {
+    const normalizedUrl = String(rawUrl || "");
+    const hashIndex = normalizedUrl.indexOf("#");
+    const urlWithoutHash =
+      hashIndex >= 0 ? normalizedUrl.slice(0, hashIndex) : normalizedUrl;
+    const queryStartIndex = urlWithoutHash.indexOf("?");
+
+    return {
+      pathname:
+        queryStartIndex >= 0
+          ? urlWithoutHash.slice(0, queryStartIndex)
+          : urlWithoutHash,
+      search:
+        queryStartIndex >= 0 ? urlWithoutHash.slice(queryStartIndex + 1) : "",
+    };
+  }
+
+  _parseQuery(search) {
+    if (!search) {
+      return {};
+    }
+
+    const queryParams = {};
+    const pairs = String(search).split("&").filter(Boolean);
+
+    for (const pair of pairs) {
+      const equalsIndex = pair.indexOf("=");
+      const rawKey = equalsIndex >= 0 ? pair.slice(0, equalsIndex) : pair;
+      const rawValue = equalsIndex >= 0 ? pair.slice(equalsIndex + 1) : "";
+      const decodedKey = this._safeDecode(rawKey.replace(/\+/g, " "));
+      const decodedValue = this._safeDecode(rawValue.replace(/\+/g, " "));
+      queryParams[decodedKey] = decodedValue;
+    }
+
+    return queryParams;
+  }
+
+  _safeDecode(value) {
+    try {
+      return decodeURIComponent(value);
+    } catch (_error) {
+      return value;
+    }
+  }
+
+  _matchPath(pathPattern, requestPath) {
+    const patternSegments = String(pathPattern).split("/").filter(Boolean);
+    const requestSegments = String(requestPath).split("/").filter(Boolean);
+
+    if (patternSegments.length !== requestSegments.length) {
+      return null;
+    }
+
+    const params = {};
+
+    for (let i = 0; i < patternSegments.length; i += 1) {
+      const patternSegment = patternSegments[i];
+      const requestSegment = requestSegments[i];
+
+      if (patternSegment.startsWith(":")) {
+        params[patternSegment.slice(1)] = decodeURIComponent(requestSegment);
+        continue;
+      }
+
+      if (patternSegment !== requestSegment) {
+        return null;
+      }
+    }
+
+    return params;
   }
 }
 

@@ -8,7 +8,7 @@
     "build": "vite build && node gs.build.cjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "push": "clasp push -f",
+    "push": "yarn run build && clasp push -f",
     "pull": "clasp pull",
     "publish": "yarn run build && yarn run push && node gs.publish.cjs"
   },

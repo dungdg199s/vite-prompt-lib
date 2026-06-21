@@ -7,7 +7,7 @@ gasServer.get("/api/workspaces", () => {
 
 gasServer.get("/api/workspaces/:name", (req) => {
   const name = req.params.name;
-  const workspace = sheetDb.table("workspaces").get(name);
+  const workspace = sheetDb.table("workspaces").getByName(name);
   if (!workspace) {
     throw new Error(`Workspace "${name}" not found`);
   }

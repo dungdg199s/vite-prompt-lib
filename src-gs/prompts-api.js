@@ -7,7 +7,7 @@ gasServer.get("/api/prompts", () => {
 
 gasServer.get("/api/prompts/:name", (req) => {
   const name = req.params.name;
-  return sheetDb.table("prompt").get(name);
+  return sheetDb.table("prompt").getByName(name);
 });
 
 gasServer.post("/api/prompts", (req) => {

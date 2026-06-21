@@ -7,9 +7,9 @@ export function doGet(e) {
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
-export function invoke(name, payload) {
+export function invoke(method, requestUrl, payload) {
   try {
-    const result = gasServer.invoke(name, payload);
+    const result = gasServer.invoke(method, requestUrl, payload);
     return {
       success: true,
       data: result,
@@ -17,7 +17,7 @@ export function invoke(name, payload) {
   } catch (error) {
     return {
       success: false,
-      error: error.message,
+      error: error.message + (error.stack ? "\n" + error.stack : ""),
     };
   }
 }

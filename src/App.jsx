@@ -1,11 +1,7 @@
-import "./App.css";
+import WorkspacesPage from "./pages/WorkspacesPage";
 
 function App() {
-  return (
-    <>
-      <h1>Hello Vite + React! A</h1>
-    </>
-  );
+  return <WorkspacesPage />;
 }
 
 export default App;

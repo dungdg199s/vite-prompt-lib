@@ -9,29 +9,17 @@ export class SheetDb {
     const spreadsheetId = properties.getProperty(spreadsheetKey);
 
     if (spreadsheetId) {
-      try {
-        this.preadsheet = SpreadsheetApp.openById(spreadsheetId);
-        return this;
-      } catch (error) {
-        const folder = DriveApp.getFolderById(WORKSPACES_FOLDER_ID);
-        const existingFiles = folder.getFilesByType(MimeType.GOOGLE_SHEETS);
-        if (existingFiles.hasNext()) {
-          const file = existingFiles.next();
-          const existingSpreadsheetId = file.getId();
-          properties.setProperty(spreadsheetKey, existingSpreadsheetId);
-          this.preadsheet = SpreadsheetApp.openById(existingSpreadsheetId);
-          return this;
-        }
-
-        const spreadsheet = SpreadsheetApp.create(dbName);
-        const spreadsheetFile = DriveApp.getFileById(spreadsheet.getId());
-        folder.addFile(spreadsheetFile);
-
-        properties.setProperty(spreadsheetKey, spreadsheet.getId());
-        this.preadsheet = spreadsheet;
-        return this;
-      }
+      this.preadsheet = SpreadsheetApp.openById(spreadsheetId);
+      return this;
+    } else {
+      const folder = DriveApp.getFolderById(WORKSPACES_FOLDER_ID);
+      const spreadsheet = SpreadsheetApp.create(dbName);
+      const spreadsheetFile = DriveApp.getFileById(spreadsheet.getId());
+      folder.addFile(spreadsheetFile);
+      properties.setProperty(spreadsheetKey, spreadsheet.getId());
+      this.preadsheet = spreadsheet;
     }
+    return this;
   }
 
   table(name) {
@@ -75,7 +63,7 @@ class SheetTable {
       records = records.filter(
         (record) =>
           record.shareMode === "public" ||
-          record.author === effectiveUser ||
+          record.owner === effectiveUser ||
           (record.shareMode === "shared" &&
             Array.isArray(record.shareWith) &&
             record.shareWith.includes(effectiveUser)),
@@ -177,4 +165,4 @@ class SheetTable {
   }
 }
 
-export const sheetDb = new SheetDb(WORKSPACES_SPREADSHEET_NAME).connect();
+export const sheetDb = new SheetDb().connect(WORKSPACES_SPREADSHEET_NAME);
