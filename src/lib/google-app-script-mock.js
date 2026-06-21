@@ -34,6 +34,7 @@ const mockDb = {
   documents: [
     {
       name: "growth-sheet-doc",
+      type: "Spreadsheets",
       workspace: "growth-team",
       fileName: "growth-kpis",
       preasheetId: "mock-sheet-id-001",
@@ -48,6 +49,7 @@ const mockDb = {
           },
         ],
       },
+      contentHTML: "",
       syncOptions: {
         includeEmptyRows: false,
         headerRow: 1,
@@ -243,8 +245,13 @@ const routes = [
     method: "POST",
     path: "/api/documents",
     handler: ({ body }) => {
-      if (!body?.name || !body?.preasheetId) {
+      if (!body?.name) {
         throw new Error("Invalid payload for create-document");
+      }
+
+      const type = body.type || "Spreadsheets";
+      if (type === "Spreadsheets" && !body?.preasheetId) {
+        throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
       if (findDocumentByName(body.name)) {
@@ -253,12 +260,14 @@ const routes = [
 
       const record = {
         name: String(body.name),
+        type,
         workspace: String(body.workspace || ""),
         fileName: String(body.fileName || ""),
-        preasheetId: String(body.preasheetId),
+        preasheetId: String(body.preasheetId || ""),
         description: String(body.description || ""),
         contentMarkdown: String(body.contentMarkdown || ""),
         contentJSON: body.contentJSON || null,
+        contentHTML: String(body.contentHTML || ""),
         syncOptions: body.syncOptions || {
           includeEmptyRows: false,
           headerRow: 1,
@@ -276,8 +285,13 @@ const routes = [
     method: "PUT",
     path: "/api/documents",
     handler: ({ body }) => {
-      if (!body?.name || !body?.preasheetId) {
+      if (!body?.name) {
         throw new Error("Invalid payload for update-document");
+      }
+
+      const type = body.type || "Spreadsheets";
+      if (type === "Spreadsheets" && !body?.preasheetId) {
+        throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
       const document = findDocumentByName(body.name);
@@ -285,12 +299,14 @@ const routes = [
         throw new Error(`Document "${body.name}" not found`);
       }
 
+      document.type = type;
       document.workspace = String(body.workspace || "");
       document.fileName = String(body.fileName || "");
-      document.preasheetId = String(body.preasheetId);
+      document.preasheetId = String(body.preasheetId || "");
       document.description = String(body.description || "");
       document.contentMarkdown = String(body.contentMarkdown || "");
       document.contentJSON = body.contentJSON || null;
+      document.contentHTML = String(body.contentHTML || "");
       document.syncOptions = body.syncOptions || {
         includeEmptyRows: false,
         headerRow: 1,
@@ -325,6 +341,10 @@ const routes = [
       const document = findDocumentByName(params.name);
       if (!document) {
         throw new Error(`Document "${params.name}" not found`);
+      }
+
+      if ((document.type || "Spreadsheets") !== "Spreadsheets") {
+        throw new Error("Sync is only available for Spreadsheets documents");
       }
 
       const options = body || {};
@@ -419,7 +439,7 @@ const createRunner = () => {
         } catch (error) {
           failureHandler(error);
         }
-      }, 100);
+      }, 1500);
     },
   };
 };

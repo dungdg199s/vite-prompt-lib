@@ -1,4 +1,6 @@
+import { useState } from "react";
 import AppModal from "../shared/AppModal";
+import DocumentSelectorModal from "../shared/DocumentSelectorModal";
 
 const inputClassName =
   "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
@@ -19,6 +21,7 @@ export default function PromptViewer({
   promptInputValues,
   promptForm,
   workspaceList,
+  documents = [],
   promptEditingMode,
   isSavingPrompt,
   promptErrorMessage,
@@ -34,6 +37,27 @@ export default function PromptViewer({
   onClosePromptModal,
   onCloseDeletePrompt,
 }) {
+  const [isDocumentSelectorOpen, setIsDocumentSelectorOpen] = useState(false);
+  const [editingTokenId, setEditingTokenId] = useState(null);
+
+  const handleOpenDocumentSelector = (tokenId) => {
+    setEditingTokenId(tokenId);
+    setIsDocumentSelectorOpen(true);
+  };
+
+  const handleSelectDocumentContent = (content) => {
+    if (editingTokenId) {
+      onInputChange(editingTokenId, content);
+      setIsDocumentSelectorOpen(false);
+      setEditingTokenId(null);
+    }
+  };
+
+  const copyToClipboard = () => {
+    if (generatedPrompt) {
+      navigator.clipboard.writeText(generatedPrompt);
+    }
+  };
   return (
     <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -91,12 +115,22 @@ export default function PromptViewer({
                 <label key={token.id} className="grid content-start gap-1.5 text-sm">
                   {token.label}
                   {token.inputType === "textarea" ? (
-                    <textarea
-                      className={inputClassName}
-                      rows={4}
-                      value={promptInputValues[token.id] || ""}
-                      onChange={(e) => onInputChange(token.id, e.target.value)}
-                    />
+                    <div className="flex gap-1">
+                      <textarea
+                        className={`${inputClassName} flex-1`}
+                        rows={4}
+                        value={promptInputValues[token.id] || ""}
+                        onChange={(e) => onInputChange(token.id, e.target.value)}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDocumentSelector(token.id)}
+                        title="Select document content"
+                        className="rounded-lg border border-stone-300 bg-teal-50 px-2 py-1 text-xs font-medium text-slate-800 transition hover:brightness-95"
+                      >
+                        📄
+                      </button>
+                    </div>
                   ) : null}
                   {token.inputType === "select" ? (
                     <select
@@ -126,13 +160,31 @@ export default function PromptViewer({
           </div>
 
           <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
-            <h3 className="text-sm font-semibold">Generated Prompt</h3>
-            <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <h3 className="text-sm font-semibold">Generated Prompt</h3>
+              <button
+                type="button"
+                onClick={copyToClipboard}
+                disabled={!generatedPrompt || generatedPrompt === "Generated prompt will appear here."}
+                title="Copy to clipboard"
+                className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Copy
+              </button>
+            </div>
+            <pre className="overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
               {generatedPrompt || "Generated prompt will appear here."}
             </pre>
           </div>
         </>
       )}
+
+      <DocumentSelectorModal
+        isOpen={isDocumentSelectorOpen}
+        documents={documents}
+        onClose={() => setIsDocumentSelectorOpen(false)}
+        onSelectContent={handleSelectDocumentContent}
+      />
 
       <AppModal
         isOpen={isPromptModalOpen}

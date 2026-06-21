@@ -1,18 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import DocumentSidebar from "../components/documents/DocumentSidebar";
 import DocumentForm from "../components/documents/DocumentForm";
 import DocumentContentPreview from "../components/documents/DocumentContentPreview";
 import { documentsClient } from "../lib/documents-client";
-import { workspacesClient } from "../lib/workspaces-client";
+import { useAppData } from "../contexts/AppDataContext";
 
 const DEFAULT_DOCUMENT_FORM = {
   name: "",
+  type: "Spreadsheets",
   workspace: "",
   fileName: "",
   preasheetId: "",
   description: "",
   contentMarkdown: "",
   contentJSON: "",
+  contentHTML: "",
   shareMode: "private",
   shareWith: "",
   syncOptions: null,
@@ -48,9 +50,33 @@ const parseContentJSON = (rawContent) => {
   }
 };
 
+const stringifyContentJSON = (rawContent) => {
+  if (rawContent === null || rawContent === undefined || rawContent === "") {
+    return "";
+  }
+
+  if (typeof rawContent === "string") {
+    return rawContent;
+  }
+
+  try {
+    return JSON.stringify(rawContent, null, 2);
+  } catch {
+    return String(rawContent);
+  }
+};
+
 export default function DocumentsPage() {
-  const [documentList, setDocumentList] = useState([]);
-  const [workspaceList, setWorkspaceList] = useState([]);
+  const {
+    documents: documentList,
+    workspaces: workspaceList,
+    isLoadingDocuments: isLoadingList,
+    refreshDocuments,
+    refreshAfterDocumentCreate,
+    refreshAfterDocumentUpdate,
+    refreshAfterDocumentDelete,
+  } = useAppData();
+
   const [selectedDocumentName, setSelectedDocumentName] = useState("");
   const [documentForm, setDocumentForm] = useState(DEFAULT_DOCUMENT_FORM);
   const [editingMode, setEditingMode] = useState("create");
@@ -63,7 +89,6 @@ export default function DocumentsPage() {
   const [syncPreasheetName, setSyncPreasheetName] = useState("");
   const [syncSheetNames, setSyncSheetNames] = useState([]);
   const [isLoadingSyncMeta, setIsLoadingSyncMeta] = useState(false);
-  const [isLoadingList, setIsLoadingList] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -85,7 +110,33 @@ export default function DocumentsPage() {
 
   const handleDocumentFormChange = (field, value) => {
     setErrorMessage("");
-    setDocumentForm((prev) => ({ ...prev, [field]: value }));
+    setDocumentForm((prev) => {
+      if (field === "name") {
+        return {
+          ...prev,
+          name: value,
+          fileName:
+            (prev.type || "Spreadsheets") === "Spreadsheets"
+              ? String(value || "").trim()
+              : prev.fileName,
+        };
+      }
+
+      if (field !== "type") {
+        return { ...prev, [field]: value };
+      }
+
+      const nextType = value || "Spreadsheets";
+      return {
+        ...prev,
+        type: nextType,
+        fileName:
+          nextType === "Spreadsheets"
+            ? String(prev.fileName || prev.name || "").trim()
+            : "",
+        preasheetId: nextType === "Spreadsheets" ? prev.preasheetId : "",
+      };
+    });
   };
 
   const handleSyncOptionChange = (field, value) => {
@@ -121,7 +172,7 @@ export default function DocumentsPage() {
     setDocumentForm(DEFAULT_DOCUMENT_FORM);
     setSelectedDocumentName("");
     setEditingMode("create");
-    setFormPhase("details");
+    setFormPhase("type");
   };
 
   const resetSyncOptions = () => {
@@ -133,7 +184,7 @@ export default function DocumentsPage() {
   const openCreateModal = () => {
     setErrorMessage("");
     resetDocumentForm();
-    setFormPhase("details");
+    setFormPhase("type");
     setIsDeleteModalOpen(false);
     setIsSyncModalOpen(false);
     setIsDocumentModalOpen(true);
@@ -152,6 +203,25 @@ export default function DocumentsPage() {
     setIsDocumentModalOpen(true);
   };
 
+  const handleSelectType = (type) => {
+    setErrorMessage("");
+    setDocumentForm((prev) => ({
+      ...prev,
+      type,
+      preasheetId: type === "Spreadsheets" ? prev.preasheetId : "",
+    }));
+  };
+
+  const handleNextTypePhase = () => {
+    if (!documentForm.type) {
+      setErrorMessage("Document type is required");
+      return;
+    }
+
+    setErrorMessage("");
+    setFormPhase("details");
+  };
+
   const loadPreasheetMetadata = async (preasheetId) => {
     setIsLoadingSyncMeta(true);
 
@@ -162,6 +232,14 @@ export default function DocumentsPage() {
         : [];
 
       const finalSheetNames = names.length ? names : fallbackSheets;
+      const nextFileName = String(
+        preasheet?.preasheetName || documentForm.fileName || documentForm.name || "",
+      ).trim();
+
+      setDocumentForm((prev) => ({
+        ...prev,
+        fileName: nextFileName,
+      }));
       setSyncPreasheetName(preasheet?.preasheetName || documentForm.fileName || "");
       setSyncSheetNames(finalSheetNames);
       setSyncOptions((prev) => ({
@@ -179,13 +257,17 @@ export default function DocumentsPage() {
 
   const handleNextFormPhase = async () => {
     const name = documentForm.name.trim();
-    const preasheetId = documentForm.preasheetId.trim();
 
     if (!name) {
       setErrorMessage("Document name is required");
       return;
     }
 
+    if (documentForm.type !== "Spreadsheets") {
+      return;
+    }
+
+    const preasheetId = documentForm.preasheetId.trim();
     if (!preasheetId) {
       setErrorMessage("Spreadsheet ID is required");
       return;
@@ -200,7 +282,7 @@ export default function DocumentsPage() {
 
   const handleBackFormPhase = () => {
     setErrorMessage("");
-    setFormPhase("details");
+    setFormPhase(editingMode === "create" ? "type" : "details");
   };
 
   const openDeleteModal = () => {
@@ -216,6 +298,11 @@ export default function DocumentsPage() {
 
   const openSyncModal = async () => {
     if (!selectedDocumentName) {
+      return;
+    }
+
+    if ((documentForm.type || "Spreadsheets") !== "Spreadsheets") {
+      setErrorMessage("Sync is only available for Spreadsheets documents");
       return;
     }
 
@@ -235,7 +322,7 @@ export default function DocumentsPage() {
   };
 
   const closeDocumentModal = () => {
-    setFormPhase("details");
+    setFormPhase(editingMode === "create" ? "type" : "details");
     setIsDocumentModalOpen(false);
   };
 
@@ -248,26 +335,7 @@ export default function DocumentsPage() {
   };
 
   const refreshDocumentList = async () => {
-    setIsLoadingList(true);
-    setErrorMessage("");
-
-    try {
-      const list = (await documentsClient.getDocuments()) || [];
-      setDocumentList(list);
-    } catch (error) {
-      setErrorMessage(error.message || "Cannot load document list");
-    } finally {
-      setIsLoadingList(false);
-    }
-  };
-
-  const loadWorkspaceList = async () => {
-    try {
-      const list = (await workspacesClient.getWorkspaces()) || [];
-      setWorkspaceList(list);
-    } catch {
-      setWorkspaceList([]);
-    }
+    await refreshDocuments();
   };
 
   const openDocument = async (name) => {
@@ -279,12 +347,14 @@ export default function DocumentsPage() {
       const document = await documentsClient.getDocument(name);
       setDocumentForm({
         name: document?.name || "",
+        type: document?.type || "Spreadsheets",
         workspace: document?.workspace || "",
         fileName: document?.fileName || "",
         preasheetId: document?.preasheetId || "",
         description: document?.description || "",
         contentMarkdown: document?.contentMarkdown || "",
-        contentJSON: document?.contentJSON || "",
+        contentJSON: stringifyContentJSON(document?.contentJSON),
+        contentHTML: document?.contentHTML || "",
         shareMode: document?.shareMode || "private",
         shareWith: Array.isArray(document?.shareWith)
           ? document.shareWith.join(", ")
@@ -307,6 +377,7 @@ export default function DocumentsPage() {
         selectedSheets: storedSheets,
       });
       setEditingMode("edit");
+      setFormPhase("details");
     } catch (error) {
       setErrorMessage(error.message || "Cannot load document detail");
     }
@@ -319,12 +390,14 @@ export default function DocumentsPage() {
 
     const payload = {
       name: documentForm.name.trim(),
+      type: documentForm.type || "Spreadsheets",
       workspace: documentForm.workspace.trim(),
-      fileName: documentForm.fileName.trim(),
+      fileName: "",
       preasheetId: documentForm.preasheetId.trim(),
       description: documentForm.description.trim(),
       contentMarkdown: documentForm.contentMarkdown,
       contentJSON: documentForm.contentJSON,
+      contentHTML: documentForm.contentHTML,
       shareMode: documentForm.shareMode,
       shareWith:
         documentForm.shareMode === "shared"
@@ -338,30 +411,43 @@ export default function DocumentsPage() {
       return;
     }
 
-    if (!payload.preasheetId) {
+    const isSpreadsheetType = payload.type === "Spreadsheets";
+
+    payload.fileName = isSpreadsheetType
+      ? String(documentForm.fileName || payload.name).trim()
+      : "";
+
+    if (isSpreadsheetType && !payload.preasheetId) {
       setErrorMessage("Spreadsheet ID is required");
       setIsSaving(false);
       return;
     }
 
-    const mergedSheets = Array.from(new Set([...(syncOptions.selectedSheets || [])]));
-
-    const normalizedSyncOptions = {
-      includeEmptyRows: Boolean(syncOptions.includeEmptyRows),
+    let normalizedSyncOptions = payload.syncOptions || {
+      includeEmptyRows: false,
+      headerRow: 1,
+      sheets: [],
     };
 
-    const parsedHeaderRow = Number.parseInt(syncOptions.headerRow, 10);
-    if (Number.isInteger(parsedHeaderRow) && parsedHeaderRow > 0) {
-      normalizedSyncOptions.headerRow = parsedHeaderRow;
-    }
+    if (isSpreadsheetType) {
+      const mergedSheets = Array.from(new Set([...(syncOptions.selectedSheets || [])]));
+      normalizedSyncOptions = {
+        includeEmptyRows: Boolean(syncOptions.includeEmptyRows),
+      };
 
-    if (!syncOptions.useAllSheets) {
-      if (!mergedSheets.length) {
-        setErrorMessage("Please select at least one sheet or choose all");
-        setIsSaving(false);
-        return;
+      const parsedHeaderRow = Number.parseInt(syncOptions.headerRow, 10);
+      if (Number.isInteger(parsedHeaderRow) && parsedHeaderRow > 0) {
+        normalizedSyncOptions.headerRow = parsedHeaderRow;
       }
-      normalizedSyncOptions.sheets = mergedSheets;
+
+      if (!syncOptions.useAllSheets) {
+        if (!mergedSheets.length) {
+          setErrorMessage("Please select at least one sheet or choose all");
+          setIsSaving(false);
+          return;
+        }
+        normalizedSyncOptions.sheets = mergedSheets;
+      }
     }
 
     payload.syncOptions = normalizedSyncOptions;
@@ -369,13 +455,16 @@ export default function DocumentsPage() {
     try {
       if (editingMode === "create") {
         await documentsClient.createDocument(payload);
+        await refreshAfterDocumentCreate();
       } else {
         await documentsClient.updateDocument(payload);
+        await refreshAfterDocumentUpdate();
       }
 
-      await documentsClient.syncDocument(payload.name, normalizedSyncOptions);
+      if (isSpreadsheetType) {
+        await documentsClient.syncDocument(payload.name, normalizedSyncOptions);
+      }
 
-      await refreshDocumentList();
       await openDocument(payload.name);
       setFormPhase("details");
       setIsDocumentModalOpen(false);
@@ -396,10 +485,10 @@ export default function DocumentsPage() {
 
     try {
       await documentsClient.deleteDocument(selectedDocumentName);
+      await refreshAfterDocumentDelete();
       setIsDeleteModalOpen(false);
       resetDocumentForm();
       resetSyncOptions();
-      await refreshDocumentList();
     } catch (error) {
       setErrorMessage(error.message || "Cannot delete document");
     } finally {
@@ -410,6 +499,11 @@ export default function DocumentsPage() {
   const handleSync = async (event) => {
     event.preventDefault();
     if (!selectedDocumentName) {
+      return;
+    }
+
+    if ((documentForm.type || "Spreadsheets") !== "Spreadsheets") {
+      setErrorMessage("Sync is only available for Spreadsheets documents");
       return;
     }
 
@@ -438,7 +532,7 @@ export default function DocumentsPage() {
 
     try {
       await documentsClient.syncDocument(selectedDocumentName, normalizedOptions);
-      await refreshDocumentList();
+      await refreshAfterDocumentUpdate();
       await openDocument(selectedDocumentName);
       setIsSyncModalOpen(false);
     } catch (error) {
@@ -447,17 +541,6 @@ export default function DocumentsPage() {
       setIsSaving(false);
     }
   };
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      refreshDocumentList();
-      loadWorkspaceList();
-    }, 0);
-
-    return () => {
-      window.clearTimeout(timeoutId);
-    };
-  }, []);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">
@@ -493,6 +576,8 @@ export default function DocumentsPage() {
             onSyncOptionChange={handleSyncOptionChange}
             onToggleSyncSheet={handleToggleSyncSheet}
             onToggleAllSheets={handleToggleAllSheets}
+            onSelectType={handleSelectType}
+            onNextTypePhase={handleNextTypePhase}
             onNextPhase={handleNextFormPhase}
             onBackPhase={handleBackFormPhase}
             onSubmit={handleSave}
@@ -508,8 +593,10 @@ export default function DocumentsPage() {
           />
 
           <DocumentContentPreview
+            type={documentForm.type}
             contentMarkdown={documentForm.contentMarkdown}
             contentJSON={parsedContentJSON || documentForm.contentJSON}
+            contentHTML={documentForm.contentHTML}
           />
         </main>
       </div>

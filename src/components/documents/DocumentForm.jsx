@@ -26,6 +26,8 @@ export default function DocumentForm({
   onSyncOptionChange,
   onToggleSyncSheet,
   onToggleAllSheets,
+  onSelectType,
+  onNextTypePhase,
   onNextPhase,
   onBackPhase,
   onSubmit,
@@ -40,6 +42,7 @@ export default function DocumentForm({
   onCloseSync,
 }) {
   const isSharedMode = form.shareMode === "shared";
+  const isSpreadsheetType = (form.type || "Spreadsheets") === "Spreadsheets";
 
   return (
     <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
@@ -69,7 +72,7 @@ export default function DocumentForm({
           <button
             type="button"
             onClick={onOpenSync}
-            disabled={isSaving || !selectedDocumentName}
+            disabled={isSaving || !selectedDocumentName || !isSpreadsheetType}
             className={primaryButtonClassName}
           >
             Sync
@@ -95,18 +98,26 @@ export default function DocumentForm({
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Workspace</p>
             <p className="mt-1 text-sm font-medium text-slate-800">{form.workspace || "No workspace"}</p>
           </div>
+          {isSpreadsheetType ? (
+            <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">File Name</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{form.fileName || "Auto-filled"}</p>
+            </div>
+          ) : null}
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">File Name</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{form.fileName || "No file name"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Type</p>
+            <p className="mt-1 text-sm font-medium text-slate-800">{form.type || "Spreadsheets"}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
             <p className="mt-1 text-sm font-medium capitalize text-slate-800">{form.shareMode}</p>
           </div>
-          <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet ID</p>
-            <p className="mt-1 break-all text-sm font-medium text-slate-800">{form.preasheetId || "No spreadsheet id"}</p>
-          </div>
+          {isSpreadsheetType ? (
+            <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet ID</p>
+              <p className="mt-1 break-all text-sm font-medium text-slate-800">{form.preasheetId || "No spreadsheet id"}</p>
+            </div>
+          ) : null}
           {isSharedMode ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share With</p>
@@ -136,7 +147,11 @@ export default function DocumentForm({
               {editingMode === "create" ? "Create Document" : "Edit Document"}
             </h3>
             <p className="text-xs uppercase tracking-wider text-slate-500">
-              {formPhase === "details" ? "Step 1/2: Information" : "Step 2/2: Sync options"}
+              {formPhase === "type"
+                ? "Step 1/3: Select type"
+                : formPhase === "details"
+                  ? `Step ${editingMode === "create" ? "2" : "1"}/${editingMode === "create" ? (isSpreadsheetType ? "3" : "2") : (isSpreadsheetType ? "2" : "1")}: Information`
+                  : "Step 3/3: Sync options"}
             </p>
           </div>
           <button type="button" className={secondaryButtonClassName} onClick={onCloseModal}>
@@ -145,7 +160,44 @@ export default function DocumentForm({
         </div>
 
         <form className="grid gap-3" onSubmit={onSubmit}>
-          {formPhase === "details" ? (
+          {formPhase === "type" ? (
+            <>
+              <div className="grid gap-2">
+                {[
+                  "Spreadsheets",
+                  "Markdown",
+                  "JSON",
+                  "HTML",
+                ].map((typeItem) => (
+                  <button
+                    key={typeItem}
+                    type="button"
+                    onClick={() => onSelectType(typeItem)}
+                    className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+                      (form.type || "Spreadsheets") === typeItem
+                        ? "border-teal-700 bg-teal-100"
+                        : "border-stone-300 bg-white hover:border-teal-700/40"
+                    }`}
+                  >
+                    {typeItem}
+                  </button>
+                ))}
+              </div>
+
+              <div className="flex flex-wrap justify-end gap-2 pt-2">
+                <button type="button" onClick={onCloseModal} className={secondaryButtonClassName}>
+                  Cancel
+                </button>
+                <button type="button" disabled={isSaving} className={primaryButtonClassName} onClick={onNextTypePhase}>
+                  Next
+                </button>
+              </div>
+
+              {errorMessage ? (
+                <p className="text-sm text-red-700">{errorMessage}</p>
+              ) : null}
+            </>
+          ) : formPhase === "details" ? (
             <>
               <label className="grid gap-1.5 text-sm">
                 Document Name
@@ -156,6 +208,20 @@ export default function DocumentForm({
                   disabled={editingMode === "edit"}
                   placeholder="my-document"
                 />
+              </label>
+
+              <label className="grid gap-1.5 text-sm">
+                Type
+                <select
+                  className={inputClassName}
+                  value={form.type || "Spreadsheets"}
+                  onChange={(event) => onFormChange("type", event.target.value)}
+                >
+                  <option value="Spreadsheets">Spreadsheets</option>
+                  <option value="Markdown">Markdown</option>
+                  <option value="JSON">JSON</option>
+                  <option value="HTML">HTML</option>
+                </select>
               </label>
 
               <label className="grid gap-1.5 text-sm">
@@ -174,25 +240,72 @@ export default function DocumentForm({
                 </select>
               </label>
 
-              <label className="grid gap-1.5 text-sm">
-                File Name
-                <input
-                  className={inputClassName}
-                  value={form.fileName}
-                  onChange={(event) => onFormChange("fileName", event.target.value)}
-                  placeholder="source-sheet-name"
-                />
-              </label>
+              {isSpreadsheetType ? (
+                <label className="grid gap-1.5 text-sm">
+                  File Name
+                  <input
+                    className={inputClassName}
+                    value={form.fileName || form.name || ""}
+                    readOnly
+                    disabled
+                    placeholder="Auto-filled from spreadsheet"
+                  />
+                  <span className="text-xs text-slate-500">
+                    Auto-filled. File name is managed by spreadsheet metadata.
+                  </span>
+                </label>
+              ) : null}
 
-              <label className="grid gap-1.5 text-sm">
-                Spreadsheet ID
-                <input
-                  className={inputClassName}
-                  value={form.preasheetId}
-                  onChange={(event) => onFormChange("preasheetId", event.target.value)}
-                  placeholder="1AbCdEfGh..."
-                />
-              </label>
+              {isSpreadsheetType ? (
+                <label className="grid gap-1.5 text-sm">
+                  Spreadsheet ID
+                  <input
+                    className={inputClassName}
+                    value={form.preasheetId}
+                    onChange={(event) => onFormChange("preasheetId", event.target.value)}
+                    placeholder="1AbCdEfGh..."
+                  />
+                </label>
+              ) : null}
+
+              {form.type === "Markdown" ? (
+                <label className="grid gap-1.5 text-sm">
+                  Markdown Content
+                  <textarea
+                    className={inputClassName}
+                    value={form.contentMarkdown}
+                    onChange={(event) => onFormChange("contentMarkdown", event.target.value)}
+                    rows={8}
+                    placeholder="Write markdown content..."
+                  />
+                </label>
+              ) : null}
+
+              {form.type === "JSON" ? (
+                <label className="grid gap-1.5 text-sm">
+                  JSON Content
+                  <textarea
+                    className={inputClassName}
+                    value={form.contentJSON}
+                    onChange={(event) => onFormChange("contentJSON", event.target.value)}
+                    rows={8}
+                    placeholder='{"key": "value"}'
+                  />
+                </label>
+              ) : null}
+
+              {form.type === "HTML" ? (
+                <label className="grid gap-1.5 text-sm">
+                  HTML Content
+                  <textarea
+                    className={inputClassName}
+                    value={form.contentHTML}
+                    onChange={(event) => onFormChange("contentHTML", event.target.value)}
+                    rows={8}
+                    placeholder="<h1>Title</h1>"
+                  />
+                </label>
+              ) : null}
 
               <label className="grid gap-1.5 text-sm">
                 Description
@@ -234,9 +347,15 @@ export default function DocumentForm({
                 <button type="button" onClick={onCloseModal} className={secondaryButtonClassName}>
                   Cancel
                 </button>
-                <button type="button" disabled={isSaving} className={primaryButtonClassName} onClick={onNextPhase}>
-                  Next
-                </button>
+                {isSpreadsheetType ? (
+                  <button type="button" disabled={isSaving} className={primaryButtonClassName} onClick={onNextPhase}>
+                    Next
+                  </button>
+                ) : (
+                  <button type="submit" disabled={isSaving} className={primaryButtonClassName}>
+                    {editingMode === "create" ? "Create" : "Update"}
+                  </button>
+                )}
               </div>
 
               {errorMessage ? (

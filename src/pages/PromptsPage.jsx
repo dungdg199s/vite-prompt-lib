@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { promptsClient } from "../lib/prompts-client";
-import { workspacesClient } from "../lib/workspaces-client";
+import { useAppData } from "../contexts/AppDataContext";
 import PromptSidebar from "../components/prompts/PromptSidebar";
 import PromptForm from "../components/prompts/PromptForm";
 import PromptContentPreview from "../components/prompts/PromptContentPreview";
@@ -22,15 +22,22 @@ const normalizeShareWith = (raw) => {
 };
 
 export default function PromptsPage() {
-  const [promptList, setPromptList] = useState([]);
-  const [workspaceList, setWorkspaceList] = useState([]);
+  const {
+    prompts: promptList,
+    workspaces: workspaceList,
+    isLoadingPrompts: isLoadingList,
+    refreshPrompts,
+    refreshAfterPromptCreate,
+    refreshAfterPromptUpdate,
+    refreshAfterPromptDelete,
+  } = useAppData();
+
   const [selectedPromptName, setSelectedPromptName] = useState("");
   const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
   const [editingMode, setEditingMode] = useState("create");
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filterWorkspace, setFilterWorkspace] = useState("");
-  const [isLoadingList, setIsLoadingList] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -79,16 +86,7 @@ export default function PromptsPage() {
   };
 
   const refreshPromptList = async () => {
-    setIsLoadingList(true);
-    setErrorMessage("");
-    try {
-      const list = (await promptsClient.getPrompts()) || [];
-      setPromptList(list);
-    } catch (error) {
-      setErrorMessage(error.message || "Cannot load prompt list");
-    } finally {
-      setIsLoadingList(false);
-    }
+    await refreshPrompts();
   };
 
   const openPrompt = async (name) => {
@@ -138,10 +136,11 @@ export default function PromptsPage() {
     try {
       if (editingMode === "create") {
         await promptsClient.createPrompt(payload);
+        await refreshAfterPromptCreate();
       } else {
         await promptsClient.updatePrompt(payload);
+        await refreshAfterPromptUpdate();
       }
-      await refreshPromptList();
       await openPrompt(payload.name);
       setIsPromptModalOpen(false);
     } catch (error) {
@@ -157,23 +156,15 @@ export default function PromptsPage() {
     setErrorMessage("");
     try {
       await promptsClient.deletePrompt(selectedPromptName);
+      await refreshAfterPromptDelete();
       setIsDeleteModalOpen(false);
       resetForm();
-      await refreshPromptList();
     } catch (error) {
       setErrorMessage(error.message || "Cannot delete prompt");
     } finally {
       setIsSaving(false);
     }
   };
-
-  useEffect(() => {
-    const timeoutId = window.setTimeout(() => {
-      refreshPromptList();
-      workspacesClient.getWorkspaces().then((list) => setWorkspaceList(list || [])).catch(() => {});
-    }, 0);
-    return () => window.clearTimeout(timeoutId);
-  }, []);
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">

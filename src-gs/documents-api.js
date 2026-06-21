@@ -9,12 +9,14 @@ import { gasServer } from "./gas-server";
  * Document API
  * @typedef {Object} Document
  * @property {string} name - Unique name of the document
+ * @property {string} type - Document type: Spreadsheets, Markdown, JSON, HTML
  * @property {string} workspace - Unique name of the workspace
  * @property {string} fileName - Unique name of the document file
  * @property {string} preasheetId - Unique ID of the document in the spreadsheet
  * @property {string} description - Description of the document
  * @property {string} contentMarkdown - Content of the document (e.g. markdown text)
  * @property {string} contentJSON - Content of the document in JSON format
+ * @property {string} contentHTML - Content of the document in HTML format
  * @property {Object} syncOptions - Last used sync options
  * @property {string} shareMode - Sharing
  */
@@ -57,6 +59,10 @@ gasServer.post("/api/documents/:name/sync", (req) => {
     throw new Error(`Document "${name}" not found`);
   }
 
+  if ((documentRecord.type || "Spreadsheets") !== "Spreadsheets") {
+    throw new Error("Sync is only available for Spreadsheets documents");
+  }
+
   const syncOptions = {
     includeEmptyRows: options.includeEmptyRows !== false,
     headerRow: Number.isInteger(options.headerRow) ? options.headerRow : null,
@@ -81,15 +87,25 @@ gasServer.post("/api/documents/:name/sync", (req) => {
 
 gasServer.post("/api/documents", (req) => {
   const payload = req.body;
-  if (!payload || !payload.name || !payload.preasheetId) {
+  if (!payload || !payload.name) {
     throw new Error("Invalid payload for create-document");
   }
+
+  const type = payload.type || "Spreadsheets";
+  if (type === "Spreadsheets" && !payload.preasheetId) {
+    throw new Error("Spreadsheet ID is required for Spreadsheets type");
+  }
+
   const record = {
     name: payload.name,
+    type,
     workspace: payload.workspace || "",
     fileName: payload.fileName || "",
-    preasheetId: payload.preasheetId,
+    preasheetId: payload.preasheetId || "",
     description: payload.description || "",
+    contentMarkdown: payload.contentMarkdown || "",
+    contentJSON: payload.contentJSON || "",
+    contentHTML: payload.contentHTML || "",
     syncOptions: payload.syncOptions || {
       includeEmptyRows: false,
       headerRow: 1,
@@ -99,8 +115,10 @@ gasServer.post("/api/documents", (req) => {
     shareWith: payload.shareWith || [],
   };
 
-  record.contentMarkdown = convertPreashetToMarkdown(record.preasheetId, {});
-  record.contentJSON = convertPreashetToJSON(record.preasheetId, {});
+  if (type === "Spreadsheets") {
+    record.contentMarkdown = convertPreashetToMarkdown(record.preasheetId, {});
+    record.contentJSON = convertPreashetToJSON(record.preasheetId, {});
+  }
 
   sheetDb.table("documents").create(record);
   return { success: true };
@@ -108,17 +126,25 @@ gasServer.post("/api/documents", (req) => {
 
 gasServer.put("/api/documents", (req) => {
   const payload = req.body;
-  if (!payload || !payload.name || !payload.preasheetId) {
+  if (!payload || !payload.name) {
     throw new Error("Invalid payload for update-document");
   }
+
+  const type = payload.type || "Spreadsheets";
+  if (type === "Spreadsheets" && !payload.preasheetId) {
+    throw new Error("Spreadsheet ID is required for Spreadsheets type");
+  }
+
   const updatedRecord = {
     name: payload.name,
+    type,
     workspace: payload.workspace || "",
     fileName: payload.fileName || "",
-    preasheetId: payload.preasheetId,
+    preasheetId: payload.preasheetId || "",
     description: payload.description || "",
     contentMarkdown: payload.contentMarkdown || "",
     contentJSON: payload.contentJSON || "",
+    contentHTML: payload.contentHTML || "",
     syncOptions: payload.syncOptions || {
       includeEmptyRows: false,
       headerRow: 1,
