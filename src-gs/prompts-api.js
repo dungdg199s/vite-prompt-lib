@@ -18,7 +18,9 @@ gasServer.post("/api/prompts", (req) => {
 
   const newRecord = {
     name: payload.name,
+    workspace: payload.workspace || "",
     description: payload.description || "",
+    content: payload.content || "",
     shareMode: payload.shareMode || "private",
     shareWith: payload.shareWith || [],
   };
@@ -35,7 +37,9 @@ gasServer.put("/api/prompts", (req) => {
   }
   const updatedRecord = {
     name: payload.name,
+    workspace: payload.workspace || "",
     description: payload.description || "",
+    content: payload.content || "",
     shareMode: payload.shareMode || "private",
     shareWith: payload.shareWith || [],
   };

@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { workspacesClient } from "../lib/workspaces-client";
+import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
+import WorkspaceForm from "../components/workspaces/WorkspaceForm";
+import PromptViewer from "../components/workspaces/PromptViewer";
 
 const DEFAULT_WORKSPACE_FORM = {
   name: "",
@@ -81,10 +84,10 @@ export default function WorkspacesPage() {
   const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(false);
   const [isSavingWorkspace, setIsSavingWorkspace] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const inputClassName =
-    "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
-  const buttonClassName =
-    "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
+
+  const handleFormChange = (field, value) => {
+    setWorkspaceForm((prev) => ({ ...prev, [field]: value }));
+  };
 
   const selectedPrompt = useMemo(() => {
     if (!selectedWorkspace?.prompts?.length) {
@@ -113,6 +116,14 @@ export default function WorkspacesPage() {
   const resetWorkspaceForm = () => {
     setWorkspaceForm(DEFAULT_WORKSPACE_FORM);
     setEditingMode("create");
+  };
+
+  const handleBack = () => {
+    setSelectedWorkspaceName("");
+    setSelectedWorkspace(null);
+    setSelectedPromptName("");
+    setPromptInputValues({});
+    resetWorkspaceForm();
   };
 
   const refreshWorkspaceList = async () => {
@@ -225,258 +236,43 @@ export default function WorkspacesPage() {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">
       <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 md:grid-cols-[320px_1fr]">
-        <aside className="border-b border-stone-300 bg-[#faf5ec] p-5 md:border-r md:border-b-0">
-        {!selectedWorkspaceName ? (
-          <>
-            <div className="mb-4 flex items-center justify-between gap-2.5">
-              <h2 className="text-lg font-semibold tracking-tight">Workspaces</h2>
-              <button type="button" onClick={refreshWorkspaceList} className={buttonClassName}>
-                Refresh
-              </button>
-            </div>
-            <div className="flex flex-col gap-2">
-              {isLoadingList ? <p className="text-sm text-slate-600">Loading workspaces...</p> : null}
-              {!isLoadingList && !workspaceList.length ? (
-                <p className="text-sm text-slate-600">No workspace found.</p>
-              ) : null}
-              {workspaceList.map((workspace) => (
-                <button
-                  key={workspace.name}
-                  type="button"
-                  className="grid cursor-pointer gap-1 rounded-xl border border-stone-300 bg-[#fffef8] px-3 py-2 text-left transition hover:border-teal-700/40"
-                  onClick={() => openWorkspace(workspace.name)}
-                >
-                  <span className="font-medium">{workspace.name}</span>
-                  <small className="text-xs text-slate-500">
-                    {workspace.description || "No description"}
-                  </small>
-                </button>
-              ))}
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="mb-4 flex items-center justify-between gap-2.5">
-              <button
-                type="button"
-                className={buttonClassName}
-                onClick={() => {
-                  setSelectedWorkspaceName("");
-                  setSelectedWorkspace(null);
-                  setSelectedPromptName("");
-                  setPromptInputValues({});
-                  resetWorkspaceForm();
-                }}
-              >
-                Back
-              </button>
-              <h2 className="text-base font-semibold tracking-tight">{selectedWorkspaceName}</h2>
-            </div>
-
-            <h3 className="mb-2 text-sm font-semibold uppercase tracking-wider text-slate-600">
-              Prompts
-            </h3>
-            <div className="flex flex-col gap-2">
-              {isLoadingWorkspace ? <p className="text-sm text-slate-600">Loading prompts...</p> : null}
-              {!isLoadingWorkspace && !selectedWorkspace?.prompts?.length ? (
-                <p className="text-sm text-slate-600">No prompt in this workspace.</p>
-              ) : null}
-              {(selectedWorkspace?.prompts || []).map((prompt) => (
-                <button
-                  key={prompt.name}
-                  type="button"
-                  className={`grid cursor-pointer gap-1 rounded-xl border px-3 py-2 text-left transition ${
-                    prompt.name === selectedPromptName
-                      ? "border-teal-700 bg-teal-100"
-                      : "border-stone-300 bg-[#fffef8] hover:border-teal-700/40"
-                  }`}
-                  onClick={() => {
-                    setSelectedPromptName(prompt.name);
-                    setPromptInputValues({});
-                  }}
-                >
-                  <span className="font-medium">{prompt.name}</span>
-                  <small className="text-xs text-slate-500">
-                    {prompt.description || "No description"}
-                  </small>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-        </aside>
+        <WorkspaceSidebar
+          workspaceList={workspaceList}
+          selectedWorkspaceName={selectedWorkspaceName}
+          selectedWorkspace={selectedWorkspace}
+          selectedPromptName={selectedPromptName}
+          isLoadingList={isLoadingList}
+          isLoadingWorkspace={isLoadingWorkspace}
+          onRefresh={refreshWorkspaceList}
+          onSelectWorkspace={openWorkspace}
+          onSelectPrompt={(name) => {
+            setSelectedPromptName(name);
+            setPromptInputValues({});
+          }}
+          onBack={handleBack}
+        />
 
         <main className="grid content-start gap-4 p-4 md:p-6">
-          <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
-            <h2 className="mb-4 text-lg font-semibold tracking-tight">
-              {editingMode === "create" ? "Create Workspace" : "Workspace Detail"}
-            </h2>
-
-            <form className="grid gap-3" onSubmit={handleSaveWorkspace}>
-              <label className="grid gap-1.5 text-sm">
-              Workspace Name
-              <input
-                className={inputClassName}
-                value={workspaceForm.name}
-                onChange={(event) => {
-                  const name = event.target.value;
-                  setWorkspaceForm((prev) => ({ ...prev, name }));
-                }}
-                disabled={editingMode === "edit"}
-                placeholder="workspace-name"
-              />
-            </label>
-
-              <label className="grid gap-1.5 text-sm">
-              Description
-              <textarea
-                className={inputClassName}
-                value={workspaceForm.description}
-                onChange={(event) => {
-                  const description = event.target.value;
-                  setWorkspaceForm((prev) => ({ ...prev, description }));
-                }}
-                rows={3}
-                placeholder="Workspace description"
-              />
-            </label>
-
-              <label className="grid gap-1.5 text-sm">
-              Share Mode
-              <select
-                className={inputClassName}
-                value={workspaceForm.shareMode}
-                onChange={(event) => {
-                  const shareMode = event.target.value;
-                  setWorkspaceForm((prev) => ({ ...prev, shareMode }));
-                }}
-              >
-                <option value="private">private</option>
-                <option value="shared">shared</option>
-                <option value="public">public</option>
-              </select>
-            </label>
-
-              <label className="grid gap-1.5 text-sm">
-              Share With (comma separated emails)
-              <input
-                className={inputClassName}
-                value={workspaceForm.shareWith}
-                onChange={(event) => {
-                  const shareWith = event.target.value;
-                  setWorkspaceForm((prev) => ({ ...prev, shareWith }));
-                }}
-                placeholder="a@company.com, b@company.com"
-              />
-            </label>
-
-              <div className="flex flex-wrap gap-2">
-                <button type="submit" disabled={isSavingWorkspace} className={buttonClassName}>
-                {editingMode === "create" ? "Create" : "Update"}
-              </button>
-              <button
-                type="button"
-                onClick={resetWorkspaceForm}
-                disabled={isSavingWorkspace}
-                className={buttonClassName}
-              >
-                New
-              </button>
-              <button
-                type="button"
-                className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-                onClick={handleDeleteWorkspace}
-                disabled={isSavingWorkspace || !selectedWorkspaceName}
-              >
-                Delete
-              </button>
-            </div>
-          </form>
-
-            {errorMessage ? <p className="mt-2 text-sm text-red-700">{errorMessage}</p> : null}
-          </section>
-
-          <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
-            <h2 className="mb-4 text-lg font-semibold tracking-tight">Prompt Detail</h2>
-            {!selectedPrompt ? <p className="text-sm text-slate-600">Select a prompt from sidebar.</p> : null}
-          {selectedPrompt ? (
-            <>
-              <p className="text-sm">
-                <strong>Name:</strong> {selectedPrompt.name}
-              </p>
-              <p className="mt-1 text-sm">
-                <strong>Description:</strong> {selectedPrompt.description || "No description"}
-              </p>
-
-              <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
-                <h3 className="text-sm font-semibold">Original Prompt</h3>
-                <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
-                  {promptText || "Prompt content is empty"}
-                </pre>
-              </div>
-
-              <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
-                <h3 className="text-sm font-semibold">Prompt Generator</h3>
-                {!parsedTokens.length ? (
-                  <p className="mt-2 text-sm text-slate-600">No token found in prompt.</p>
-                ) : null}
-                <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
-                  {parsedTokens.map((token) => (
-                    <label key={token.id} className="grid gap-1.5 text-sm">
-                      {token.label}
-                      {token.inputType === "textarea" ? (
-                        <textarea
-                          className={inputClassName}
-                          rows={4}
-                          value={promptInputValues[token.id] || ""}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setPromptInputValues((prev) => ({ ...prev, [token.id]: value }));
-                          }}
-                        />
-                      ) : null}
-                      {token.inputType === "select" ? (
-                        <select
-                          className={inputClassName}
-                          value={promptInputValues[token.id] || ""}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setPromptInputValues((prev) => ({ ...prev, [token.id]: value }));
-                          }}
-                        >
-                          <option value="">Select an option</option>
-                          {token.options.map((option) => (
-                            <option key={option} value={option}>
-                              {option}
-                            </option>
-                          ))}
-                        </select>
-                      ) : null}
-                      {token.inputType === "text" ? (
-                        <input
-                          className={inputClassName}
-                          value={promptInputValues[token.id] || ""}
-                          onChange={(event) => {
-                            const value = event.target.value;
-                            setPromptInputValues((prev) => ({ ...prev, [token.id]: value }));
-                          }}
-                          placeholder={token.descriptor || "Enter value"}
-                        />
-                      ) : null}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
-                <h3 className="text-sm font-semibold">Generated Prompt</h3>
-                <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
-                  {generatedPrompt || "Generated prompt will appear here."}
-                </pre>
-              </div>
-            </>
-          ) : null}
-          </section>
+          <WorkspaceForm
+            form={workspaceForm}
+            editingMode={editingMode}
+            isSaving={isSavingWorkspace}
+            errorMessage={errorMessage}
+            onFormChange={handleFormChange}
+            onSubmit={handleSaveWorkspace}
+            onNew={resetWorkspaceForm}
+            onDelete={handleDeleteWorkspace}
+          />
+          <PromptViewer
+            selectedPrompt={selectedPrompt}
+            promptText={promptText}
+            parsedTokens={parsedTokens}
+            generatedPrompt={generatedPrompt}
+            promptInputValues={promptInputValues}
+            onInputChange={(id, value) =>
+              setPromptInputValues((prev) => ({ ...prev, [id]: value }))
+            }
+          />
         </main>
       </div>
     </div>
