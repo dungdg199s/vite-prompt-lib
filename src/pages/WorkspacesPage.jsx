@@ -311,7 +311,10 @@ export default function WorkspacesPage() {
       name: workspaceForm.name.trim(),
       description: workspaceForm.description.trim(),
       shareMode: workspaceForm.shareMode,
-      shareWith: normalizeShareWith(workspaceForm.shareWith),
+      shareWith:
+        workspaceForm.shareMode === "shared"
+          ? normalizeShareWith(workspaceForm.shareWith)
+          : [],
     };
 
     if (!payload.name) {
@@ -372,7 +375,10 @@ export default function WorkspacesPage() {
       description: promptForm.description.trim(),
       content: promptForm.content,
       shareMode: promptForm.shareMode,
-      shareWith: normalizeShareWith(promptForm.shareWith),
+      shareWith:
+        promptForm.shareMode === "shared"
+          ? normalizeShareWith(promptForm.shareWith)
+          : [],
     };
 
     if (!payload.name) {

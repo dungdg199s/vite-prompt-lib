@@ -123,7 +123,10 @@ export default function PromptsPage() {
       description: promptForm.description.trim(),
       content: promptForm.content,
       shareMode: promptForm.shareMode,
-      shareWith: normalizeShareWith(promptForm.shareWith),
+      shareWith:
+        promptForm.shareMode === "shared"
+          ? normalizeShareWith(promptForm.shareWith)
+          : [],
     };
 
     if (!payload.name) {

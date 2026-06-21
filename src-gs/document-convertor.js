@@ -4,7 +4,7 @@
  * @param {Object} options - Conversion options
  * @returns {string} - The converted markdown content
  */
-export const convertPreashetToMarkdown = (preasheetId, options) => {
+export const convertPreashetToMarkdown = (preasheetId, options = {}) => {
   const preasheet = SpreadsheetApp.openById(preasheetId);
   let sheets = preasheet.getSheets();
 
@@ -45,7 +45,7 @@ export const convertPreashetToMarkdown = (preasheetId, options) => {
   return markdownContent;
 };
 
-export const convertPreashetToJSON = (preasheetId, options) => {
+export const convertPreashetToJSON = (preasheetId, options = {}) => {
   const preasheet = SpreadsheetApp.openById(preasheetId);
   let sheets = preasheet.getSheets();
 

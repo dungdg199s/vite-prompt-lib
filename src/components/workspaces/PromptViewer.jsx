@@ -5,8 +5,10 @@ const inputClassName =
 const generatorInputClassName = `${inputClassName} h-11`;
 const generatorSelectClassName =
   `${generatorInputClassName} appearance-none bg-[linear-gradient(45deg,transparent_50%,#334155_50%),linear-gradient(135deg,#334155_50%,transparent_50%)] bg-[position:calc(100%-18px)_calc(50%+1px),calc(100%-12px)_calc(50%+1px)] bg-[size:6px_6px,6px_6px] bg-no-repeat pr-10`;
-const buttonClassName =
+const secondaryButtonClassName =
   "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
+const primaryButtonClassName =
+  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function PromptViewer({
   selectedPrompt,
@@ -36,22 +38,24 @@ export default function PromptViewer({
     <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">Prompt Detail</h2>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {selectedPrompt ? selectedPrompt.name : "Prompt"}
+          </h2>
           <p className="mt-1 text-sm text-slate-600">
             {selectedPrompt
-              ? "Preview, generate, or manage the selected prompt."
+              ? selectedPrompt.description || "No description"
               : "Select a prompt from the sidebar or create a new one."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onNewPrompt} className={buttonClassName}>
+          <button type="button" onClick={onNewPrompt} className={secondaryButtonClassName}>
             New
           </button>
           <button
             type="button"
             onClick={onEditPrompt}
             disabled={isSavingPrompt || !selectedPrompt}
-            className={buttonClassName}
+            className={secondaryButtonClassName}
           >
             Edit
           </button>
@@ -70,14 +74,6 @@ export default function PromptViewer({
         <p className="text-sm text-slate-600">Select a prompt from sidebar.</p>
       ) : (
         <>
-          <p className="text-sm">
-            <strong>Name:</strong> {selectedPrompt.name}
-          </p>
-          <p className="mt-1 text-sm">
-            <strong>Description:</strong>{" "}
-            {selectedPrompt.description || "No description"}
-          </p>
-
           <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
             <h3 className="text-sm font-semibold">Original Prompt</h3>
             <pre className="mt-2 overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
@@ -148,7 +144,7 @@ export default function PromptViewer({
           <h3 className="text-lg font-semibold tracking-tight">
             {promptEditingMode === "create" ? "Create Prompt" : "Edit Prompt"}
           </h3>
-          <button type="button" className={buttonClassName} onClick={onClosePromptModal}>
+          <button type="button" className={secondaryButtonClassName} onClick={onClosePromptModal}>
             Close
           </button>
         </div>
@@ -215,21 +211,23 @@ export default function PromptViewer({
             </select>
           </label>
 
-          <label className="grid gap-1.5 text-sm">
-            Share With (comma separated emails)
-            <input
-              className={inputClassName}
-              value={promptForm.shareWith}
-              onChange={(e) => onPromptFormChange("shareWith", e.target.value)}
-              placeholder="a@company.com, b@company.com"
-            />
-          </label>
+          {promptForm.shareMode === "shared" ? (
+            <label className="grid gap-1.5 text-sm">
+              Share With (comma separated emails)
+              <input
+                className={inputClassName}
+                value={promptForm.shareWith}
+                onChange={(e) => onPromptFormChange("shareWith", e.target.value)}
+                placeholder="a@company.com, b@company.com"
+              />
+            </label>
+          ) : null}
 
           <div className="flex flex-wrap justify-end gap-2 pt-2">
-            <button type="button" onClick={onClosePromptModal} className={buttonClassName}>
+            <button type="button" onClick={onClosePromptModal} className={secondaryButtonClassName}>
               Cancel
             </button>
-            <button type="submit" disabled={isSavingPrompt} className={buttonClassName}>
+            <button type="submit" disabled={isSavingPrompt} className={primaryButtonClassName}>
               {promptEditingMode === "create" ? "Create" : "Update"}
             </button>
           </div>
@@ -246,7 +244,7 @@ export default function PromptViewer({
           Delete <strong>{selectedPromptName}</strong>? This action cannot be undone.
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={onCloseDeletePrompt} className={buttonClassName}>
+          <button type="button" onClick={onCloseDeletePrompt} className={secondaryButtonClassName}>
             Cancel
           </button>
           <button

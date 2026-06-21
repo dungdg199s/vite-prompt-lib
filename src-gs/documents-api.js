@@ -10,10 +10,12 @@ import { gasServer } from "./gas-server";
  * @typedef {Object} Document
  * @property {string} name - Unique name of the document
  * @property {string} workspace - Unique name of the workspace
+ * @property {string} fileName - Unique name of the document file
  * @property {string} preasheetId - Unique ID of the document in the spreadsheet
  * @property {string} description - Description of the document
  * @property {string} contentMarkdown - Content of the document (e.g. markdown text)
  * @property {string} contentJSON - Content of the document in JSON format
+ * @property {Object} syncOptions - Last used sync options
  * @property {string} shareMode - Sharing
  */
 
@@ -21,15 +23,33 @@ gasServer.get("/api/documents", () => {
   return sheetDb.table("documents").getAll();
 });
 
-gasServer.get("/api/documents/:name", (req) => {
-  const name = req.params.name;
-  return sheetDb.table("documents").getByName(name);
+gasServer.get("/api/preasheet/:preasheetId", (req) => {
+  // return the preasheet name and sheet names for the given preasheetId
+  const preasheetId = req.params.preasheetId;
+  const preasheet = SpreadsheetApp.openById(preasheetId);
+  if (!preasheet) {
+    throw new Error(`Preasheet "${preasheetId}" not found`);
+  }
+  const sheetNames = preasheet.getSheets().map((sheet) => sheet.getName());
+  return {
+    preasheetId,
+    preasheetName: preasheet.getName(),
+    sheetNames,
+  };
 });
 
-gasServer.post("/api/documents/:name/convert", (req) => {
+gasServer.get("/api/documents/:name", (req) => {
   const name = req.params.name;
-  const type = req.query.type || "markdown";
-  const options = req.body;
+  const documentRecord = sheetDb.table("documents").getByName(name);
+  if (!documentRecord) {
+    throw new Error(`Document "${name}" not found`);
+  }
+  return documentRecord;
+});
+
+gasServer.post("/api/documents/:name/sync", (req) => {
+  const name = req.params.name;
+  const options = req.body || {};
 
   // Retrieve the document record from the "documents" table
   const documentRecord = sheetDb.table("documents").getByName(name);
@@ -37,42 +57,78 @@ gasServer.post("/api/documents/:name/convert", (req) => {
     throw new Error(`Document "${name}" not found`);
   }
 
+  const syncOptions = {
+    includeEmptyRows: options.includeEmptyRows !== false,
+    headerRow: Number.isInteger(options.headerRow) ? options.headerRow : null,
+    sheets: Array.isArray(options.sheets) ? options.sheets : [],
+  };
+
   // Convert the content based on the requested type
-  let convertedContent;
-  if (type === "markdown") {
-    convertedContent = convertPreashetToMarkdown(
-      documentRecord.preasheetId,
-      options,
-    );
-    documentRecord.contentMarkdown = convertedContent;
-  } else if (type === "json") {
-    convertedContent = convertPreashetToJSON(
-      documentRecord.preasheetId,
-      options,
-    );
-    documentRecord.contentJSON = convertedContent;
-  } else {
-    throw new Error(`Unsupported conversion type "${type}"`);
-  }
+  documentRecord.contentMarkdown = convertPreashetToMarkdown(
+    documentRecord.preasheetId,
+    options,
+  );
+  documentRecord.contentJSON = convertPreashetToJSON(
+    documentRecord.preasheetId,
+    options,
+  );
+  documentRecord.syncOptions = syncOptions;
+
   // update the document record in the "documents" table with the converted content
   sheetDb.table("documents").update(documentRecord);
-  return { content: convertedContent };
+  return documentRecord;
 });
 
 gasServer.post("/api/documents", (req) => {
   const payload = req.body;
-  if (!payload || !payload.name) {
+  if (!payload || !payload.name || !payload.preasheetId) {
     throw new Error("Invalid payload for create-document");
   }
-  return sheetDb.table("documents").create(payload);
+  const record = {
+    name: payload.name,
+    workspace: payload.workspace || "",
+    fileName: payload.fileName || "",
+    preasheetId: payload.preasheetId,
+    description: payload.description || "",
+    syncOptions: payload.syncOptions || {
+      includeEmptyRows: false,
+      headerRow: 1,
+      sheets: [],
+    },
+    shareMode: payload.shareMode || "private",
+    shareWith: payload.shareWith || [],
+  };
+
+  record.contentMarkdown = convertPreashetToMarkdown(record.preasheetId, {});
+  record.contentJSON = convertPreashetToJSON(record.preasheetId, {});
+
+  sheetDb.table("documents").create(record);
+  return { success: true };
 });
 
 gasServer.put("/api/documents", (req) => {
   const payload = req.body;
-  if (!payload || !payload.name) {
+  if (!payload || !payload.name || !payload.preasheetId) {
     throw new Error("Invalid payload for update-document");
   }
-  const success = sheetDb.table("documents").update(payload);
+  const updatedRecord = {
+    name: payload.name,
+    workspace: payload.workspace || "",
+    fileName: payload.fileName || "",
+    preasheetId: payload.preasheetId,
+    description: payload.description || "",
+    contentMarkdown: payload.contentMarkdown || "",
+    contentJSON: payload.contentJSON || "",
+    syncOptions: payload.syncOptions || {
+      includeEmptyRows: false,
+      headerRow: 1,
+      sheets: [],
+    },
+    shareMode: payload.shareMode || "private",
+    shareWith: payload.shareWith || [],
+  };
+
+  const success = sheetDb.table("documents").update(updatedRecord);
   if (!success) {
     throw new Error("Document not found for update");
   }
