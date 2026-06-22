@@ -16,6 +16,10 @@ gasServer.post("/api/prompts", (req) => {
     throw new Error("Invalid payload for create-prompt");
   }
 
+  if (!payload.workspace || !String(payload.workspace).trim()) {
+    throw new Error("Workspace is required for prompt");
+  }
+
   const newRecord = {
     name: payload.name,
     workspace: payload.workspace || "",
@@ -34,6 +38,9 @@ gasServer.put("/api/prompts", (req) => {
   const payload = req.body;
   if (!payload || !payload.name) {
     throw new Error("Invalid payload for update-prompt");
+  }
+  if (!payload.workspace || !String(payload.workspace).trim()) {
+    throw new Error("Workspace is required for prompt");
   }
   const updatedRecord = {
     name: payload.name,

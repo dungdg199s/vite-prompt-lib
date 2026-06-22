@@ -386,14 +386,18 @@ export default function DocumentForm({
 
               <label className="grid gap-1.5 text-sm">
                 Header Row (optional, 1-based)
-                <input
-                  type="number"
-                  min={1}
+                <select
                   className={inputClassName}
                   value={syncOptions.headerRow}
                   onChange={(event) => onSyncOptionChange("headerRow", event.target.value)}
-                  placeholder="1"
-                />
+                >
+                  <option value="">None header</option>
+                  {Array.from({ length: 20 }, (_, index) => String(index + 1)).map((rowValue) => (
+                    <option key={rowValue} value={rowValue}>
+                      Row {rowValue}
+                    </option>
+                  ))}
+                </select>
               </label>
 
               {isLoadingSyncMeta ? (
@@ -436,7 +440,7 @@ export default function DocumentForm({
                   Back
                 </button>
                 <button type="submit" disabled={isSaving} className={primaryButtonClassName}>
-                  {editingMode === "create" ? "Create + Sync" : "Update + Sync"}
+                  {editingMode === "create" ? "Create" : "Update + Sync"}
                 </button>
               </div>
 
@@ -484,14 +488,18 @@ export default function DocumentForm({
 
           <label className="grid gap-1.5 text-sm">
             Header Row (optional, 1-based)
-            <input
-              type="number"
-              min={1}
+            <select
               className={inputClassName}
               value={syncOptions.headerRow}
               onChange={(event) => onSyncOptionChange("headerRow", event.target.value)}
-              placeholder="1"
-            />
+            >
+              <option value="">None header</option>
+              {Array.from({ length: 20 }, (_, index) => String(index + 1)).map((rowValue) => (
+                <option key={rowValue} value={rowValue}>
+                  Row {rowValue}
+                </option>
+              ))}
+            </select>
           </label>
 
           {isLoadingSyncMeta ? (

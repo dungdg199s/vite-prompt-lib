@@ -22,7 +22,7 @@ const DEFAULT_DOCUMENT_FORM = {
 
 const DEFAULT_SYNC_OPTIONS = {
   includeEmptyRows: false,
-  headerRow: "1",
+  headerRow: "",
   useAllSheets: true,
   selectedSheets: [],
 };
@@ -372,7 +372,7 @@ export default function DocumentsPage() {
           storedSyncOptions.headerRow !== null &&
           storedSyncOptions.headerRow !== undefined
             ? String(storedSyncOptions.headerRow)
-            : "1",
+            : "",
         useAllSheets: storedSheets.length === 0,
         selectedSheets: storedSheets,
       });
@@ -407,6 +407,12 @@ export default function DocumentsPage() {
 
     if (!payload.name) {
       setErrorMessage("Document name is required");
+      setIsSaving(false);
+      return;
+    }
+
+    if (!payload.workspace) {
+      setErrorMessage("Workspace is required");
       setIsSaving(false);
       return;
     }
@@ -461,7 +467,7 @@ export default function DocumentsPage() {
         await refreshAfterDocumentUpdate();
       }
 
-      if (isSpreadsheetType) {
+      if (isSpreadsheetType && editingMode !== "create") {
         await documentsClient.syncDocument(payload.name, normalizedSyncOptions);
       }
 

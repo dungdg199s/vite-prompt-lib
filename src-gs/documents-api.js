@@ -91,6 +91,10 @@ gasServer.post("/api/documents", (req) => {
     throw new Error("Invalid payload for create-document");
   }
 
+  if (!payload.workspace || !String(payload.workspace).trim()) {
+    throw new Error("Workspace is required for document");
+  }
+
   const type = payload.type || "Spreadsheets";
   if (type === "Spreadsheets" && !payload.preasheetId) {
     throw new Error("Spreadsheet ID is required for Spreadsheets type");
@@ -108,7 +112,7 @@ gasServer.post("/api/documents", (req) => {
     contentHTML: payload.contentHTML || "",
     syncOptions: payload.syncOptions || {
       includeEmptyRows: false,
-      headerRow: 1,
+      headerRow: null,
       sheets: [],
     },
     shareMode: payload.shareMode || "private",
@@ -116,8 +120,14 @@ gasServer.post("/api/documents", (req) => {
   };
 
   if (type === "Spreadsheets") {
-    record.contentMarkdown = convertPreashetToMarkdown(record.preasheetId, {});
-    record.contentJSON = convertPreashetToJSON(record.preasheetId, {});
+    record.contentMarkdown = convertPreashetToMarkdown(
+      record.preasheetId,
+      record.syncOptions,
+    );
+    record.contentJSON = convertPreashetToJSON(
+      record.preasheetId,
+      record.syncOptions,
+    );
   }
 
   sheetDb.table("documents").create(record);
@@ -128,6 +138,10 @@ gasServer.put("/api/documents", (req) => {
   const payload = req.body;
   if (!payload || !payload.name) {
     throw new Error("Invalid payload for update-document");
+  }
+
+  if (!payload.workspace || !String(payload.workspace).trim()) {
+    throw new Error("Workspace is required for document");
   }
 
   const type = payload.type || "Spreadsheets";
@@ -147,7 +161,7 @@ gasServer.put("/api/documents", (req) => {
     contentHTML: payload.contentHTML || "",
     syncOptions: payload.syncOptions || {
       includeEmptyRows: false,
-      headerRow: 1,
+      headerRow: null,
       sheets: [],
     },
     shareMode: payload.shareMode || "private",

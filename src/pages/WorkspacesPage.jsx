@@ -389,6 +389,12 @@ export default function WorkspacesPage() {
       return;
     }
 
+    if (!payload.workspace) {
+      setErrorMessage("Workspace is required");
+      setIsSavingPrompt(false);
+      return;
+    }
+
     try {
       if (promptEditingMode === "create") {
         await promptsClient.createPrompt(payload);
