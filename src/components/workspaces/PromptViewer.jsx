@@ -22,6 +22,7 @@ export default function PromptViewer({
   promptForm,
   workspaceList,
   documents = [],
+  onDocumentCreated,
   promptEditingMode,
   isSavingPrompt,
   promptErrorMessage,
@@ -115,9 +116,9 @@ export default function PromptViewer({
                 <label key={token.id} className="grid content-start gap-1.5 text-sm">
                   {token.label}
                   {token.inputType === "textarea" ? (
-                    <div className="flex gap-1">
+                    <div className="relative">
                       <textarea
-                        className={`${inputClassName} flex-1`}
+                        className={`${inputClassName} pr-10`}
                         rows={4}
                         value={promptInputValues[token.id] || ""}
                         onChange={(e) => onInputChange(token.id, e.target.value)}
@@ -126,7 +127,7 @@ export default function PromptViewer({
                         type="button"
                         onClick={() => handleOpenDocumentSelector(token.id)}
                         title="Select document content"
-                        className="rounded-lg border border-stone-300 bg-teal-50 px-2 py-1 text-xs font-medium text-slate-800 transition hover:brightness-95"
+                        className="absolute right-1.5 top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-md border border-stone-300 bg-teal-50 text-[10px] font-semibold text-slate-800 transition hover:brightness-95"
                       >
                         📄
                       </button>
@@ -182,6 +183,8 @@ export default function PromptViewer({
       <DocumentSelectorModal
         isOpen={isDocumentSelectorOpen}
         documents={documents}
+        workspaceList={workspaceList}
+        onDocumentCreated={onDocumentCreated}
         onClose={() => setIsDocumentSelectorOpen(false)}
         onSelectContent={handleSelectDocumentContent}
       />

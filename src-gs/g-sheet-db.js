@@ -117,6 +117,20 @@ class SheetTable {
   create(record) {
     const { name, ...data } = record;
 
+    const normalizedName = String(name || "");
+    if (!normalizedName.trim()) {
+      throw new Error("Name is required");
+    }
+
+    const existed = this.getAll({ enforceSharing: false }).some(
+      (row) => String(row.name || "") === normalizedName,
+    );
+    if (existed) {
+      throw new Error(
+        `Record \"${normalizedName}\" already exists in table \"${this.name}\"`,
+      );
+    }
+
     const sysDate = new Date().toISOString();
     const sysUser = Session.getEffectiveUser().getEmail();
 
@@ -128,7 +142,7 @@ class SheetTable {
 
     data.owner = sysUser;
 
-    const newRow = [name, JSON.stringify(data)];
+    const newRow = [normalizedName, JSON.stringify(data)];
     this.worksheet.appendRow(newRow);
   }
 
@@ -142,14 +156,26 @@ class SheetTable {
     data.updatedAt = sysDate;
 
     // update a row by name in the sheet
-    const row = this.getByName(name);
-    if (!row) {
+    const normalizedName = String(name || "");
+    const matchedRows = this
+      .getAll({ enforceSharing: false })
+      .filter((row) => String(row.name || "") === normalizedName);
+
+    if (matchedRows.length > 1) {
+      throw new Error(
+        `Duplicate records found for \"${normalizedName}\" in table \"${this.name}\"`,
+      );
+    }
+
+    if (matchedRows.length === 0) {
       return false;
     }
 
+    const row = matchedRows[0];
+
     this.worksheet
       .getRange(row.__rowIndex, 1, 1, 2)
-      .setValues([[name, JSON.stringify(data)]]);
+      .setValues([[normalizedName, JSON.stringify(data)]]);
     return true;
   }
 

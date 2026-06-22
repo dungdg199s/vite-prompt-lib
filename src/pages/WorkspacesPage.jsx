@@ -99,6 +99,7 @@ export default function WorkspacesPage() {
     refreshAfterPromptCreate,
     refreshAfterPromptUpdate,
     refreshAfterPromptDelete,
+    refreshAfterDocumentCreate,
   } = useAppData();
 
   const [selectedWorkspaceName, setSelectedWorkspaceName] = useState("");
@@ -164,7 +165,10 @@ export default function WorkspacesPage() {
   };
 
   const resetPromptForm = () => {
-    setPromptForm({ ...DEFAULT_PROMPT_FORM, workspace: selectedWorkspaceName || "" });
+    setPromptForm({
+      ...DEFAULT_PROMPT_FORM,
+      workspace: selectedWorkspaceName || "",
+    });
     setPromptEditingMode("create");
   };
 
@@ -432,7 +436,10 @@ export default function WorkspacesPage() {
       await refreshAfterPromptDelete();
       setSelectedPromptName("");
       setPromptInputValues({});
-      setPromptForm({ ...DEFAULT_PROMPT_FORM, workspace: selectedWorkspaceName || "" });
+      setPromptForm({
+        ...DEFAULT_PROMPT_FORM,
+        workspace: selectedWorkspaceName || "",
+      });
       setPromptEditingMode("create");
       setIsPromptDeleteModalOpen(false);
       if (selectedWorkspaceName) {
@@ -462,35 +469,7 @@ export default function WorkspacesPage() {
         />
 
         <main className="grid content-start gap-4 p-4 md:p-6">
-          {selectedPromptName ? (
-            <PromptViewer
-              selectedPrompt={selectedPrompt}
-              selectedPromptName={selectedPromptName}
-              promptText={promptText}
-              parsedTokens={parsedTokens}
-              generatedPrompt={generatedPrompt}
-              promptInputValues={promptInputValues}
-              promptForm={promptForm}
-              workspaceList={workspaceList}
-              documents={documents}
-              promptEditingMode={promptEditingMode}
-              isSavingPrompt={isSavingPrompt}
-              errorMessage={errorMessage}
-              isPromptModalOpen={isPromptModalOpen}
-              isPromptDeleteModalOpen={isPromptDeleteModalOpen}
-              onInputChange={(id, value) =>
-                setPromptInputValues((prev) => ({ ...prev, [id]: value }))
-              }
-              onPromptFormChange={handlePromptFormChange}
-              onPromptSubmit={handleSavePrompt}
-              onNewPrompt={openCreatePromptModal}
-              onEditPrompt={openEditPromptModal}
-              onOpenDeletePrompt={openDeletePromptModal}
-              onDeletePrompt={handleDeletePrompt}
-              onClosePromptModal={closePromptModal}
-              onCloseDeletePrompt={closePromptDeleteModal}
-            />
-          ) : (
+          {selectedPromptName ? null : (
             <WorkspaceForm
               selectedWorkspaceName={selectedWorkspaceName}
               selectedPromptName={selectedPromptName}
@@ -511,6 +490,34 @@ export default function WorkspacesPage() {
               onCloseDelete={closeDeleteModal}
             />
           )}
+          <PromptViewer
+            selectedPrompt={selectedPrompt}
+            selectedPromptName={selectedPromptName}
+            promptText={promptText}
+            parsedTokens={parsedTokens}
+            generatedPrompt={generatedPrompt}
+            promptInputValues={promptInputValues}
+            promptForm={promptForm}
+            workspaceList={workspaceList}
+            documents={documents}
+            onDocumentCreated={refreshAfterDocumentCreate}
+            promptEditingMode={promptEditingMode}
+            isSavingPrompt={isSavingPrompt}
+            errorMessage={errorMessage}
+            isPromptModalOpen={isPromptModalOpen}
+            isPromptDeleteModalOpen={isPromptDeleteModalOpen}
+            onInputChange={(id, value) =>
+              setPromptInputValues((prev) => ({ ...prev, [id]: value }))
+            }
+            onPromptFormChange={handlePromptFormChange}
+            onPromptSubmit={handleSavePrompt}
+            onNewPrompt={openCreatePromptModal}
+            onEditPrompt={openEditPromptModal}
+            onOpenDeletePrompt={openDeletePromptModal}
+            onDeletePrompt={handleDeletePrompt}
+            onClosePromptModal={closePromptModal}
+            onCloseDeletePrompt={closePromptDeleteModal}
+          />
         </main>
       </div>
     </div>
