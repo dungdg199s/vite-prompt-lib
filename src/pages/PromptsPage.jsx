@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { promptsClient } from "../lib/prompts-client";
 import { useAppData } from "../contexts/AppDataContext";
 import PromptSidebar from "../components/prompts/PromptSidebar";
@@ -14,6 +15,8 @@ const DEFAULT_PROMPT_FORM = {
   shareWith: "",
 };
 
+const STORAGE_KEY = 'promptsPageState';
+
 const normalizeShareWith = (raw) => {
   return String(raw || "")
     .split(",")
@@ -22,6 +25,9 @@ const normalizeShareWith = (raw) => {
 };
 
 export default function PromptsPage() {
+  const navigate = useNavigate();
+  const params = useParams();
+  
   const {
     prompts: promptList,
     workspaces: workspaceList,
@@ -32,7 +38,36 @@ export default function PromptsPage() {
     refreshAfterPromptDelete,
   } = useAppData();
 
-  const [selectedPromptName, setSelectedPromptName] = useState("");
+  const promptNameFromUrl = params['*'] || '';
+
+  // Save URL state to localStorage
+  useEffect(() => {
+    if (promptNameFromUrl) {
+      const state = {
+        prompt: promptNameFromUrl,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+  }, [promptNameFromUrl]);
+
+  // Restore state from localStorage if no URL hash
+  useEffect(() => {
+    if (!promptNameFromUrl) {
+      try {
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+          const { prompt } = JSON.parse(savedState);
+          if (prompt) {
+            navigate(`/prompts/${encodeURIComponent(prompt)}`, { replace: true });
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        console.error('Failed to restore state from localStorage:', error);
+      }
+    }
+  }, []);
+
   const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
   const [editingMode, setEditingMode] = useState("create");
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
@@ -41,13 +76,48 @@ export default function PromptsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Use URL params as source of truth
+  const selectedPromptName = promptNameFromUrl;
+
+  // Load prompt data when URL changes
+  useEffect(() => {
+    const loadPrompt = async () => {
+      if (!selectedPromptName) {
+        setPromptForm(DEFAULT_PROMPT_FORM);
+        setEditingMode("create");
+        return;
+      }
+
+      setErrorMessage("");
+      try {
+        const prompt = await promptsClient.getPrompt(selectedPromptName);
+        setPromptForm({
+          id: prompt?.id,
+          name: prompt?.name || "",
+          workspace: prompt?.workspace || "",
+          description: prompt?.description || "",
+          content: prompt?.content || "",
+          shareMode: prompt?.shareMode || "private",
+          shareWith: Array.isArray(prompt?.shareWith)
+            ? prompt.shareWith.join(", ")
+            : "",
+        });
+        setEditingMode("edit");
+      } catch (error) {
+        console.log(error);
+        setErrorMessage(error.message || "Cannot load prompt detail");
+      }
+    };
+
+    loadPrompt();
+  }, [selectedPromptName]);
+
   const handleFormChange = (field, value) => {
     setPromptForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
     setPromptForm(DEFAULT_PROMPT_FORM);
-    setSelectedPromptName("");
     setEditingMode("create");
   };
 
@@ -90,24 +160,7 @@ export default function PromptsPage() {
   };
 
   const openPrompt = async (name) => {
-    setSelectedPromptName(name);
-    setErrorMessage("");
-    try {
-      const prompt = await promptsClient.getPrompt(name);
-      setPromptForm({
-        name: prompt?.name || "",
-        workspace: prompt?.workspace || "",
-        description: prompt?.description || "",
-        content: prompt?.content || "",
-        shareMode: prompt?.shareMode || "private",
-        shareWith: Array.isArray(prompt?.shareWith)
-          ? prompt.shareWith.join(", ")
-          : "",
-      });
-      setEditingMode("edit");
-    } catch (error) {
-      setErrorMessage(error.message || "Cannot load prompt detail");
-    }
+    navigate(`/prompts/${encodeURIComponent(name)}`);
   };
 
   const handleSave = async (event) => {
@@ -116,6 +169,7 @@ export default function PromptsPage() {
     setErrorMessage("");
 
     const payload = {
+      id: promptForm?.id,
       name: promptForm.name.trim(),
       workspace: promptForm.workspace.trim(),
       description: promptForm.description.trim(),
@@ -147,9 +201,10 @@ export default function PromptsPage() {
         await promptsClient.updatePrompt(payload);
         await refreshAfterPromptUpdate();
       }
-      await openPrompt(payload.name);
+      navigate(`/prompts/${encodeURIComponent(payload.name)}`);
       setIsPromptModalOpen(false);
     } catch (error) {
+        console.log(error);
       setErrorMessage(error.message || "Cannot save prompt");
     } finally {
       setIsSaving(false);
@@ -163,9 +218,11 @@ export default function PromptsPage() {
     try {
       await promptsClient.deletePrompt(selectedPromptName);
       await refreshAfterPromptDelete();
+      navigate('/prompts');
       setIsDeleteModalOpen(false);
       resetForm();
     } catch (error) {
+        console.log(error);
       setErrorMessage(error.message || "Cannot delete prompt");
     } finally {
       setIsSaving(false);
@@ -174,7 +231,7 @@ export default function PromptsPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">
-      <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 md:grid-cols-[320px_1fr]">
+      <div className="mx-auto grid min-h-screen grid-cols-1 md:grid-cols-[320px_1fr]">
         <PromptSidebar
           promptList={promptList}
           workspaceList={workspaceList}

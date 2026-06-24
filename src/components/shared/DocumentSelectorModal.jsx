@@ -9,14 +9,7 @@ const secondaryButtonClassName =
 const primaryButtonClassName =
   "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
 
-export default function DocumentSelectorModal({
-  isOpen,
-  documents = [],
-  workspaceList = [],
-  onDocumentCreated,
-  onClose,
-  onSelectContent,
-}) {
+export default function DocumentSelectorModal({ isOpen, documents = [], workspaceList = [], onDocumentCreated, onClose, onSelectContent }) {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [selectedContentType, setSelectedContentType] = useState(null);
@@ -39,9 +32,7 @@ export default function DocumentSelectorModal({
     const query = searchQuery.toLowerCase();
     return documents.filter(
       (doc) =>
-        doc.name.toLowerCase().includes(query) ||
-        doc.description?.toLowerCase().includes(query) ||
-        doc.workspace?.toLowerCase().includes(query)
+        doc.name.toLowerCase().includes(query) || doc.description?.toLowerCase().includes(query) || doc.workspace?.toLowerCase().includes(query),
     );
   }, [documents, searchQuery]);
 
@@ -169,6 +160,7 @@ export default function DocumentSelectorModal({
         contentHTML: "",
       }));
     } catch (error) {
+      console.log(error);
       setCreateErrorMessage(error?.message || "Cannot create document");
     } finally {
       setIsSavingDocument(false);
@@ -216,11 +208,7 @@ export default function DocumentSelectorModal({
 
           <label className="grid gap-1.5 text-sm">
             Type
-            <select
-              className={inputClassName}
-              value={newDocumentForm.type}
-              onChange={(event) => handleNewDocumentChange("type", event.target.value)}
-            >
+            <select className={inputClassName} value={newDocumentForm.type} onChange={(event) => handleNewDocumentChange("type", event.target.value)}>
               <option value="Markdown">Markdown</option>
               <option value="JSON">JSON</option>
               <option value="HTML">HTML</option>
@@ -289,9 +277,7 @@ export default function DocumentSelectorModal({
             />
           </label>
 
-          {createErrorMessage ? (
-            <p className="text-sm text-red-700">{createErrorMessage}</p>
-          ) : null}
+          {createErrorMessage ? <p className="text-sm text-red-700">{createErrorMessage}</p> : null}
 
           <div className="flex justify-end gap-2 pt-1">
             <button type="button" onClick={() => setIsAddModalOpen(false)} className={secondaryButtonClassName}>
@@ -316,9 +302,7 @@ export default function DocumentSelectorModal({
             <h3 className="text-sm font-semibold">
               Document: <strong>{selectedDocument.name}</strong>
             </h3>
-            <p className="mt-1 text-xs text-slate-600">
-              {selectedDocument.description || "No description"}
-            </p>
+            <p className="mt-1 text-xs text-slate-600">{selectedDocument.description || "No description"}</p>
           </div>
 
           <div className="space-y-2">
@@ -385,9 +369,7 @@ export default function DocumentSelectorModal({
 
         <div className="max-h-96 overflow-y-auto">
           {filteredDocuments.length === 0 ? (
-            <p className="py-4 text-center text-sm text-slate-600">
-              {documents.length === 0 ? "No documents available" : "No matching documents"}
-            </p>
+            <p className="py-4 text-center text-sm text-slate-600">{documents.length === 0 ? "No documents available" : "No matching documents"}</p>
           ) : (
             <div className="space-y-1">
               {filteredDocuments.map((doc) => (
@@ -398,14 +380,8 @@ export default function DocumentSelectorModal({
                   className="w-full rounded-lg border border-stone-300 bg-white p-3 text-left transition hover:bg-stone-50"
                 >
                   <div className="text-sm font-medium text-slate-800">{doc.name}</div>
-                  <div className="mt-1 text-xs text-slate-600">
-                    {doc.description || "No description"}
-                  </div>
-                  {doc.workspace && (
-                    <div className="mt-1 text-xs text-teal-700">
-                      @ {doc.workspace}
-                    </div>
-                  )}
+                  <div className="mt-1 text-xs text-slate-600">{doc.description || "No description"}</div>
+                  {doc.workspace && <div className="mt-1 text-xs text-teal-700">@ {doc.workspace}</div>}
                 </button>
               ))}
             </div>

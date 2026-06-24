@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { promptsClient } from "../lib/prompts-client";
 import { workspacesClient } from "../lib/workspaces-client";
 import { useAppData } from "../contexts/AppDataContext";
@@ -78,16 +79,16 @@ const getPromptText = (prompt) => {
     return "";
   }
 
-  return String(
-    prompt.content ||
-      prompt.template ||
-      prompt.prompt ||
-      prompt.description ||
-      "",
-  );
+  return String(prompt.content || prompt.template || prompt.prompt || prompt.description || "");
 };
 
+const STORAGE_KEY = "workspacesPageState";
+
 export default function WorkspacesPage() {
+  const navigate = useNavigate();
+  const params = useParams();
+  const [searchParams] = useSearchParams();
+
   const {
     workspaces: workspaceList,
     documents,
@@ -102,9 +103,42 @@ export default function WorkspacesPage() {
     refreshAfterDocumentCreate,
   } = useAppData();
 
-  const [selectedWorkspaceName, setSelectedWorkspaceName] = useState("");
+  const workspaceNameFromUrl = params["*"] || "";
+  const promptNameFromUrl = searchParams.get("prompt") || "";
+
+  // Save URL state to localStorage
+  useEffect(() => {
+    if (workspaceNameFromUrl || promptNameFromUrl) {
+      const state = {
+        workspace: workspaceNameFromUrl,
+        prompt: promptNameFromUrl,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+  }, [workspaceNameFromUrl, promptNameFromUrl]);
+
+  // Restore state from localStorage if no URL hash
+  useEffect(() => {
+    if (!workspaceNameFromUrl && !promptNameFromUrl) {
+      try {
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+          const { workspace, prompt } = JSON.parse(savedState);
+          if (workspace) {
+            const targetUrl = prompt
+              ? `/workspaces/${encodeURIComponent(workspace)}?prompt=${encodeURIComponent(prompt)}`
+              : `/workspaces/${encodeURIComponent(workspace)}`;
+            navigate(targetUrl, { replace: true });
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        console.error("Failed to restore state from localStorage:", error);
+      }
+    }
+  }, []);
+
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
-  const [selectedPromptName, setSelectedPromptName] = useState("");
   const [promptInputValues, setPromptInputValues] = useState({});
   const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
   const [workspaceForm, setWorkspaceForm] = useState(DEFAULT_WORKSPACE_FORM);
@@ -119,6 +153,107 @@ export default function WorkspacesPage() {
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
+  // Use URL params as source of truth
+  const selectedWorkspaceName = workspaceNameFromUrl;
+  const selectedPromptName = promptNameFromUrl;
+
+  // Load workspace data when URL changes
+  useEffect(() => {
+    const loadWorkspace = async () => {
+      if (!selectedWorkspaceName) {
+        setSelectedWorkspace(null);
+        setEditingMode("create");
+        return;
+      }
+
+      setIsLoadingWorkspace(true);
+      setErrorMessage("");
+
+      try {
+        const workspace = await workspacesClient.getWorkspace(selectedWorkspaceName);
+        setSelectedWorkspace(workspace);
+        setWorkspaceForm({
+          ...workspace,
+          id: workspace?.id,
+          name: workspace?.name || "",
+          description: workspace?.description || "",
+          shareMode: workspace?.shareMode || "private",
+          shareWith: Array.isArray(workspace?.shareWith) ? workspace.shareWith.join(", ") : "",
+        });
+        setPromptForm((prev) => ({ ...prev, workspace: selectedWorkspaceName }));
+        setEditingMode("edit");
+      } catch (error) {
+        console.log(error);
+        setErrorMessage(error.message || "Can not load workspace detail");
+      } finally {
+        setIsLoadingWorkspace(false);
+      }
+    };
+
+    loadWorkspace();
+  }, [selectedWorkspaceName]);
+
+  const loadSyncPrompt = async () => {
+    if (!selectedPromptName) {
+      setPromptInputValues({});
+      setPromptEditingMode("create");
+      return;
+    }
+
+    setErrorMessage("");
+    try {
+      const prompt = await promptsClient.getPrompt(selectedPromptName);
+      setPromptForm({
+        ...prompt,
+        id: prompt?.id,
+        name: prompt?.name || "",
+        workspace: prompt?.workspace || selectedWorkspaceName || "",
+        description: prompt?.description || "",
+        content: prompt?.content || "",
+        shareMode: prompt?.shareMode || "private",
+        shareWith: Array.isArray(prompt?.shareWith) ? prompt.shareWith.join(", ") : "",
+      });
+      setPromptEditingMode("edit");
+    } catch (error) {
+      console.log(error);
+      setErrorMessage(error.message || "Can not load prompt detail");
+    }
+  };
+
+  // Load prompt data when URL changes
+  useEffect(() => {
+    const loadPrompt = async () => {
+      if (!selectedPromptName) {
+        setPromptInputValues({});
+        setPromptEditingMode("create");
+        return;
+      }
+
+      setErrorMessage("");
+      try {
+        const prompt = await promptsClient.getPrompt(selectedPromptName);
+        setPromptForm({
+          ...prompt,
+          id: prompt?.id,
+          name: prompt?.name || "",
+          workspace: prompt?.workspace || selectedWorkspaceName || "",
+          description: prompt?.description || "",
+          content: prompt?.content || "",
+          shareMode: prompt?.shareMode || "private",
+          shareWith: Array.isArray(prompt?.shareWith) ? prompt.shareWith.join(", ") : "",
+        });
+        setPromptEditingMode("edit");
+      } catch (error) {
+        console.log(error);
+        setErrorMessage(error.message || "Can not load prompt detail");
+      }
+    };
+
+    if (selectedPromptName && selectedWorkspaceName) {
+      loadPrompt();
+    }
+  }, [selectedPromptName, selectedWorkspaceName]);
+
   const handleFormChange = (field, value) => {
     setWorkspaceForm((prev) => ({ ...prev, [field]: value }));
   };
@@ -131,24 +266,14 @@ export default function WorkspacesPage() {
     if (!selectedWorkspace?.prompts?.length) {
       return null;
     }
-    return (
-      selectedWorkspace.prompts.find(
-        (item) => item.name === selectedPromptName,
-      ) || null
-    );
+    return selectedWorkspace.prompts.find((item) => item.name === selectedPromptName) || null;
   }, [selectedWorkspace, selectedPromptName]);
 
-  const promptText = useMemo(
-    () => getPromptText(selectedPrompt),
-    [selectedPrompt],
-  );
+  const promptText = getPromptText(selectedPrompt);
 
-  const parsedTokens = useMemo(
-    () => parsePromptTokens(promptText),
-    [promptText],
-  );
+  const parsedTokens = parsePromptTokens(promptText);
 
-  const generatedPrompt = useMemo(() => {
+  const generatedPrompt = (() => {
     if (!promptText) {
       return "";
     }
@@ -157,7 +282,7 @@ export default function WorkspacesPage() {
       const tokenValue = promptInputValues[token.id] ?? "";
       return result.replaceAll(token.raw, tokenValue);
     }, promptText);
-  }, [parsedTokens, promptInputValues, promptText]);
+  })();
 
   const resetWorkspaceForm = () => {
     setWorkspaceForm(DEFAULT_WORKSPACE_FORM);
@@ -241,9 +366,8 @@ export default function WorkspacesPage() {
   };
 
   const handleBack = () => {
-    setSelectedWorkspaceName("");
+    navigate("/workspaces");
     setSelectedWorkspace(null);
-    setSelectedPromptName("");
     setPromptInputValues({});
     setPromptForm(DEFAULT_PROMPT_FORM);
     setIsWorkspaceModalOpen(false);
@@ -258,53 +382,12 @@ export default function WorkspacesPage() {
   };
 
   const openWorkspace = async (name) => {
-    setSelectedWorkspaceName(name);
-    setSelectedPromptName("");
-    setPromptInputValues({});
-    setIsLoadingWorkspace(true);
-    setErrorMessage("");
-
-    try {
-      const workspace = await workspacesClient.getWorkspace(name);
-      setSelectedWorkspace(workspace);
-      setWorkspaceForm({
-        name: workspace?.name || "",
-        description: workspace?.description || "",
-        shareMode: workspace?.shareMode || "private",
-        shareWith: Array.isArray(workspace?.shareWith)
-          ? workspace.shareWith.join(", ")
-          : "",
-      });
-      setPromptForm((prev) => ({ ...prev, workspace: name }));
-      setEditingMode("edit");
-    } catch (error) {
-      setErrorMessage(error.message || "Can not load workspace detail");
-    } finally {
-      setIsLoadingWorkspace(false);
-    }
+    navigate(`/workspaces/${encodeURIComponent(name)}`);
   };
 
   const openPrompt = async (name) => {
-    setSelectedPromptName(name);
-    setPromptInputValues({});
-    setErrorMessage("");
-
-    try {
-      const prompt = await promptsClient.getPrompt(name);
-      setPromptForm({
-        name: prompt?.name || "",
-        workspace: prompt?.workspace || selectedWorkspaceName || "",
-        description: prompt?.description || "",
-        content: prompt?.content || "",
-        shareMode: prompt?.shareMode || "private",
-        shareWith: Array.isArray(prompt?.shareWith)
-          ? prompt.shareWith.join(", ")
-          : "",
-      });
-      setPromptEditingMode("edit");
-    } catch (error) {
-      setErrorMessage(error.message || "Can not load prompt detail");
-    }
+    if (!selectedWorkspaceName) return;
+    navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}?prompt=${encodeURIComponent(name)}`);
   };
 
   const handleSaveWorkspace = async (event) => {
@@ -313,13 +396,11 @@ export default function WorkspacesPage() {
     setErrorMessage("");
 
     const payload = {
+      id: workspaceForm.id,
       name: workspaceForm.name.trim(),
       description: workspaceForm.description.trim(),
       shareMode: workspaceForm.shareMode,
-      shareWith:
-        workspaceForm.shareMode === "shared"
-          ? normalizeShareWith(workspaceForm.shareWith)
-          : [],
+      shareWith: workspaceForm.shareMode === "shared" ? normalizeShareWith(workspaceForm.shareWith) : [],
     };
 
     if (!payload.name) {
@@ -337,9 +418,10 @@ export default function WorkspacesPage() {
         await refreshAfterWorkspaceUpdate();
       }
 
-      await openWorkspace(payload.name);
+      navigate(`/workspaces/${encodeURIComponent(payload.name)}`);
       setIsWorkspaceModalOpen(false);
     } catch (error) {
+      console.log(error);
       setErrorMessage(error.message || "Can not save workspace");
     } finally {
       setIsSavingWorkspace(false);
@@ -357,34 +439,30 @@ export default function WorkspacesPage() {
     try {
       await workspacesClient.deleteWorkspace(selectedWorkspaceName);
       await refreshAfterWorkspaceDelete();
-      setSelectedWorkspaceName("");
-      setSelectedWorkspace(null);
-      setSelectedPromptName("");
-      setPromptInputValues({});
+      navigate("/workspaces");
       setIsDeleteModalOpen(false);
       resetWorkspaceForm();
     } catch (error) {
+      console.log(error);
       setErrorMessage(error.message || "Can not delete workspace");
     } finally {
       setIsSavingWorkspace(false);
     }
   };
 
-  const handleSavePrompt = async (event) => {
+  const handleSavePrompt = async (event, formData) => {
     event.preventDefault();
     setIsSavingPrompt(true);
     setErrorMessage("");
 
     const payload = {
-      name: promptForm.name.trim(),
-      workspace: promptForm.workspace.trim(),
-      description: promptForm.description.trim(),
-      content: promptForm.content,
-      shareMode: promptForm.shareMode,
-      shareWith:
-        promptForm.shareMode === "shared"
-          ? normalizeShareWith(promptForm.shareWith)
-          : [],
+      id: formData.id,
+      name: formData.name.trim(),
+      workspace: formData.workspace.trim(),
+      description: formData.description.trim(),
+      content: formData.content,
+      shareMode: formData.shareMode,
+      shareWith: formData.shareMode === "shared" ? normalizeShareWith(promptForm.shareWith) : [],
     };
 
     if (!payload.name) {
@@ -405,18 +483,19 @@ export default function WorkspacesPage() {
         await refreshAfterPromptCreate();
       } else {
         await promptsClient.updatePrompt(payload);
+        await loadSyncPrompt();
         await refreshAfterPromptUpdate();
       }
 
       const targetWorkspaceName = payload.workspace || selectedWorkspaceName;
       if (targetWorkspaceName) {
-        await openWorkspace(targetWorkspaceName);
+        navigate(`/workspaces/${encodeURIComponent(targetWorkspaceName)}?prompt=${encodeURIComponent(payload.name)}`);
       } else {
         await refreshWorkspaceList();
       }
-      await openPrompt(payload.name);
       setIsPromptModalOpen(false);
     } catch (error) {
+      console.log(error);
       setErrorMessage(error.message || "Can not save prompt");
     } finally {
       setIsSavingPrompt(false);
@@ -434,18 +513,19 @@ export default function WorkspacesPage() {
     try {
       await promptsClient.deletePrompt(selectedPromptName);
       await refreshAfterPromptDelete();
-      setSelectedPromptName("");
-      setPromptInputValues({});
+
+      if (selectedWorkspaceName) {
+        navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}`);
+      }
+
       setPromptForm({
         ...DEFAULT_PROMPT_FORM,
         workspace: selectedWorkspaceName || "",
       });
       setPromptEditingMode("create");
       setIsPromptDeleteModalOpen(false);
-      if (selectedWorkspaceName) {
-        await openWorkspace(selectedWorkspaceName);
-      }
     } catch (error) {
+      console.log(error);
       setErrorMessage(error.message || "Can not delete prompt");
     } finally {
       setIsSavingPrompt(false);
@@ -454,7 +534,7 @@ export default function WorkspacesPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">
-      <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 md:grid-cols-[320px_1fr]">
+      <div className="mx-auto grid min-h-screen grid-cols-1 md:grid-cols-[320px_1fr]">
         <WorkspaceSidebar
           workspaceList={workspaceList}
           selectedWorkspaceName={selectedWorkspaceName}
@@ -506,9 +586,7 @@ export default function WorkspacesPage() {
             errorMessage={errorMessage}
             isPromptModalOpen={isPromptModalOpen}
             isPromptDeleteModalOpen={isPromptDeleteModalOpen}
-            onInputChange={(id, value) =>
-              setPromptInputValues((prev) => ({ ...prev, [id]: value }))
-            }
+            onInputChange={(id, value) => setPromptInputValues((prev) => ({ ...prev, [id]: value }))}
             onPromptFormChange={handlePromptFormChange}
             onPromptSubmit={handleSavePrompt}
             onNewPrompt={openCreatePromptModal}

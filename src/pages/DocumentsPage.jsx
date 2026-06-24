@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import DocumentSidebar from "../components/documents/DocumentSidebar";
 import DocumentForm from "../components/documents/DocumentForm";
 import DocumentContentPreview from "../components/documents/DocumentContentPreview";
@@ -66,7 +67,12 @@ const stringifyContentJSON = (rawContent) => {
   }
 };
 
+const STORAGE_KEY = 'documentsPageState';
+
 export default function DocumentsPage() {
+  const navigate = useNavigate();
+  const params = useParams();
+
   const {
     documents: documentList,
     workspaces: workspaceList,
@@ -77,7 +83,8 @@ export default function DocumentsPage() {
     refreshAfterDocumentDelete,
   } = useAppData();
 
-  const [selectedDocumentName, setSelectedDocumentName] = useState("");
+  const documentNameFromUrl = params['*'] || '';
+
   const [documentForm, setDocumentForm] = useState(DEFAULT_DOCUMENT_FORM);
   const [editingMode, setEditingMode] = useState("create");
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
@@ -91,6 +98,100 @@ export default function DocumentsPage() {
   const [isLoadingSyncMeta, setIsLoadingSyncMeta] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const resetSyncOptions = useCallback(() => {
+    setSyncOptions(DEFAULT_SYNC_OPTIONS);
+    setSyncPreasheetName("");
+    setSyncSheetNames([]);
+  }, []);
+
+  // Save URL state to localStorage
+  useEffect(() => {
+    if (documentNameFromUrl) {
+      const state = {
+        document: documentNameFromUrl,
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+  }, [documentNameFromUrl]);
+
+  // Restore state from localStorage if no URL hash
+  useEffect(() => {
+    if (!documentNameFromUrl) {
+      try {
+        const savedState = localStorage.getItem(STORAGE_KEY);
+        if (savedState) {
+          const { document } = JSON.parse(savedState);
+          if (document) {
+            navigate(`/documents/${encodeURIComponent(document)}`, { replace: true });
+          }
+        }
+      } catch (error) {
+        console.log(error);
+        console.error('Failed to restore state from localStorage:', error);
+      }
+    }
+  }, []);
+
+  // Use URL params as source of truth
+  const selectedDocumentName = documentNameFromUrl;
+
+  // Load document data when URL changes
+  useEffect(() => {
+    const loadDocument = async () => {
+      if (!selectedDocumentName) {
+        setDocumentForm(DEFAULT_DOCUMENT_FORM);
+        setEditingMode("create");
+        setFormPhase("type");
+        resetSyncOptions();
+        return;
+      }
+
+      setErrorMessage("");
+      try {
+        const document = await documentsClient.getDocument(selectedDocumentName);
+        setDocumentForm({
+          id: document?.id,
+          name: document?.name || "",
+          type: document?.type || "Spreadsheets",
+          workspace: document?.workspace || "",
+          fileName: document?.fileName || "",
+          preasheetId: document?.preasheetId || "",
+          description: document?.description || "",
+          contentMarkdown: document?.contentMarkdown || "",
+          contentJSON: stringifyContentJSON(document?.contentJSON),
+          contentHTML: document?.contentHTML || "",
+          shareMode: document?.shareMode || "private",
+          shareWith: Array.isArray(document?.shareWith)
+            ? document.shareWith.join(", ")
+            : "",
+          syncOptions: document?.syncOptions || null,
+        });
+
+        const storedSyncOptions = document?.syncOptions || {};
+        const storedSheets = Array.isArray(storedSyncOptions.sheets)
+          ? storedSyncOptions.sheets.filter(Boolean)
+          : [];
+        setSyncOptions({
+          includeEmptyRows: storedSyncOptions.includeEmptyRows === true,
+          headerRow:
+            storedSyncOptions.headerRow !== null &&
+            storedSyncOptions.headerRow !== undefined
+              ? String(storedSyncOptions.headerRow)
+              : "",
+          useAllSheets: storedSheets.length === 0,
+          selectedSheets: storedSheets,
+        });
+        setEditingMode("edit");
+        setFormPhase("details");
+      } catch (error) {
+        console.log(error);
+        setErrorMessage(error.message || "Cannot load document detail");
+      }
+    };
+
+    loadDocument();
+  }, [selectedDocumentName, resetSyncOptions]);
 
   const parsedContentJSON = useMemo(
     () => parseContentJSON(documentForm.contentJSON),
@@ -170,15 +271,8 @@ export default function DocumentsPage() {
 
   const resetDocumentForm = () => {
     setDocumentForm(DEFAULT_DOCUMENT_FORM);
-    setSelectedDocumentName("");
     setEditingMode("create");
     setFormPhase("type");
-  };
-
-  const resetSyncOptions = () => {
-    setSyncOptions(DEFAULT_SYNC_OPTIONS);
-    setSyncPreasheetName("");
-    setSyncSheetNames([]);
   };
 
   const openCreateModal = () => {
@@ -248,6 +342,7 @@ export default function DocumentsPage() {
       }));
       return true;
     } catch (error) {
+        console.log(error);
       setErrorMessage(error.message || "Cannot load spreadsheet metadata");
       return false;
     } finally {
@@ -339,48 +434,7 @@ export default function DocumentsPage() {
   };
 
   const openDocument = async (name) => {
-    setSelectedDocumentName(name);
-    resetSyncOptions();
-    setErrorMessage("");
-
-    try {
-      const document = await documentsClient.getDocument(name);
-      setDocumentForm({
-        name: document?.name || "",
-        type: document?.type || "Spreadsheets",
-        workspace: document?.workspace || "",
-        fileName: document?.fileName || "",
-        preasheetId: document?.preasheetId || "",
-        description: document?.description || "",
-        contentMarkdown: document?.contentMarkdown || "",
-        contentJSON: stringifyContentJSON(document?.contentJSON),
-        contentHTML: document?.contentHTML || "",
-        shareMode: document?.shareMode || "private",
-        shareWith: Array.isArray(document?.shareWith)
-          ? document.shareWith.join(", ")
-          : "",
-        syncOptions: document?.syncOptions || null,
-      });
-
-      const storedSyncOptions = document?.syncOptions || {};
-      const storedSheets = Array.isArray(storedSyncOptions.sheets)
-        ? storedSyncOptions.sheets.filter(Boolean)
-        : [];
-      setSyncOptions({
-        includeEmptyRows: storedSyncOptions.includeEmptyRows === true,
-        headerRow:
-          storedSyncOptions.headerRow !== null &&
-          storedSyncOptions.headerRow !== undefined
-            ? String(storedSyncOptions.headerRow)
-            : "",
-        useAllSheets: storedSheets.length === 0,
-        selectedSheets: storedSheets,
-      });
-      setEditingMode("edit");
-      setFormPhase("details");
-    } catch (error) {
-      setErrorMessage(error.message || "Cannot load document detail");
-    }
+    navigate(`/documents/${encodeURIComponent(name)}`);
   };
 
   const handleSave = async (event) => {
@@ -389,6 +443,7 @@ export default function DocumentsPage() {
     setErrorMessage("");
 
     const payload = {
+      id: documentForm.id,
       name: documentForm.name.trim(),
       type: documentForm.type || "Spreadsheets",
       workspace: documentForm.workspace.trim(),
@@ -475,6 +530,7 @@ export default function DocumentsPage() {
       setFormPhase("details");
       setIsDocumentModalOpen(false);
     } catch (error) {
+        console.log(error);
       setErrorMessage(error.message || "Cannot save document");
     } finally {
       setIsSaving(false);
@@ -496,6 +552,7 @@ export default function DocumentsPage() {
       resetDocumentForm();
       resetSyncOptions();
     } catch (error) {
+        console.log(error);
       setErrorMessage(error.message || "Cannot delete document");
     } finally {
       setIsSaving(false);
@@ -542,6 +599,7 @@ export default function DocumentsPage() {
       await openDocument(selectedDocumentName);
       setIsSyncModalOpen(false);
     } catch (error) {
+        console.log(error);
       setErrorMessage(error.message || "Cannot sync document");
     } finally {
       setIsSaving(false);
@@ -550,7 +608,7 @@ export default function DocumentsPage() {
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">
-      <div className="mx-auto grid min-h-screen max-w-[1400px] grid-cols-1 md:grid-cols-[320px_1fr]">
+      <div className="mx-auto grid min-h-screen grid-cols-1 md:grid-cols-[320px_1fr]">
         <DocumentSidebar
           documentList={documentList}
           workspaceList={workspaceList}

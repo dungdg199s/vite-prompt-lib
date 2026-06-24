@@ -43,6 +43,7 @@ gasServer.put("/api/prompts", (req) => {
     throw new Error("Workspace is required for prompt");
   }
   const updatedRecord = {
+    id: payload.id,
     name: payload.name,
     workspace: payload.workspace || "",
     description: payload.description || "",

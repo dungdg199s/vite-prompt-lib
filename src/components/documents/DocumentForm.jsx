@@ -48,25 +48,16 @@ export default function DocumentForm({
     <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">
-            {selectedDocumentName ? form.name || selectedDocumentName : "Document"}
-          </h2>
+          <h2 className="text-lg font-semibold tracking-tight">{selectedDocumentName ? form.name || selectedDocumentName : "Document"}</h2>
           <p className="mt-1 text-sm text-slate-600">
-            {selectedDocumentName
-              ? form.description || "No description"
-              : "Select a document or create a new one."}
+            {selectedDocumentName ? form.description || "No description" : "Select a document or create a new one."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" onClick={onNew} className={secondaryButtonClassName}>
             New
           </button>
-          <button
-            type="button"
-            onClick={onEdit}
-            disabled={isSaving || !selectedDocumentName}
-            className={secondaryButtonClassName}
-          >
+          <button type="button" onClick={onEdit} disabled={isSaving || !selectedDocumentName} className={secondaryButtonClassName}>
             Edit
           </button>
           <button
@@ -101,7 +92,9 @@ export default function DocumentForm({
           {isSpreadsheetType ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">File Name</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">{form.fileName || "Auto-filled"}</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">
+                {form.fileName ? <a title="Open Google Sheet" className="text-blue-600 hover:text-blue-800 underline" href={`https://docs.google.com/spreadsheets/d/${form.preasheetId}/edit`} target="_blank">{form.fileName}</a> : "Auto-filled"}
+              </p>
             </div>
           ) : null}
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
@@ -130,27 +123,18 @@ export default function DocumentForm({
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-4 text-sm text-slate-600">
-          No document selected.
-        </div>
+        <div className="rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-4 text-sm text-slate-600">No document selected.</div>
       )}
 
-      <AppModal
-        isOpen={isModalOpen}
-        title={editingMode === "create" ? "Create Document" : "Edit Document"}
-        onClose={onCloseModal}
-        size="lg"
-      >
+      <AppModal isOpen={isModalOpen} title={editingMode === "create" ? "Create Document" : "Edit Document"} onClose={onCloseModal} size="lg">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
-            <h3 className="text-lg font-semibold tracking-tight">
-              {editingMode === "create" ? "Create Document" : "Edit Document"}
-            </h3>
+            <h3 className="text-lg font-semibold tracking-tight">{editingMode === "create" ? "Create Document" : "Edit Document"}</h3>
             <p className="text-xs uppercase tracking-wider text-slate-500">
               {formPhase === "type"
                 ? "Step 1/3: Select type"
                 : formPhase === "details"
-                  ? `Step ${editingMode === "create" ? "2" : "1"}/${editingMode === "create" ? (isSpreadsheetType ? "3" : "2") : (isSpreadsheetType ? "2" : "1")}: Information`
+                  ? `Step ${editingMode === "create" ? "2" : "1"}/${editingMode === "create" ? (isSpreadsheetType ? "3" : "2") : isSpreadsheetType ? "2" : "1"}: Information`
                   : "Step 3/3: Sync options"}
             </p>
           </div>
@@ -163,12 +147,7 @@ export default function DocumentForm({
           {formPhase === "type" ? (
             <>
               <div className="grid gap-2">
-                {[
-                  "Spreadsheets",
-                  "Markdown",
-                  "JSON",
-                  "HTML",
-                ].map((typeItem) => (
+                {["Spreadsheets", "Markdown", "JSON", "HTML"].map((typeItem) => (
                   <button
                     key={typeItem}
                     type="button"
@@ -193,9 +172,7 @@ export default function DocumentForm({
                 </button>
               </div>
 
-              {errorMessage ? (
-                <p className="text-sm text-red-700">{errorMessage}</p>
-              ) : null}
+              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
             </>
           ) : formPhase === "details" ? (
             <>
@@ -212,11 +189,7 @@ export default function DocumentForm({
 
               <label className="grid gap-1.5 text-sm">
                 Type
-                <select
-                  className={inputClassName}
-                  value={form.type || "Spreadsheets"}
-                  onChange={(event) => onFormChange("type", event.target.value)}
-                >
+                <select className={inputClassName} value={form.type || "Spreadsheets"} onChange={(event) => onFormChange("type", event.target.value)}>
                   <option value="Spreadsheets">Spreadsheets</option>
                   <option value="Markdown">Markdown</option>
                   <option value="JSON">JSON</option>
@@ -226,11 +199,7 @@ export default function DocumentForm({
 
               <label className="grid gap-1.5 text-sm">
                 Workspace
-                <select
-                  className={inputClassName}
-                  value={form.workspace}
-                  onChange={(event) => onFormChange("workspace", event.target.value)}
-                >
+                <select className={inputClassName} value={form.workspace} onChange={(event) => onFormChange("workspace", event.target.value)}>
                   <option value="">- No workspace -</option>
                   {workspaceList.map((workspace) => (
                     <option key={workspace.name} value={workspace.name}>
@@ -250,9 +219,7 @@ export default function DocumentForm({
                     disabled
                     placeholder="Auto-filled from spreadsheet"
                   />
-                  <span className="text-xs text-slate-500">
-                    Auto-filled. File name is managed by spreadsheet metadata.
-                  </span>
+                  <span className="text-xs text-slate-500">Auto-filled. File name is managed by spreadsheet metadata.</span>
                 </label>
               ) : null}
 
@@ -320,11 +287,7 @@ export default function DocumentForm({
 
               <label className="grid gap-1.5 text-sm">
                 Share Mode
-                <select
-                  className={inputClassName}
-                  value={form.shareMode}
-                  onChange={(event) => onFormChange("shareMode", event.target.value)}
-                >
+                <select className={inputClassName} value={form.shareMode} onChange={(event) => onFormChange("shareMode", event.target.value)}>
                   <option value="private">private</option>
                   <option value="shared">shared</option>
                   <option value="public">public</option>
@@ -358,28 +321,20 @@ export default function DocumentForm({
                 )}
               </div>
 
-              {errorMessage ? (
-                <p className="text-sm text-red-700">{errorMessage}</p>
-              ) : null}
+              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
             </>
           ) : (
             <>
               <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Spreadsheet Name
-                </p>
-                <p className="mt-1 text-sm font-medium text-slate-800">
-                  {syncPreasheetName || "Unknown spreadsheet"}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet Name</p>
+                <p className="mt-1 text-sm font-medium text-slate-800">{syncPreasheetName || "Unknown spreadsheet"}</p>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
                   checked={syncOptions.includeEmptyRows}
-                  onChange={(event) =>
-                    onSyncOptionChange("includeEmptyRows", event.target.checked)
-                  }
+                  onChange={(event) => onSyncOptionChange("includeEmptyRows", event.target.checked)}
                 />
                 Include empty rows
               </label>
@@ -400,22 +355,14 @@ export default function DocumentForm({
                 </select>
               </label>
 
-              {isLoadingSyncMeta ? (
-                <p className="text-sm text-slate-600">Loading sheets...</p>
-              ) : null}
+              {isLoadingSyncMeta ? <p className="text-sm text-slate-600">Loading sheets...</p> : null}
 
               {syncSheetNames.length ? (
                 <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Sheets
-                  </p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Sheets</p>
                   <div className="grid gap-2 md:grid-cols-2">
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                      <input
-                        type="checkbox"
-                        checked={syncOptions.useAllSheets}
-                        onChange={(event) => onToggleAllSheets(event.target.checked)}
-                      />
+                      <input type="checkbox" checked={syncOptions.useAllSheets} onChange={(event) => onToggleAllSheets(event.target.checked)} />
                       all
                     </label>
                     {syncSheetNames.map((sheetName) => (
@@ -424,9 +371,7 @@ export default function DocumentForm({
                           type="checkbox"
                           disabled={syncOptions.useAllSheets}
                           checked={syncOptions.selectedSheets.includes(sheetName)}
-                          onChange={(event) =>
-                            onToggleSyncSheet(sheetName, event.target.checked)
-                          }
+                          onChange={(event) => onToggleSyncSheet(sheetName, event.target.checked)}
                         />
                         {sheetName}
                       </label>
@@ -444,20 +389,13 @@ export default function DocumentForm({
                 </button>
               </div>
 
-              {errorMessage ? (
-                <p className="text-sm text-red-700">{errorMessage}</p>
-              ) : null}
+              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
             </>
           )}
         </form>
       </AppModal>
 
-      <AppModal
-        isOpen={isSyncModalOpen}
-        title="Sync Document"
-        onClose={onCloseSync}
-        size="lg"
-      >
+      <AppModal isOpen={isSyncModalOpen} title="Sync Document" onClose={onCloseSync} size="lg">
         <div className="mb-4 flex items-center justify-between gap-3">
           <h3 className="text-lg font-semibold tracking-tight">Sync Options</h3>
           <button type="button" className={secondaryButtonClassName} onClick={onCloseSync}>
@@ -467,21 +405,15 @@ export default function DocumentForm({
 
         <form className="grid gap-3" onSubmit={onSubmitSync}>
           <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-              Spreadsheet Name
-            </p>
-            <p className="mt-1 text-sm font-medium text-slate-800">
-              {syncPreasheetName || "Unknown spreadsheet"}
-            </p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet Name</p>
+            <p className="mt-1 text-sm font-medium text-slate-800">{syncPreasheetName || "Unknown spreadsheet"}</p>
           </div>
 
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
               checked={syncOptions.includeEmptyRows}
-              onChange={(event) =>
-                onSyncOptionChange("includeEmptyRows", event.target.checked)
-              }
+              onChange={(event) => onSyncOptionChange("includeEmptyRows", event.target.checked)}
             />
             Include empty rows
           </label>
@@ -502,22 +434,14 @@ export default function DocumentForm({
             </select>
           </label>
 
-          {isLoadingSyncMeta ? (
-            <p className="text-sm text-slate-600">Loading sheets...</p>
-          ) : null}
+          {isLoadingSyncMeta ? <p className="text-sm text-slate-600">Loading sheets...</p> : null}
 
           {syncSheetNames.length ? (
             <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Sheets
-              </p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Sheets</p>
               <div className="grid gap-2 md:grid-cols-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                  <input
-                    type="checkbox"
-                    checked={syncOptions.useAllSheets}
-                    onChange={(event) => onToggleAllSheets(event.target.checked)}
-                  />
+                  <input type="checkbox" checked={syncOptions.useAllSheets} onChange={(event) => onToggleAllSheets(event.target.checked)} />
                   all
                 </label>
                 {syncSheetNames.map((sheetName) => (
@@ -526,9 +450,7 @@ export default function DocumentForm({
                       type="checkbox"
                       disabled={syncOptions.useAllSheets}
                       checked={syncOptions.selectedSheets.includes(sheetName)}
-                      onChange={(event) =>
-                        onToggleSyncSheet(sheetName, event.target.checked)
-                      }
+                      onChange={(event) => onToggleSyncSheet(sheetName, event.target.checked)}
                     />
                     {sheetName}
                   </label>
@@ -548,11 +470,7 @@ export default function DocumentForm({
         </form>
       </AppModal>
 
-      <AppModal
-        isOpen={isDeleteModalOpen}
-        title="Delete Document"
-        onClose={onCloseDelete}
-      >
+      <AppModal isOpen={isDeleteModalOpen} title="Delete Document" onClose={onCloseDelete}>
         <h3 className="text-lg font-semibold tracking-tight">Delete Document</h3>
         <p className="mt-2 text-sm text-slate-600">
           Delete <strong>{selectedDocumentName}</strong>? This action cannot be undone.
@@ -572,9 +490,7 @@ export default function DocumentForm({
         </div>
       </AppModal>
 
-      {errorMessage ? (
-        <p className="mt-2 text-sm text-red-700">{errorMessage}</p>
-      ) : null}
+      {errorMessage ? <p className="mt-2 text-sm text-red-700">{errorMessage}</p> : null}
     </section>
   );
 }

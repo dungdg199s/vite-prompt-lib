@@ -8,16 +8,6 @@ export function doGet(e) {
 }
 
 export function invoke(method, requestUrl, payload) {
-  try {
     const result = gasServer.invoke(method, requestUrl, payload);
-    return {
-      success: true,
-      data: result,
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error: error.message + (error.stack ? "\n" + error.stack : ""),
-    };
-  }
+    return result;
 }

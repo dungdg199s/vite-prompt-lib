@@ -1,6 +1,9 @@
 const WORKSPACES_FOLDER_ID = process.env.WORKSPACES_FOLDER_ID;
 const WORKSPACES_SPREADSHEET_NAME = process.env.WORKSPACES_SPREADSHEET_NAME;
+const SYSTEM_ADMIN_EMAIL = process.env.SYSTEM_ADMIN_EMAIL.split(",");
+
 const WORKSPACES_SPREADSHEET_ID_KEY = "workspaces:spreadsheet:id";
+const DELETED_FLAG = "__deleted__";
 
 export class SheetDb {
   connect(dbName) {
@@ -38,7 +41,7 @@ class SheetTable {
   getAll(options = { enforceSharing: true }) {
     const lastRow = this.worksheet.getLastRow();
     const lastColumn = this.worksheet.getLastColumn();
-    if (lastRow <= 1) {
+    if (lastRow < 1) {
       return [];
     }
 
@@ -46,20 +49,24 @@ class SheetTable {
     // A: name
     // B: data (JSON stringified)
     const values = this.worksheet
-      .getRange(2, 1, lastRow - 1, lastColumn)
+      .getRange(1, 1, lastRow, lastColumn)
       .getValues();
 
     let records = values.map((row, idx) => {
       const record = {};
-      record.__rowIndex = idx + 2;
+      record.id = idx + 1;
       record.name = String(row[0] || "");
       const data = row[1] ? JSON.parse(row[1]) : {};
       Object.assign(record, data);
       return record;
     });
 
-    if (options.enforceSharing) {
-      const effectiveUser = Session.getEffectiveUser().getEmail();
+    records = records.filter((r) => r.name !== DELETED_FLAG);
+
+    const currentUser = Session.getActiveUser().getEmail();
+
+    if (options.enforceSharing && !SYSTEM_ADMIN_EMAIL.includes(currentUser)) {
+      const effectiveUser = currentUser;
       records = records.filter(
         (record) =>
           record.shareMode === "public" ||
@@ -114,6 +121,11 @@ class SheetTable {
     return all.find((row) => String(row.name || "") === String(name));
   }
 
+  getById(id) {
+    const all = this.getAll();
+    return all.find((row) => row?.id === id);
+  }
+
   create(record) {
     const { name, ...data } = record;
 
@@ -127,20 +139,20 @@ class SheetTable {
     );
     if (existed) {
       throw new Error(
-        `Record \"${normalizedName}\" already exists in table \"${this.name}\"`,
+        `Record "${normalizedName}" already exists in table "${this.name}"`,
       );
     }
 
     const sysDate = new Date().toISOString();
-    const sysUser = Session.getEffectiveUser().getEmail();
+    const sysUser = Session.getActiveUser().getEmail();
+
+    data.owner = sysUser;
 
     data.createdAt = sysDate;
     data.createdBy = sysUser;
 
     data.updatedAt = sysDate;
     data.updatedBy = sysUser;
-
-    data.owner = sysUser;
 
     const newRow = [normalizedName, JSON.stringify(data)];
     this.worksheet.appendRow(newRow);
@@ -150,20 +162,20 @@ class SheetTable {
     const { name, ...data } = record;
 
     const sysDate = new Date().toISOString();
-    const sysUser = Session.getEffectiveUser().getEmail();
+    const sysUser = Session.getActiveUser().getEmail();
 
     data.updatedBy = sysUser;
     data.updatedAt = sysDate;
 
     // update a row by name in the sheet
     const normalizedName = String(name || "");
-    const matchedRows = this
-      .getAll({ enforceSharing: false })
-      .filter((row) => String(row.name || "") === normalizedName);
+    const matchedRows = this.getAll({ enforceSharing: false }).filter(
+      (row) => String(row.name || "") === normalizedName,
+    );
 
     if (matchedRows.length > 1) {
       throw new Error(
-        `Duplicate records found for \"${normalizedName}\" in table \"${this.name}\"`,
+        `Duplicate records found for "${normalizedName}" in table "${this.name}"`,
       );
     }
 
@@ -171,11 +183,25 @@ class SheetTable {
       return false;
     }
 
-    const row = matchedRows[0];
+    if (!record.id) {
+      throw new Error(
+        `Missing record id for update table ${this.name}: ${JSON.stringify(record)}`,
+      );
+    }
 
+    const row = this.getById(record.id);
+
+    if (!row.owner) {
+      row.owner = sysUser;
+      row.createdBy = sysUser;
+      row.createdAt = sysDate;
+    }
+
+    // eslint-disable-next-line no-unused-vars
+    const { id, ...rowData } = row;
     this.worksheet
-      .getRange(row.__rowIndex, 1, 1, 2)
-      .setValues([[normalizedName, JSON.stringify(data)]]);
+      .getRange(row.id, 1, 1, 2)
+      .setValues([[normalizedName, JSON.stringify({ ...rowData, ...data })]]);
     return true;
   }
 
@@ -186,7 +212,7 @@ class SheetTable {
     if (!row) {
       return false;
     }
-    this.worksheet.deleteRow(row.__rowIndex);
+    this.worksheet.getRange(row.id, 1, 1, 2).setValues([[DELETED_FLAG, ""]]);
     return true;
   }
 }

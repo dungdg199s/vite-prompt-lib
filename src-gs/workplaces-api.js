@@ -45,6 +45,7 @@ gasServer.put("/api/workspaces", (req) => {
     throw new Error("Invalid payload for update-workspace");
   }
   const updatedRecord = {
+    id: payload.id,
     name: payload.name,
     description: payload.description || "",
     shareMode: payload.shareMode || "private",
