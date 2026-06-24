@@ -1,7 +1,5 @@
-const inputClassName =
-  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
-const buttonClassName =
-  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
+import Button from "../shared/Button";
+import { uiClasses } from "../shared/uiClasses";
 
 export default function DocumentSidebar({
   documentList,
@@ -18,16 +16,16 @@ export default function DocumentSidebar({
     : documentList;
 
   return (
-    <aside className="border-b border-stone-300 bg-[#faf5ec] p-5 md:border-r md:border-b-0">
+    <aside className={uiClasses.sidebar}>
       <div className="mb-4 flex items-center justify-between gap-2.5">
         <h2 className="text-lg font-semibold tracking-tight">Documents</h2>
-        <button type="button" onClick={onRefresh} className={buttonClassName}>
+        <Button type="button" onClick={onRefresh} variant="secondary">
           Refresh
-        </button>
+        </Button>
       </div>
 
       <select
-        className={`${inputClassName} mb-3`}
+        className={`${uiClasses.input} mb-3`}
         value={filterWorkspace}
         onChange={(event) => onFilterChange(event.target.value)}
       >
@@ -39,7 +37,7 @@ export default function DocumentSidebar({
         ))}
       </select>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex max-h-[calc(100vh-220px)] flex-col gap-2 overflow-y-auto pr-1">
         {isLoadingList ? (
           <p className="text-sm text-slate-600">Loading documents...</p>
         ) : null}

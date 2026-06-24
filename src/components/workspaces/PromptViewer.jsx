@@ -1,16 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import AppModal from "../shared/AppModal";
 import DocumentSelectorModal from "../shared/DocumentSelectorModal";
 import PromptEditor from "../prompts/PromptEditor";
+import Button from "../shared/Button";
+import { uiClasses } from "../shared/uiClasses";
 
-const inputClassName =
-  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
+const inputClassName = uiClasses.input;
 const generatorInputClassName = `${inputClassName} h-11`;
 const generatorSelectClassName = `${generatorInputClassName} appearance-none bg-[linear-gradient(45deg,transparent_50%,#334155_50%),linear-gradient(135deg,#334155_50%,transparent_50%)] bg-[position:calc(100%-18px)_calc(50%+1px),calc(100%-12px)_calc(50%+1px)] bg-[size:6px_6px,6px_6px] bg-no-repeat pr-10`;
-const secondaryButtonClassName =
-  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
-const primaryButtonClassName =
-  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function PromptViewer({
   selectedPrompt,
@@ -24,11 +21,12 @@ export default function PromptViewer({
   onDocumentCreated,
   promptEditingMode,
   isSavingPrompt,
-  promptErrorMessage,
+  errorMessage,
   isPromptModalOpen,
   isPromptDeleteModalOpen,
   onInputChange,
   onPromptSubmit,
+  onPromptFormChange,
   onNewPrompt,
   onEditPrompt,
   onOpenDeletePrompt,
@@ -81,7 +79,7 @@ export default function PromptViewer({
   };
 
   return (
-    <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
+    <section className={uiClasses.card}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">{selectedPrompt ? selectedPrompt.name : "Prompt"}</h2>
@@ -90,20 +88,20 @@ export default function PromptViewer({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onNewPrompt} className={secondaryButtonClassName}>
+          <Button type="button" onClick={onNewPrompt} variant="secondary">
             New Prompt
-          </button>
-          <button type="button" onClick={onEditPrompt} disabled={isSavingPrompt || !selectedPrompt} className={secondaryButtonClassName}>
+          </Button>
+          <Button type="button" onClick={onEditPrompt} disabled={isSavingPrompt || !selectedPrompt} variant="secondary">
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger"
             onClick={onOpenDeletePrompt}
             disabled={isSavingPrompt || !selectedPrompt}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -174,24 +172,26 @@ export default function PromptViewer({
             <div className="mb-2 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">Generated Prompt</h3>
               <div>
-                <button
+                <Button
                   type="button"
                   onClick={copyToClipboard}
                   disabled={!generatedPrompt || generatedPrompt === "Generated prompt will appear here."}
                   title="Copy to clipboard"
-                  className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  variant="ghost"
+                  size="sm"
                 >
                   Copy
-                </button>
-                <button
+                </Button>
+                <Button
                   type="button"
                   onClick={openGeminiWithPrompt}
                   disabled={!generatedPrompt || generatedPrompt === "Generated prompt will appear here."}
                   title="Open gemini"
-                  className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  variant="ghost"
+                  size="sm"
                 >
                   Open Gemini
-                </button>
+                </Button>
               </div>
             </div>
             <pre className="overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
@@ -235,6 +235,7 @@ export default function PromptViewer({
         editMode={promptEditingMode}
         onClose={onClosePromptModal}
         onSubmit={onPromptSubmit}
+        onFormChange={onPromptFormChange}
         isSaving={isSavingPrompt}
       ></PromptEditor>
 
@@ -244,21 +245,21 @@ export default function PromptViewer({
           Delete <strong>{selectedPromptName}</strong>? This action cannot be undone.
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={onCloseDeletePrompt} className={secondaryButtonClassName}>
+          <Button type="button" onClick={onCloseDeletePrompt} variant="secondary">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger"
             onClick={onDeletePrompt}
             disabled={isSavingPrompt}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </AppModal>
 
-      {promptErrorMessage ? <p className="mt-2 text-sm text-red-700">{promptErrorMessage}</p> : null}
+      {errorMessage ? <p className="mt-2 text-sm text-red-700">{errorMessage}</p> : null}
     </section>
   );
 }

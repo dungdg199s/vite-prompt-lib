@@ -1,13 +1,11 @@
 import { useState, useMemo } from "react";
 import AppModal from "./AppModal";
 import { documentsClient } from "../../lib/documents-client";
+import Button from "./Button";
+import Input from "./Input";
+import { uiClasses } from "./uiClasses";
 
-const inputClassName =
-  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
-const secondaryButtonClassName =
-  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
-const primaryButtonClassName =
-  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
+const inputClassName = uiClasses.input;
 
 export default function DocumentSelectorModal({ isOpen, documents = [], workspaceList = [], onDocumentCreated, onClose, onSelectContent }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -16,6 +14,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSavingDocument, setIsSavingDocument] = useState(false);
   const [createErrorMessage, setCreateErrorMessage] = useState("");
+  const [selectionErrorMessage, setSelectionErrorMessage] = useState("");
   const [newDocumentForm, setNewDocumentForm] = useState({
     name: "",
     workspace: "",
@@ -46,6 +45,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
   };
 
   const handleDocumentSelect = (doc) => {
+    setSelectionErrorMessage("");
     const availableTypes = getAvailableContentTypes(doc);
     if (availableTypes.length === 1) {
       // Auto-select if only one type available
@@ -55,7 +55,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
       setSelectedDocument(doc);
       setSelectedContentType(null);
     } else {
-      alert("Document has no content");
+      setSelectionErrorMessage("Document has no available content to insert.");
     }
   };
 
@@ -74,7 +74,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
       onSelectContent(content);
       resetModal();
     } else {
-      alert(`No ${contentType} content available`);
+      setSelectionErrorMessage(`No ${contentType} content available.`);
     }
   };
 
@@ -84,6 +84,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
     setSelectedContentType(null);
     setIsAddModalOpen(false);
     setCreateErrorMessage("");
+    setSelectionErrorMessage("");
     setNewDocumentForm({
       name: "",
       workspace: "",
@@ -174,57 +175,48 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
       <AppModal isOpen={isOpen} title="Add Document" onClose={resetModal} size="lg">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="text-base font-semibold">Add Document</h3>
-          <button type="button" onClick={() => setIsAddModalOpen(false)} className={secondaryButtonClassName}>
+          <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="secondary">
             Back
-          </button>
+          </Button>
         </div>
 
         <form className="grid gap-3" onSubmit={handleCreateDocument}>
-          <label className="grid gap-1.5 text-sm">
-            Document Name
-            <input
-              className={inputClassName}
-              value={newDocumentForm.name}
-              onChange={(event) => handleNewDocumentChange("name", event.target.value)}
-              placeholder="my-document"
-            />
-          </label>
+          <Input
+            type="text"
+            label="Document Name"
+            value={newDocumentForm.name}
+            onChange={(event) => handleNewDocumentChange("name", event.target.value)}
+            placeholder="my-document"
+            required
+          />
 
-          <label className="grid gap-1.5 text-sm">
-            Workspace
-            <select
-              className={inputClassName}
-              value={newDocumentForm.workspace}
-              onChange={(event) => handleNewDocumentChange("workspace", event.target.value)}
-            >
-              <option value="">- Select workspace -</option>
-              {workspaceList.map((workspace) => (
-                <option key={workspace.name} value={workspace.name}>
-                  {workspace.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Input
+            type="select"
+            label="Workspace"
+            value={newDocumentForm.workspace}
+            onChange={(event) => handleNewDocumentChange("workspace", event.target.value)}
+            noneLabel="- Select workspace -"
+            options={workspaceList.map((workspace) => ({ label: workspace.name, value: workspace.name }))}
+            required
+          />
 
-          <label className="grid gap-1.5 text-sm">
-            Type
-            <select className={inputClassName} value={newDocumentForm.type} onChange={(event) => handleNewDocumentChange("type", event.target.value)}>
-              <option value="Markdown">Markdown</option>
-              <option value="JSON">JSON</option>
-              <option value="HTML">HTML</option>
-              <option value="Spreadsheets">Spreadsheets</option>
-            </select>
-          </label>
+          <Input
+            type="select"
+            label="Type"
+            value={newDocumentForm.type}
+            onChange={(event) => handleNewDocumentChange("type", event.target.value)}
+            options={[
+              { label: "Markdown", value: "Markdown" },
+              { label: "JSON", value: "JSON" },
+              { label: "HTML", value: "HTML" },
+              { label: "Spreadsheets", value: "Spreadsheets" },
+            ]}
+          />
 
           {isSpreadsheetType ? (
             <label className="grid gap-1.5 text-sm">
               Spreadsheet ID
-              <input
-                className={inputClassName}
-                value={newDocumentForm.preasheetId}
-                onChange={(event) => handleNewDocumentChange("preasheetId", event.target.value)}
-                placeholder="1AbCdEfGh..."
-              />
+              <input className={inputClassName} value={newDocumentForm.preasheetId} onChange={(event) => handleNewDocumentChange("preasheetId", event.target.value)} placeholder="1AbCdEfGh..." />
             </label>
           ) : null}
 
@@ -280,12 +272,12 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           {createErrorMessage ? <p className="text-sm text-red-700">{createErrorMessage}</p> : null}
 
           <div className="flex justify-end gap-2 pt-1">
-            <button type="button" onClick={() => setIsAddModalOpen(false)} className={secondaryButtonClassName}>
+            <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="secondary">
               Cancel
-            </button>
-            <button type="submit" disabled={isSavingDocument} className={primaryButtonClassName}>
+            </Button>
+            <Button type="submit" disabled={isSavingDocument} variant="primary">
               Create
-            </button>
+            </Button>
           </div>
         </form>
       </AppModal>
@@ -326,18 +318,19 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           </div>
 
           <div className="flex gap-2 pt-2">
-            <button type="button" onClick={() => setSelectedDocument(null)} className={secondaryButtonClassName}>
+            <Button type="button" onClick={() => setSelectedDocument(null)} variant="secondary">
               Back
-            </button>
-            <button
+            </Button>
+            <Button
               type="button"
               onClick={() => handleContentSelect(selectedDocument, selectedContentType)}
               disabled={!selectedContentType}
-              className={primaryButtonClassName}
+              variant="primary"
             >
               Insert
-            </button>
+            </Button>
           </div>
+          {selectionErrorMessage ? <p className="text-sm text-red-700">{selectionErrorMessage}</p> : null}
         </div>
       </AppModal>
     );
@@ -347,24 +340,19 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
     <AppModal isOpen={isOpen} title="Select Document" onClose={resetModal} size="lg">
       <div className="space-y-3">
         <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={inputClassName}
-          />
-          <button
+          <input type="text" placeholder="Search documents..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={inputClassName} />
+          <Button
             type="button"
             onClick={() => {
               setCreateErrorMessage("");
               setIsAddModalOpen(true);
             }}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-teal-700 bg-teal-700 text-base font-semibold text-white transition hover:bg-teal-800"
+            variant="primary"
+            size="sm"
             title="Add document"
           >
             +
-          </button>
+          </Button>
         </div>
 
         <div className="max-h-96 overflow-y-auto">
@@ -387,6 +375,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
             </div>
           )}
         </div>
+        {selectionErrorMessage ? <p className="text-sm text-red-700">{selectionErrorMessage}</p> : null}
       </div>
     </AppModal>
   );

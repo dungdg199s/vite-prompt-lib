@@ -1,11 +1,8 @@
-const secondaryButtonClassName =
-  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
-const primaryButtonClassName =
-  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
+import { buttonClassByVariant, buttonSizeClass, cx } from "./uiClasses";
 
 /**
  * @typedef {Object} ButtonProps
- * @property {'primary'|'secondary'} variant
+ * @property {'primary'|'secondary'|'danger'|'ghost'|'icon'} variant
  * @property {Function} onClick
  */
 
@@ -14,13 +11,21 @@ const primaryButtonClassName =
  * @param {ButtonProps} props
  * @returns
  */
-export default function Button({ variant, className, onClick, children, ...props }) {
-  let btnClassName = className || "";
-  if (variant === "secondary") {
-    btnClassName += " " + secondaryButtonClassName;
-  } else if (variant === "primary") {
-    btnClassName += " " + primaryButtonClassName;
-  }
+export default function Button({
+  variant = "secondary",
+  size = "md",
+  className,
+  onClick,
+  fullWidth = false,
+  children,
+  ...props
+}) {
+  const btnClassName = cx(
+    buttonClassByVariant[variant] || buttonClassByVariant.secondary,
+    size === "md" ? "" : buttonSizeClass[size],
+    fullWidth ? "w-full" : "",
+    className,
+  );
 
   return (
     <button type="button" className={btnClassName} onClick={onClick} {...props}>

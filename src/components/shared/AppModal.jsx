@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 
 const sizeClassMap = {
+  sm: "max-w-sm",
   md: "max-w-md",
   lg: "max-w-2xl",
+  xl: "max-w-4xl",
 };
 
 export default function AppModal({
@@ -41,7 +43,7 @@ export default function AppModal({
       role="presentation"
     >
       <div
-        className={`w-full rounded-2xl border border-stone-300 bg-[#fffef8] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.25)] ${sizeClassMap[size] || sizeClassMap.md}`}
+        className={`flex max-h-[90vh] w-full flex-col overflow-hidden rounded-2xl border border-stone-300 bg-[#fffef8] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.25)] ${sizeClassMap[size] || sizeClassMap.md}`}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

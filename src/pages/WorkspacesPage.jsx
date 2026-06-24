@@ -6,6 +6,7 @@ import { useAppData } from "../contexts/AppDataContext";
 import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
 import WorkspaceForm from "../components/workspaces/WorkspaceForm";
 import PromptViewer from "../components/workspaces/PromptViewer";
+import { uiClasses } from "../components/shared/uiClasses";
 
 const DEFAULT_WORKSPACE_FORM = {
   name: "",
@@ -533,8 +534,8 @@ export default function WorkspacesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,_#e3f1ea,_transparent_45%),radial-gradient(circle_at_bottom_left,_#f9ddbf,_transparent_40%)] bg-[#f5efe5] text-slate-800">
-      <div className="mx-auto grid min-h-screen grid-cols-1 md:grid-cols-[320px_1fr]">
+    <div className={uiClasses.pageSurface}>
+      <div className={uiClasses.pageGrid}>
         <WorkspaceSidebar
           workspaceList={workspaceList}
           selectedWorkspaceName={selectedWorkspaceName}
@@ -548,7 +549,7 @@ export default function WorkspacesPage() {
           onBack={handleBack}
         />
 
-        <main className="grid content-start gap-4 p-4 md:p-6">
+        <main className="grid content-start gap-4 p-4 md:p-6 lg:p-8">
           {selectedPromptName ? null : (
             <WorkspaceForm
               selectedWorkspaceName={selectedWorkspaceName}

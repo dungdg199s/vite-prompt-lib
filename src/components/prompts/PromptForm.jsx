@@ -1,11 +1,7 @@
 import AppModal from "../shared/AppModal";
-
-const inputClassName =
-  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
-const secondaryButtonClassName =
-  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
-const primaryButtonClassName =
-  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
+import Button from "../shared/Button";
+import Input from "../shared/Input";
+import { uiClasses } from "../shared/uiClasses";
 
 export default function PromptForm({
   selectedPromptName,
@@ -28,7 +24,7 @@ export default function PromptForm({
   const isSharedMode = form.shareMode === "shared";
 
   return (
-    <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
+    <section className={uiClasses.card}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">
@@ -41,25 +37,25 @@ export default function PromptForm({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onNew} className={secondaryButtonClassName}>
+          <Button type="button" onClick={onNew} variant="secondary">
             New
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={onEdit}
             disabled={isSaving || !selectedPromptName}
-            className={secondaryButtonClassName}
+            variant="secondary"
           >
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger"
             onClick={onOpenDelete}
             disabled={isSaving || !selectedPromptName}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -104,92 +100,79 @@ export default function PromptForm({
           <h3 className="text-lg font-semibold tracking-tight">
             {editingMode === "create" ? "Create Prompt" : "Edit Prompt"}
           </h3>
-          <button type="button" className={secondaryButtonClassName} onClick={onCloseModal}>
+          <Button type="button" variant="secondary" onClick={onCloseModal}>
             Close
-          </button>
+          </Button>
         </div>
 
         <form className="grid gap-3" onSubmit={onSubmit}>
-          <label className="grid gap-1.5 text-sm">
-            Prompt Name
-            <input
-              className={inputClassName}
-              value={form.name}
-              onChange={(e) => onFormChange("name", e.target.value)}
-              disabled={editingMode === "edit"}
-              placeholder="my-prompt-name"
-            />
-          </label>
+          <Input
+            type="text"
+            label="Prompt Name"
+            value={form.name}
+            onChange={(e) => onFormChange("name", e.target.value)}
+            disabled={editingMode === "edit"}
+            placeholder="my-prompt-name"
+            required
+          />
 
-          <label className="grid gap-1.5 text-sm">
-            Workspace
-            <select
-              className={inputClassName}
-              value={form.workspace}
-              onChange={(e) => onFormChange("workspace", e.target.value)}
-            >
-              <option value="">— No workspace —</option>
-              {workspaceList.map((ws) => (
-                <option key={ws.name} value={ws.name}>
-                  {ws.name}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Input
+            type="select"
+            label="Workspace"
+            value={form.workspace}
+            onChange={(e) => onFormChange("workspace", e.target.value)}
+            noneLabel="- No workspace -"
+            options={workspaceList.map((ws) => ({ label: ws.name, value: ws.name }))}
+            required
+          />
 
-          <label className="grid gap-1.5 text-sm">
-            Description
-            <input
-              className={inputClassName}
-              value={form.description}
-              onChange={(e) => onFormChange("description", e.target.value)}
-              placeholder="Short description of this prompt"
-            />
-          </label>
+          <Input
+            type="text"
+            label="Description"
+            value={form.description}
+            onChange={(e) => onFormChange("description", e.target.value)}
+            placeholder="Short description of this prompt"
+          />
 
-          <label className="grid gap-1.5 text-sm">
-            Content
-            <textarea
-              className={inputClassName}
-              value={form.content}
-              onChange={(e) => onFormChange("content", e.target.value)}
-              rows={8}
-              placeholder={"Write your prompt template here.\nUse ${VariableName|description} for tokens.\nExample: ${Topic|options:React,Vue,Angular}"}
-            />
-          </label>
+          <Input
+            type="textarea"
+            label="Content"
+            value={form.content}
+            onChange={(e) => onFormChange("content", e.target.value)}
+            rows={8}
+            placeholder={"Write your prompt template here.\nUse ${VariableName|description} for tokens.\nExample: ${Topic|options:React,Vue,Angular}"}
+            required
+          />
 
-          <label className="grid gap-1.5 text-sm">
-            Share Mode
-            <select
-              className={inputClassName}
-              value={form.shareMode}
-              onChange={(e) => onFormChange("shareMode", e.target.value)}
-            >
-              <option value="private">private</option>
-              <option value="shared">shared</option>
-              <option value="public">public</option>
-            </select>
-          </label>
+          <Input
+            type="select"
+            label="Share Mode"
+            value={form.shareMode}
+            onChange={(e) => onFormChange("shareMode", e.target.value)}
+            options={[
+              { label: "private", value: "private" },
+              { label: "shared", value: "shared" },
+              { label: "public", value: "public" },
+            ]}
+          />
 
           {form.shareMode === "shared" ? (
-            <label className="grid gap-1.5 text-sm">
-              Share With (comma separated emails)
-              <input
-                className={inputClassName}
-                value={form.shareWith}
-                onChange={(e) => onFormChange("shareWith", e.target.value)}
-                placeholder="a@company.com, b@company.com"
-              />
-            </label>
+            <Input
+              type="text"
+              label="Share With (comma separated emails)"
+              value={form.shareWith}
+              onChange={(e) => onFormChange("shareWith", e.target.value)}
+              placeholder="a@company.com, b@company.com"
+            />
           ) : null}
 
           <div className="flex flex-wrap justify-end gap-2 pt-2">
-            <button type="button" onClick={onCloseModal} className={secondaryButtonClassName}>
+            <Button type="button" onClick={onCloseModal} variant="secondary">
               Cancel
-            </button>
-            <button type="submit" disabled={isSaving} className={primaryButtonClassName}>
+            </Button>
+            <Button type="submit" disabled={isSaving} variant="primary">
               {editingMode === "create" ? "Create" : "Update"}
-            </button>
+            </Button>
           </div>
         </form>
       </AppModal>
@@ -204,17 +187,17 @@ export default function PromptForm({
           Delete <strong>{selectedPromptName}</strong>? This action cannot be undone.
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={onCloseDelete} className={secondaryButtonClassName}>
+          <Button type="button" onClick={onCloseDelete} variant="secondary">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger"
             onClick={onDelete}
             disabled={isSaving}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </AppModal>
 

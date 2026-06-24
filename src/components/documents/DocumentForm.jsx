@@ -1,11 +1,9 @@
 import AppModal from "../shared/AppModal";
+import Button from "../shared/Button";
+import { uiClasses } from "../shared/uiClasses";
 
 const inputClassName =
   "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
-const secondaryButtonClassName =
-  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
-const primaryButtonClassName =
-  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function DocumentForm({
   selectedDocumentName,
@@ -45,7 +43,7 @@ export default function DocumentForm({
   const isSpreadsheetType = (form.type || "Spreadsheets") === "Spreadsheets";
 
   return (
-    <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
+    <section className={uiClasses.card}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">{selectedDocumentName ? form.name || selectedDocumentName : "Document"}</h2>
@@ -54,28 +52,28 @@ export default function DocumentForm({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button type="button" onClick={onNew} className={secondaryButtonClassName}>
+          <Button type="button" onClick={onNew} variant="secondary">
             New
-          </button>
-          <button type="button" onClick={onEdit} disabled={isSaving || !selectedDocumentName} className={secondaryButtonClassName}>
+          </Button>
+          <Button type="button" onClick={onEdit} disabled={isSaving || !selectedDocumentName} variant="secondary">
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
             onClick={onOpenSync}
             disabled={isSaving || !selectedDocumentName || !isSpreadsheetType}
-            className={primaryButtonClassName}
+            variant="primary"
           >
             Sync
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger"
             onClick={onOpenDelete}
             disabled={isSaving || !selectedDocumentName}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -127,7 +125,7 @@ export default function DocumentForm({
       )}
 
       <AppModal isOpen={isModalOpen} title={editingMode === "create" ? "Create Document" : "Edit Document"} onClose={onCloseModal} size="lg">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold tracking-tight">{editingMode === "create" ? "Create Document" : "Edit Document"}</h3>
             <p className="text-xs uppercase tracking-wider text-slate-500">
@@ -138,15 +136,16 @@ export default function DocumentForm({
                   : "Step 3/3: Sync options"}
             </p>
           </div>
-          <button type="button" className={secondaryButtonClassName} onClick={onCloseModal}>
+          <Button type="button" variant="secondary" onClick={onCloseModal}>
             Close
-          </button>
+          </Button>
         </div>
 
-        <form className="grid gap-3" onSubmit={onSubmit}>
+        <form className="mt-4 flex min-h-0 flex-1 flex-col" onSubmit={onSubmit}>
           {formPhase === "type" ? (
             <>
-              <div className="grid gap-2">
+              <div className="min-h-0 flex-1 overflow-y-auto pr-1">
+                <div className="grid gap-2">
                 {["Spreadsheets", "Markdown", "JSON", "HTML"].map((typeItem) => (
                   <button
                     key={typeItem}
@@ -161,21 +160,22 @@ export default function DocumentForm({
                     {typeItem}
                   </button>
                 ))}
+                </div>
+                {errorMessage ? <p className="mt-3 text-sm text-red-700">{errorMessage}</p> : null}
               </div>
 
-              <div className="flex flex-wrap justify-end gap-2 pt-2">
-                <button type="button" onClick={onCloseModal} className={secondaryButtonClassName}>
+              <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
+                <Button type="button" onClick={onCloseModal} variant="secondary">
                   Cancel
-                </button>
-                <button type="button" disabled={isSaving} className={primaryButtonClassName} onClick={onNextTypePhase}>
+                </Button>
+                <Button type="button" disabled={isSaving} variant="primary" onClick={onNextTypePhase}>
                   Next
-                </button>
+                </Button>
               </div>
-
-              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
             </>
           ) : formPhase === "details" ? (
             <>
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               <label className="grid gap-1.5 text-sm">
                 Document Name
                 <input
@@ -305,26 +305,27 @@ export default function DocumentForm({
                   />
                 </label>
               ) : null}
-
-              <div className="flex flex-wrap justify-end gap-2 pt-2">
-                <button type="button" onClick={onCloseModal} className={secondaryButtonClassName}>
-                  Cancel
-                </button>
-                {isSpreadsheetType ? (
-                  <button type="button" disabled={isSaving} className={primaryButtonClassName} onClick={onNextPhase}>
-                    Next
-                  </button>
-                ) : (
-                  <button type="submit" disabled={isSaving} className={primaryButtonClassName}>
-                    {editingMode === "create" ? "Create" : "Update"}
-                  </button>
-                )}
+              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
               </div>
 
-              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
+              <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
+                <Button type="button" onClick={onCloseModal} variant="secondary">
+                  Cancel
+                </Button>
+                {isSpreadsheetType ? (
+                  <Button type="button" disabled={isSaving} variant="primary" onClick={onNextPhase}>
+                    Next
+                  </Button>
+                ) : (
+                  <Button type="submit" disabled={isSaving} variant="primary">
+                    {editingMode === "create" ? "Create" : "Update"}
+                  </Button>
+                )}
+              </div>
             </>
           ) : (
             <>
+              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet Name</p>
                 <p className="mt-1 text-sm font-medium text-slate-800">{syncPreasheetName || "Unknown spreadsheet"}</p>
@@ -379,31 +380,32 @@ export default function DocumentForm({
                   </div>
                 </div>
               ) : null}
-
-              <div className="flex flex-wrap justify-end gap-2 pt-2">
-                <button type="button" onClick={onBackPhase} className={secondaryButtonClassName}>
-                  Back
-                </button>
-                <button type="submit" disabled={isSaving} className={primaryButtonClassName}>
-                  {editingMode === "create" ? "Create" : "Update + Sync"}
-                </button>
+              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
               </div>
 
-              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
+              <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
+                <Button type="button" onClick={onBackPhase} variant="secondary">
+                  Back
+                </Button>
+                <Button type="submit" disabled={isSaving} variant="primary">
+                  {editingMode === "create" ? "Create" : "Update + Sync"}
+                </Button>
+              </div>
             </>
           )}
         </form>
       </AppModal>
 
       <AppModal isOpen={isSyncModalOpen} title="Sync Document" onClose={onCloseSync} size="lg">
-        <div className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex shrink-0 items-center justify-between gap-3">
           <h3 className="text-lg font-semibold tracking-tight">Sync Options</h3>
-          <button type="button" className={secondaryButtonClassName} onClick={onCloseSync}>
+          <Button type="button" variant="secondary" onClick={onCloseSync}>
             Close
-          </button>
+          </Button>
         </div>
 
-        <form className="grid gap-3" onSubmit={onSubmitSync}>
+        <form className="mt-4 flex min-h-0 flex-1 flex-col" onSubmit={onSubmitSync}>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
           <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet Name</p>
             <p className="mt-1 text-sm font-medium text-slate-800">{syncPreasheetName || "Unknown spreadsheet"}</p>
@@ -458,14 +460,16 @@ export default function DocumentForm({
               </div>
             </div>
           ) : null}
+          {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
+          </div>
 
-          <div className="flex flex-wrap justify-end gap-2 pt-2">
-            <button type="button" onClick={onCloseSync} className={secondaryButtonClassName}>
+          <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
+            <Button type="button" onClick={onCloseSync} variant="secondary">
               Cancel
-            </button>
-            <button type="submit" disabled={isSaving} className={primaryButtonClassName}>
+            </Button>
+            <Button type="submit" disabled={isSaving} variant="primary">
               Sync Now
-            </button>
+            </Button>
           </div>
         </form>
       </AppModal>
@@ -476,17 +480,17 @@ export default function DocumentForm({
           Delete <strong>{selectedDocumentName}</strong>? This action cannot be undone.
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <button type="button" onClick={onCloseDelete} className={secondaryButtonClassName}>
+          <Button type="button" onClick={onCloseDelete} variant="secondary">
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            variant="danger"
             onClick={onDelete}
             disabled={isSaving}
           >
             Delete
-          </button>
+          </Button>
         </div>
       </AppModal>
 
