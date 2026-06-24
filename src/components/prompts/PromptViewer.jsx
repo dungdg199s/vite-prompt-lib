@@ -1,7 +1,7 @@
 import { useState } from "react";
-import AppModal from "../shared/AppModal";
-import DocumentSelectorModal from "../shared/DocumentSelectorModal";
-import PromptEditor from "../prompts/PromptEditor";
+import Modal from "../shared/Modal";
+import DocumentSelectorModal from "../documents/DocumentSelectorModal";
+import PromptEditModal from "./PromptEditModal";
 import Button from "../shared/Button";
 import { uiClasses } from "../shared/uiClasses";
 
@@ -26,7 +26,7 @@ export default function PromptViewer({
   isPromptDeleteModalOpen,
   onInputChange,
   onPromptSubmit,
-  onPromptFormChange,
+  onPromptDetailChange,
   onNewPrompt,
   onEditPrompt,
   onOpenDeletePrompt,
@@ -229,17 +229,17 @@ export default function PromptViewer({
         onSelectContent={handleSelectDocumentContent}
       />
 
-      <PromptEditor
+      <PromptEditModal
         prompt={promptForm}
         isOpen={isPromptModalOpen}
         editMode={promptEditingMode}
         onClose={onClosePromptModal}
         onSubmit={onPromptSubmit}
-        onFormChange={onPromptFormChange}
+        onFormChange={onPromptDetailChange}
         isSaving={isSavingPrompt}
-      ></PromptEditor>
+      ></PromptEditModal>
 
-      <AppModal isOpen={isPromptDeleteModalOpen} title="Delete Prompt" onClose={onCloseDeletePrompt}>
+      <Modal isOpen={isPromptDeleteModalOpen} title="Delete Prompt" onClose={onCloseDeletePrompt}>
         <h3 className="text-lg font-semibold tracking-tight">Delete Prompt</h3>
         <p className="mt-2 text-sm text-slate-600">
           Delete <strong>{selectedPromptName}</strong>? This action cannot be undone.
@@ -257,7 +257,7 @@ export default function PromptViewer({
             Delete
           </Button>
         </div>
-      </AppModal>
+      </Modal>
 
       {errorMessage ? <p className="mt-2 text-sm text-red-700">{errorMessage}</p> : null}
     </section>

@@ -1,10 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import AppModal from "../shared/AppModal";
+import Modal from "../shared/Modal";
 import Button from "../shared/Button";
 import Input from "../shared/Input";
 import { workspacesClient } from "../../lib/workspaces-client";
 
-export default function PromptEditor({ prompt, isOpen, editMode, onClose, onSubmit, onFormChange, isSaving }) {
+export default function PromptEditModal({
+  prompt,
+  isOpen,
+  editMode,
+  onClose,
+  onSubmit,
+  onFormChange,
+  isSaving,
+}) {
   const [workspaces, setWorkspaces] = useState([]);
 
   useEffect(() => {
@@ -20,7 +28,10 @@ export default function PromptEditor({ prompt, isOpen, editMode, onClose, onSubm
   };
 
   const workspaceOptions = useMemo(() => {
-    return workspaces.map((workspace) => ({ label: workspace.name, value: workspace.name }));
+    return workspaces.map((workspace) => ({
+      label: workspace.name,
+      value: workspace.name,
+    }));
   }, [workspaces]);
 
   const shareOptions = useMemo(() => {
@@ -28,14 +39,13 @@ export default function PromptEditor({ prompt, isOpen, editMode, onClose, onSubm
   }, []);
 
   return (
-    <AppModal isOpen={isOpen} onClose={onClose} title={editMode === "create" ? "Create Prompt" : "Edit Prompt"} size="lg">
-      <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="text-lg font-semibold tracking-tight">{editMode === "create" ? "Create Prompt" : "Edit Prompt"}</h3>
-        <Button variant="secondary" onClick={onClose}>
-          Close
-        </Button>
-      </div>
-
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={editMode === "create" ? "Create Prompt" : "Edit Prompt"}
+      size="lg"
+     
+    >
       <form className="grid gap-3" onSubmit={(e) => onSubmit(e, prompt)}>
         <Input
           type="text"
@@ -102,6 +112,6 @@ export default function PromptEditor({ prompt, isOpen, editMode, onClose, onSubm
           </Button>
         </div>
       </form>
-    </AppModal>
+    </Modal>
   );
 }

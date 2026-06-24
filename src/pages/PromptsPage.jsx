@@ -3,9 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { promptsClient } from "../lib/prompts-client";
 import { useAppData } from "../contexts/AppDataContext";
 import PromptSidebar from "../components/prompts/PromptSidebar";
-import PromptForm from "../components/prompts/PromptForm";
+import PromptDetail from "../components/prompts/PromptDetail";
 import PromptContentPreview from "../components/prompts/PromptContentPreview";
 import { uiClasses } from "../components/shared/uiClasses";
+import { useCrudToast } from "../lib/toast";
 
 const DEFAULT_PROMPT_FORM = {
   name: "",
@@ -69,13 +70,14 @@ export default function PromptsPage() {
     }
   }, []);
 
-  const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
+  const [promptForm, setPromptDetail] = useState(DEFAULT_PROMPT_FORM);
   const [editingMode, setEditingMode] = useState("create");
   const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [filterWorkspace, setFilterWorkspace] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const promptToast = useCrudToast("Prompt");
 
   // Use URL params as source of truth
   const selectedPromptName = promptNameFromUrl;
@@ -84,7 +86,7 @@ export default function PromptsPage() {
   useEffect(() => {
     const loadPrompt = async () => {
       if (!selectedPromptName) {
-        setPromptForm(DEFAULT_PROMPT_FORM);
+        setPromptDetail(DEFAULT_PROMPT_FORM);
         setEditingMode("create");
         return;
       }
@@ -92,7 +94,7 @@ export default function PromptsPage() {
       setErrorMessage("");
       try {
         const prompt = await promptsClient.getPrompt(selectedPromptName);
-        setPromptForm({
+        setPromptDetail({
           id: prompt?.id,
           name: prompt?.name || "",
           workspace: prompt?.workspace || "",
@@ -114,11 +116,11 @@ export default function PromptsPage() {
   }, [selectedPromptName]);
 
   const handleFormChange = (field, value) => {
-    setPromptForm((prev) => ({ ...prev, [field]: value }));
+    setPromptDetail((prev) => ({ ...prev, [field]: value }));
   };
 
   const resetForm = () => {
-    setPromptForm(DEFAULT_PROMPT_FORM);
+    setPromptDetail(DEFAULT_PROMPT_FORM);
     setEditingMode("create");
   };
 
@@ -198,15 +200,18 @@ export default function PromptsPage() {
       if (editingMode === "create") {
         await promptsClient.createPrompt(payload);
         await refreshAfterPromptCreate();
+        promptToast.created();
       } else {
         await promptsClient.updatePrompt(payload);
         await refreshAfterPromptUpdate();
+        promptToast.updated();
       }
       navigate(`/prompts/${encodeURIComponent(payload.name)}`);
       setIsPromptModalOpen(false);
     } catch (error) {
-        console.log(error);
-      setErrorMessage(error.message || "Cannot save prompt");
+      console.log(error);
+      const message = promptToast.error(error, "Cannot save prompt");
+      setErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -222,9 +227,11 @@ export default function PromptsPage() {
       navigate('/prompts');
       setIsDeleteModalOpen(false);
       resetForm();
+      promptToast.deleted();
     } catch (error) {
-        console.log(error);
-      setErrorMessage(error.message || "Cannot delete prompt");
+      console.log(error);
+      const message = promptToast.error(error, "Cannot delete prompt");
+      setErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -245,7 +252,7 @@ export default function PromptsPage() {
         />
 
         <main className="grid content-start gap-4 p-4 md:p-6 lg:p-8">
-          <PromptForm
+          <PromptDetail
             selectedPromptName={selectedPromptName}
             form={promptForm}
             editingMode={editingMode}

@@ -1,9 +1,9 @@
-import AppModal from "../shared/AppModal";
 import Button from "../shared/Button";
-import Input from "../shared/Input";
+import WorkspaceEditModal from "./WorkspaceEditModal";
+import WorkspaceDeleteModal from "./WorkspaceDeleteModal";
 import { uiClasses } from "../shared/uiClasses";
 
-export default function WorkspaceForm({
+export default function WorkspaceDetail({
   selectedWorkspaceName,
   selectedPromptName,
   form,
@@ -112,86 +112,23 @@ export default function WorkspaceForm({
         </>
       ) : null}
 
-      <AppModal isOpen={isModalOpen} title={editingMode === "create" ? "Create Workspace" : "Edit Workspace"} onClose={onCloseModal} size="lg">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold tracking-tight">{editingMode === "create" ? "Create Workspace" : "Edit Workspace"}</h3>
-          <Button type="button" variant="secondary" onClick={onCloseModal}>
-            Close
-          </Button>
-        </div>
+      <WorkspaceEditModal
+        workspace={form}
+        editMode={editingMode}
+        isOpen={isModalOpen}
+        onClose={onCloseModal}
+        onSubmit={onSubmit}
+        onFormChange={onFormChange}
+        isSaving={isSaving}
+      />
 
-        <form className="grid gap-3" onSubmit={onSubmit}>
-          <Input
-            type="text"
-            label="Workspace Name"
-            value={form.name}
-            onChange={(e) => onFormChange("name", e.target.value)}
-            disabled={editingMode === "edit"}
-            placeholder="workspace-name"
-            required
-          />
-
-          <Input
-            type="textarea"
-            label="Description"
-            value={form.description}
-            onChange={(e) => onFormChange("description", e.target.value)}
-            rows={3}
-            placeholder="Workspace description"
-          />
-
-          <Input
-            type="select"
-            label="Share Mode"
-            value={form.shareMode}
-            onChange={(e) => onFormChange("shareMode", e.target.value)}
-            options={[
-              { label: "private", value: "private" },
-              { label: "shared", value: "shared" },
-              { label: "public", value: "public" },
-            ]}
-          />
-
-          {form.shareMode === "shared" ? (
-            <Input
-              type="text"
-              label="Share With (comma separated emails)"
-              value={form.shareWith}
-              onChange={(e) => onFormChange("shareWith", e.target.value)}
-              placeholder="a@company.com, b@company.com"
-            />
-          ) : null}
-
-          <div className="flex flex-wrap justify-end gap-2 pt-2">
-            <Button type="button" onClick={onCloseModal} variant="secondary">
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSaving} variant="primary">
-              {editingMode === "create" ? "Create" : "Update"}
-            </Button>
-          </div>
-        </form>
-      </AppModal>
-
-      <AppModal isOpen={isDeleteModalOpen} title="Delete Workspace" onClose={onCloseDelete}>
-        <h3 className="text-lg font-semibold tracking-tight">Delete Workspace</h3>
-        <p className="mt-2 text-sm text-slate-600">
-          Delete <strong>{selectedWorkspaceName}</strong>? This action cannot be undone.
-        </p>
-        <div className="mt-4 flex justify-end gap-2">
-          <Button type="button" onClick={onCloseDelete} variant="secondary">
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="danger"
-            onClick={onDelete}
-            disabled={isSaving}
-          >
-            Delete
-          </Button>
-        </div>
-      </AppModal>
+      <WorkspaceDeleteModal
+        workspaceName={selectedWorkspaceName}
+        isOpen={isDeleteModalOpen}
+        isSaving={isSaving}
+        onClose={onCloseDelete}
+        onDelete={onDelete}
+      />
 
       {errorMessage ? <p className="mt-2 text-sm text-red-700">{errorMessage}</p> : null}
     </section>

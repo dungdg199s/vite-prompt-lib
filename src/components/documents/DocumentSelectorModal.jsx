@@ -1,9 +1,9 @@
 import { useState, useMemo } from "react";
-import AppModal from "./AppModal";
+import Modal from "../shared/Modal";
 import { documentsClient } from "../../lib/documents-client";
-import Button from "./Button";
-import Input from "./Input";
-import { uiClasses } from "./uiClasses";
+import Button from "../shared/Button";
+import Input from "../shared/Input";
+import { uiClasses } from "../shared/uiClasses";
 
 const inputClassName = uiClasses.input;
 
@@ -15,7 +15,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
   const [isSavingDocument, setIsSavingDocument] = useState(false);
   const [createErrorMessage, setCreateErrorMessage] = useState("");
   const [selectionErrorMessage, setSelectionErrorMessage] = useState("");
-  const [newDocumentForm, setNewDocumentForm] = useState({
+  const [newDocumentDetail, setNewDocumentDetail] = useState({
     name: "",
     workspace: "",
     type: "Markdown",
@@ -85,7 +85,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
     setIsAddModalOpen(false);
     setCreateErrorMessage("");
     setSelectionErrorMessage("");
-    setNewDocumentForm({
+    setNewDocumentDetail({
       name: "",
       workspace: "",
       type: "Markdown",
@@ -100,7 +100,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
 
   const handleNewDocumentChange = (field, value) => {
     setCreateErrorMessage("");
-    setNewDocumentForm((prev) => ({ ...prev, [field]: value }));
+    setNewDocumentDetail((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCreateDocument = async (event) => {
@@ -109,15 +109,15 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
     setCreateErrorMessage("");
 
     const payload = {
-      name: String(newDocumentForm.name || "").trim(),
-      workspace: String(newDocumentForm.workspace || "").trim(),
-      type: newDocumentForm.type || "Markdown",
-      preasheetId: String(newDocumentForm.preasheetId || "").trim(),
-      fileName: String(newDocumentForm.name || "").trim(),
-      description: String(newDocumentForm.description || "").trim(),
-      contentMarkdown: newDocumentForm.contentMarkdown || "",
-      contentJSON: newDocumentForm.contentJSON || "",
-      contentHTML: newDocumentForm.contentHTML || "",
+      name: String(newDocumentDetail.name || "").trim(),
+      workspace: String(newDocumentDetail.workspace || "").trim(),
+      type: newDocumentDetail.type || "Markdown",
+      preasheetId: String(newDocumentDetail.preasheetId || "").trim(),
+      fileName: String(newDocumentDetail.name || "").trim(),
+      description: String(newDocumentDetail.description || "").trim(),
+      contentMarkdown: newDocumentDetail.contentMarkdown || "",
+      contentJSON: newDocumentDetail.contentJSON || "",
+      contentHTML: newDocumentDetail.contentHTML || "",
       shareMode: "private",
       shareWith: [],
       syncOptions: {
@@ -151,7 +151,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
         await onDocumentCreated();
       }
       setIsAddModalOpen(false);
-      setNewDocumentForm((prev) => ({
+      setNewDocumentDetail((prev) => ({
         ...prev,
         name: "",
         preasheetId: "",
@@ -169,10 +169,10 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
   };
 
   if (isAddModalOpen) {
-    const isSpreadsheetType = (newDocumentForm.type || "Markdown") === "Spreadsheets";
+    const isSpreadsheetType = (newDocumentDetail.type || "Markdown") === "Spreadsheets";
 
     return (
-      <AppModal isOpen={isOpen} title="Add Document" onClose={resetModal} size="lg">
+      <Modal isOpen={isOpen} title="Add Document" onClose={resetModal} size="lg">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="text-base font-semibold">Add Document</h3>
           <Button type="button" onClick={() => setIsAddModalOpen(false)} variant="secondary">
@@ -184,7 +184,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           <Input
             type="text"
             label="Document Name"
-            value={newDocumentForm.name}
+            value={newDocumentDetail.name}
             onChange={(event) => handleNewDocumentChange("name", event.target.value)}
             placeholder="my-document"
             required
@@ -193,7 +193,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           <Input
             type="select"
             label="Workspace"
-            value={newDocumentForm.workspace}
+            value={newDocumentDetail.workspace}
             onChange={(event) => handleNewDocumentChange("workspace", event.target.value)}
             noneLabel="- Select workspace -"
             options={workspaceList.map((workspace) => ({ label: workspace.name, value: workspace.name }))}
@@ -203,7 +203,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           <Input
             type="select"
             label="Type"
-            value={newDocumentForm.type}
+            value={newDocumentDetail.type}
             onChange={(event) => handleNewDocumentChange("type", event.target.value)}
             options={[
               { label: "Markdown", value: "Markdown" },
@@ -216,43 +216,43 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           {isSpreadsheetType ? (
             <label className="grid gap-1.5 text-sm">
               Spreadsheet ID
-              <input className={inputClassName} value={newDocumentForm.preasheetId} onChange={(event) => handleNewDocumentChange("preasheetId", event.target.value)} placeholder="1AbCdEfGh..." />
+              <input className={inputClassName} value={newDocumentDetail.preasheetId} onChange={(event) => handleNewDocumentChange("preasheetId", event.target.value)} placeholder="1AbCdEfGh..." />
             </label>
           ) : null}
 
-          {newDocumentForm.type === "Markdown" ? (
+          {newDocumentDetail.type === "Markdown" ? (
             <label className="grid gap-1.5 text-sm">
               Markdown Content
               <textarea
                 className={inputClassName}
                 rows={6}
-                value={newDocumentForm.contentMarkdown}
+                value={newDocumentDetail.contentMarkdown}
                 onChange={(event) => handleNewDocumentChange("contentMarkdown", event.target.value)}
                 placeholder="Write markdown content..."
               />
             </label>
           ) : null}
 
-          {newDocumentForm.type === "JSON" ? (
+          {newDocumentDetail.type === "JSON" ? (
             <label className="grid gap-1.5 text-sm">
               JSON Content
               <textarea
                 className={inputClassName}
                 rows={6}
-                value={newDocumentForm.contentJSON}
+                value={newDocumentDetail.contentJSON}
                 onChange={(event) => handleNewDocumentChange("contentJSON", event.target.value)}
                 placeholder='{"key": "value"}'
               />
             </label>
           ) : null}
 
-          {newDocumentForm.type === "HTML" ? (
+          {newDocumentDetail.type === "HTML" ? (
             <label className="grid gap-1.5 text-sm">
               HTML Content
               <textarea
                 className={inputClassName}
                 rows={6}
-                value={newDocumentForm.contentHTML}
+                value={newDocumentDetail.contentHTML}
                 onChange={(event) => handleNewDocumentChange("contentHTML", event.target.value)}
                 placeholder="<h1>Title</h1>"
               />
@@ -263,7 +263,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
             Description
             <input
               className={inputClassName}
-              value={newDocumentForm.description}
+              value={newDocumentDetail.description}
               onChange={(event) => handleNewDocumentChange("description", event.target.value)}
               placeholder="Short description"
             />
@@ -280,7 +280,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
             </Button>
           </div>
         </form>
-      </AppModal>
+      </Modal>
     );
   }
 
@@ -288,7 +288,7 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
     const availableTypes = getAvailableContentTypes(selectedDocument);
 
     return (
-      <AppModal isOpen={isOpen} title="Select Content Type" onClose={resetModal} size="sm">
+      <Modal isOpen={isOpen} title="Select Content Type" onClose={resetModal} size="sm">
         <div className="space-y-4">
           <div>
             <h3 className="text-sm font-semibold">
@@ -332,12 +332,12 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
           </div>
           {selectionErrorMessage ? <p className="text-sm text-red-700">{selectionErrorMessage}</p> : null}
         </div>
-      </AppModal>
+      </Modal>
     );
   }
 
   return (
-    <AppModal isOpen={isOpen} title="Select Document" onClose={resetModal} size="lg">
+    <Modal isOpen={isOpen} title="Select Document" onClose={resetModal} size="lg">
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <input type="text" placeholder="Search documents..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className={inputClassName} />
@@ -377,6 +377,6 @@ export default function DocumentSelectorModal({ isOpen, documents = [], workspac
         </div>
         {selectionErrorMessage ? <p className="text-sm text-red-700">{selectionErrorMessage}</p> : null}
       </div>
-    </AppModal>
+    </Modal>
   );
 }

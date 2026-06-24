@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import DocumentSidebar from "../components/documents/DocumentSidebar";
-import DocumentForm from "../components/documents/DocumentForm";
+import DocumentDetail from "../components/documents/DocumentDetail";
 import DocumentContentPreview from "../components/documents/DocumentContentPreview";
 import { documentsClient } from "../lib/documents-client";
 import { useAppData } from "../contexts/AppDataContext";
 import { uiClasses } from "../components/shared/uiClasses";
+import { useCrudToast } from "../lib/toast";
 
 const DEFAULT_DOCUMENT_FORM = {
   name: "",
@@ -86,7 +87,7 @@ export default function DocumentsPage() {
 
   const documentNameFromUrl = params['*'] || '';
 
-  const [documentForm, setDocumentForm] = useState(DEFAULT_DOCUMENT_FORM);
+  const [documentForm, setDocumentDetail] = useState(DEFAULT_DOCUMENT_FORM);
   const [editingMode, setEditingMode] = useState("create");
   const [isDocumentModalOpen, setIsDocumentModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -99,6 +100,7 @@ export default function DocumentsPage() {
   const [isLoadingSyncMeta, setIsLoadingSyncMeta] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const documentToast = useCrudToast("Document");
 
   const resetSyncOptions = useCallback(() => {
     setSyncOptions(DEFAULT_SYNC_OPTIONS);
@@ -141,7 +143,7 @@ export default function DocumentsPage() {
   useEffect(() => {
     const loadDocument = async () => {
       if (!selectedDocumentName) {
-        setDocumentForm(DEFAULT_DOCUMENT_FORM);
+        setDocumentDetail(DEFAULT_DOCUMENT_FORM);
         setEditingMode("create");
         setFormPhase("type");
         resetSyncOptions();
@@ -151,7 +153,7 @@ export default function DocumentsPage() {
       setErrorMessage("");
       try {
         const document = await documentsClient.getDocument(selectedDocumentName);
-        setDocumentForm({
+        setDocumentDetail({
           id: document?.id,
           name: document?.name || "",
           type: document?.type || "Spreadsheets",
@@ -210,9 +212,9 @@ export default function DocumentsPage() {
       .filter(Boolean);
   }, [parsedContentJSON]);
 
-  const handleDocumentFormChange = (field, value) => {
+  const handleDocumentDetailChange = (field, value) => {
     setErrorMessage("");
-    setDocumentForm((prev) => {
+    setDocumentDetail((prev) => {
       if (field === "name") {
         return {
           ...prev,
@@ -270,15 +272,15 @@ export default function DocumentsPage() {
     }));
   };
 
-  const resetDocumentForm = () => {
-    setDocumentForm(DEFAULT_DOCUMENT_FORM);
+  const resetDocumentDetail = () => {
+    setDocumentDetail(DEFAULT_DOCUMENT_FORM);
     setEditingMode("create");
     setFormPhase("type");
   };
 
   const openCreateModal = () => {
     setErrorMessage("");
-    resetDocumentForm();
+    resetDocumentDetail();
     setFormPhase("type");
     setIsDeleteModalOpen(false);
     setIsSyncModalOpen(false);
@@ -300,7 +302,7 @@ export default function DocumentsPage() {
 
   const handleSelectType = (type) => {
     setErrorMessage("");
-    setDocumentForm((prev) => ({
+    setDocumentDetail((prev) => ({
       ...prev,
       type,
       preasheetId: type === "Spreadsheets" ? prev.preasheetId : "",
@@ -331,7 +333,7 @@ export default function DocumentsPage() {
         preasheet?.preasheetName || documentForm.fileName || documentForm.name || "",
       ).trim();
 
-      setDocumentForm((prev) => ({
+      setDocumentDetail((prev) => ({
         ...prev,
         fileName: nextFileName,
       }));
@@ -518,21 +520,25 @@ export default function DocumentsPage() {
       if (editingMode === "create") {
         await documentsClient.createDocument(payload);
         await refreshAfterDocumentCreate();
+        documentToast.created();
       } else {
         await documentsClient.updateDocument(payload);
         await refreshAfterDocumentUpdate();
+        documentToast.updated();
       }
 
       if (isSpreadsheetType && editingMode !== "create") {
         await documentsClient.syncDocument(payload.name, normalizedSyncOptions);
+        documentToast.synced();
       }
 
       await openDocument(payload.name);
       setFormPhase("details");
       setIsDocumentModalOpen(false);
     } catch (error) {
-        console.log(error);
-      setErrorMessage(error.message || "Cannot save document");
+      console.log(error);
+      const message = documentToast.error(error, "Cannot save document");
+      setErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -550,11 +556,13 @@ export default function DocumentsPage() {
       await documentsClient.deleteDocument(selectedDocumentName);
       await refreshAfterDocumentDelete();
       setIsDeleteModalOpen(false);
-      resetDocumentForm();
+      resetDocumentDetail();
       resetSyncOptions();
+      documentToast.deleted();
     } catch (error) {
-        console.log(error);
-      setErrorMessage(error.message || "Cannot delete document");
+      console.log(error);
+      const message = documentToast.error(error, "Cannot delete document");
+      setErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -599,9 +607,11 @@ export default function DocumentsPage() {
       await refreshAfterDocumentUpdate();
       await openDocument(selectedDocumentName);
       setIsSyncModalOpen(false);
+      documentToast.synced();
     } catch (error) {
-        console.log(error);
-      setErrorMessage(error.message || "Cannot sync document");
+      console.log(error);
+      const message = documentToast.error(error, "Cannot sync document");
+      setErrorMessage(message);
     } finally {
       setIsSaving(false);
     }
@@ -622,7 +632,7 @@ export default function DocumentsPage() {
         />
 
         <main className="grid content-start gap-4 p-4 md:p-6 lg:p-8">
-          <DocumentForm
+          <DocumentDetail
             selectedDocumentName={selectedDocumentName}
             form={documentForm}
             editingMode={editingMode}
@@ -637,7 +647,7 @@ export default function DocumentsPage() {
             syncPreasheetName={syncPreasheetName}
             syncSheetNames={syncSheetNames}
             isLoadingSyncMeta={isLoadingSyncMeta}
-            onFormChange={handleDocumentFormChange}
+            onFormChange={handleDocumentDetailChange}
             onSyncOptionChange={handleSyncOptionChange}
             onToggleSyncSheet={handleToggleSyncSheet}
             onToggleAllSheets={handleToggleAllSheets}

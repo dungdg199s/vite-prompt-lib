@@ -4,9 +4,10 @@ import { promptsClient } from "../lib/prompts-client";
 import { workspacesClient } from "../lib/workspaces-client";
 import { useAppData } from "../contexts/AppDataContext";
 import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
-import WorkspaceForm from "../components/workspaces/WorkspaceForm";
-import PromptViewer from "../components/workspaces/PromptViewer";
+import WorkspaceDetail from "../components/workspaces/WorkspaceDetail";
+import PromptViewer from "../components/prompts/PromptViewer";
 import { uiClasses } from "../components/shared/uiClasses";
+import { useCrudToast } from "../lib/toast";
 
 const DEFAULT_WORKSPACE_FORM = {
   name: "",
@@ -141,8 +142,8 @@ export default function WorkspacesPage() {
 
   const [selectedWorkspace, setSelectedWorkspace] = useState(null);
   const [promptInputValues, setPromptInputValues] = useState({});
-  const [promptForm, setPromptForm] = useState(DEFAULT_PROMPT_FORM);
-  const [workspaceForm, setWorkspaceForm] = useState(DEFAULT_WORKSPACE_FORM);
+  const [promptForm, setPromptDetail] = useState(DEFAULT_PROMPT_FORM);
+  const [workspaceForm, setWorkspaceDetail] = useState(DEFAULT_WORKSPACE_FORM);
   const [editingMode, setEditingMode] = useState("create");
   const [promptEditingMode, setPromptEditingMode] = useState("create");
   const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
@@ -153,6 +154,8 @@ export default function WorkspacesPage() {
   const [isSavingWorkspace, setIsSavingWorkspace] = useState(false);
   const [isSavingPrompt, setIsSavingPrompt] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const workspaceToast = useCrudToast("Workspace");
+  const promptToast = useCrudToast("Prompt");
 
   // Use URL params as source of truth
   const selectedWorkspaceName = workspaceNameFromUrl;
@@ -173,7 +176,7 @@ export default function WorkspacesPage() {
       try {
         const workspace = await workspacesClient.getWorkspace(selectedWorkspaceName);
         setSelectedWorkspace(workspace);
-        setWorkspaceForm({
+        setWorkspaceDetail({
           ...workspace,
           id: workspace?.id,
           name: workspace?.name || "",
@@ -181,7 +184,7 @@ export default function WorkspacesPage() {
           shareMode: workspace?.shareMode || "private",
           shareWith: Array.isArray(workspace?.shareWith) ? workspace.shareWith.join(", ") : "",
         });
-        setPromptForm((prev) => ({ ...prev, workspace: selectedWorkspaceName }));
+        setPromptDetail((prev) => ({ ...prev, workspace: selectedWorkspaceName }));
         setEditingMode("edit");
       } catch (error) {
         console.log(error);
@@ -204,7 +207,7 @@ export default function WorkspacesPage() {
     setErrorMessage("");
     try {
       const prompt = await promptsClient.getPrompt(selectedPromptName);
-      setPromptForm({
+      setPromptDetail({
         ...prompt,
         id: prompt?.id,
         name: prompt?.name || "",
@@ -233,7 +236,7 @@ export default function WorkspacesPage() {
       setErrorMessage("");
       try {
         const prompt = await promptsClient.getPrompt(selectedPromptName);
-        setPromptForm({
+        setPromptDetail({
           ...prompt,
           id: prompt?.id,
           name: prompt?.name || "",
@@ -256,11 +259,11 @@ export default function WorkspacesPage() {
   }, [selectedPromptName, selectedWorkspaceName]);
 
   const handleFormChange = (field, value) => {
-    setWorkspaceForm((prev) => ({ ...prev, [field]: value }));
+    setWorkspaceDetail((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handlePromptFormChange = (field, value) => {
-    setPromptForm((prev) => ({ ...prev, [field]: value }));
+  const handlePromptDetailChange = (field, value) => {
+    setPromptDetail((prev) => ({ ...prev, [field]: value }));
   };
 
   const selectedPrompt = useMemo(() => {
@@ -285,13 +288,13 @@ export default function WorkspacesPage() {
     }, promptText);
   })();
 
-  const resetWorkspaceForm = () => {
-    setWorkspaceForm(DEFAULT_WORKSPACE_FORM);
+  const resetWorkspaceDetail = () => {
+    setWorkspaceDetail(DEFAULT_WORKSPACE_FORM);
     setEditingMode("create");
   };
 
-  const resetPromptForm = () => {
-    setPromptForm({
+  const resetPromptDetail = () => {
+    setPromptDetail({
       ...DEFAULT_PROMPT_FORM,
       workspace: selectedWorkspaceName || "",
     });
@@ -300,14 +303,14 @@ export default function WorkspacesPage() {
 
   const openCreateModal = () => {
     setErrorMessage("");
-    resetWorkspaceForm();
+    resetWorkspaceDetail();
     setIsDeleteModalOpen(false);
     setIsWorkspaceModalOpen(true);
   };
 
   const openCreatePromptModal = () => {
     setErrorMessage("");
-    resetPromptForm();
+    resetPromptDetail();
     setIsPromptDeleteModalOpen(false);
     setIsPromptModalOpen(true);
   };
@@ -370,12 +373,12 @@ export default function WorkspacesPage() {
     navigate("/workspaces");
     setSelectedWorkspace(null);
     setPromptInputValues({});
-    setPromptForm(DEFAULT_PROMPT_FORM);
+    setPromptDetail(DEFAULT_PROMPT_FORM);
     setIsWorkspaceModalOpen(false);
     setIsDeleteModalOpen(false);
     setIsPromptModalOpen(false);
     setIsPromptDeleteModalOpen(false);
-    resetWorkspaceForm();
+    resetWorkspaceDetail();
   };
 
   const refreshWorkspaceList = async () => {
@@ -414,16 +417,19 @@ export default function WorkspacesPage() {
       if (editingMode === "create") {
         await workspacesClient.createWorkspace(payload);
         await refreshAfterWorkspaceCreate();
+        workspaceToast.created();
       } else {
         await workspacesClient.updateWorkspace(payload);
         await refreshAfterWorkspaceUpdate();
+        workspaceToast.updated();
       }
 
       navigate(`/workspaces/${encodeURIComponent(payload.name)}`);
       setIsWorkspaceModalOpen(false);
     } catch (error) {
       console.log(error);
-      setErrorMessage(error.message || "Can not save workspace");
+      const message = workspaceToast.error(error, "Can not save workspace");
+      setErrorMessage(message);
     } finally {
       setIsSavingWorkspace(false);
     }
@@ -442,10 +448,12 @@ export default function WorkspacesPage() {
       await refreshAfterWorkspaceDelete();
       navigate("/workspaces");
       setIsDeleteModalOpen(false);
-      resetWorkspaceForm();
+      resetWorkspaceDetail();
+      workspaceToast.deleted();
     } catch (error) {
       console.log(error);
-      setErrorMessage(error.message || "Can not delete workspace");
+      const message = workspaceToast.error(error, "Can not delete workspace");
+      setErrorMessage(message);
     } finally {
       setIsSavingWorkspace(false);
     }
@@ -482,10 +490,12 @@ export default function WorkspacesPage() {
       if (promptEditingMode === "create") {
         await promptsClient.createPrompt(payload);
         await refreshAfterPromptCreate();
+        promptToast.created();
       } else {
         await promptsClient.updatePrompt(payload);
         await loadSyncPrompt();
         await refreshAfterPromptUpdate();
+        promptToast.updated();
       }
 
       const targetWorkspaceName = payload.workspace || selectedWorkspaceName;
@@ -497,7 +507,8 @@ export default function WorkspacesPage() {
       setIsPromptModalOpen(false);
     } catch (error) {
       console.log(error);
-      setErrorMessage(error.message || "Can not save prompt");
+      const message = promptToast.error(error, "Can not save prompt");
+      setErrorMessage(message);
     } finally {
       setIsSavingPrompt(false);
     }
@@ -519,15 +530,17 @@ export default function WorkspacesPage() {
         navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}`);
       }
 
-      setPromptForm({
+      setPromptDetail({
         ...DEFAULT_PROMPT_FORM,
         workspace: selectedWorkspaceName || "",
       });
       setPromptEditingMode("create");
       setIsPromptDeleteModalOpen(false);
+      promptToast.deleted();
     } catch (error) {
       console.log(error);
-      setErrorMessage(error.message || "Can not delete prompt");
+      const message = promptToast.error(error, "Can not delete prompt");
+      setErrorMessage(message);
     } finally {
       setIsSavingPrompt(false);
     }
@@ -551,7 +564,7 @@ export default function WorkspacesPage() {
 
         <main className="grid content-start gap-4 p-4 md:p-6 lg:p-8">
           {selectedPromptName ? null : (
-            <WorkspaceForm
+            <WorkspaceDetail
               selectedWorkspaceName={selectedWorkspaceName}
               selectedPromptName={selectedPromptName}
               form={workspaceForm}
@@ -588,7 +601,7 @@ export default function WorkspacesPage() {
             isPromptModalOpen={isPromptModalOpen}
             isPromptDeleteModalOpen={isPromptDeleteModalOpen}
             onInputChange={(id, value) => setPromptInputValues((prev) => ({ ...prev, [id]: value }))}
-            onPromptFormChange={handlePromptFormChange}
+            onPromptDetailChange={handlePromptDetailChange}
             onPromptSubmit={handleSavePrompt}
             onNewPrompt={openCreatePromptModal}
             onEditPrompt={openEditPromptModal}

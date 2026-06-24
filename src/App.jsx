@@ -4,7 +4,7 @@ import WorkspacesPage from "./pages/WorkspacesPage";
 import PromptsPage from "./pages/PromptsPage";
 import DocumentsPage from "./pages/DocumentsPage";
 import { AppDataProvider, useAppData } from "./contexts/AppDataContext";
-import { LoadingOverlay } from "./components/shared/LoadingComponents";
+import { LoadingOverlay } from "./components/shared/Skeleton";
 import { ToastProvider } from "./components/shared/ToastManager";
 import { uiClasses } from "./components/shared/uiClasses";
 
