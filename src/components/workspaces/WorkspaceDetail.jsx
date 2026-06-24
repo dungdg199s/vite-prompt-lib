@@ -21,6 +21,7 @@ export default function WorkspaceDetail({
   onDelete,
   onCloseModal,
   onCloseDelete,
+  embedded = false,
 }) {
   const shareWithSummary = form.shareWith || "No shared members";
   const isSharedMode = form.shareMode === "shared";
@@ -36,8 +37,12 @@ export default function WorkspaceDetail({
     return `${person}, ${dateStr}`;
   };
 
+  const sectionClassName = embedded
+    ? "border-x border-b border-stone-300 bg-[#fffef8] p-4 shadow-none md:p-5"
+    : uiClasses.card;
+
   return (
-    <section className={uiClasses.card}>
+    <section className={sectionClassName}>
       {!shouldHideOverview ? (
         <>
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">

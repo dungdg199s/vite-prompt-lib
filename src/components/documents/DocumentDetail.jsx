@@ -37,12 +37,18 @@ export default function DocumentDetail({
   onCloseModal,
   onCloseDelete,
   onCloseSync,
+  embedded = false,
+  showNewButton = true,
 }) {
   const isSharedMode = form.shareMode === "shared";
   const isSpreadsheetType = (form.type || "Spreadsheets") === "Spreadsheets";
 
+  const sectionClassName = embedded
+    ? "border-x border-b border-stone-300 bg-[#fffef8] p-4 shadow-none md:p-5"
+    : uiClasses.card;
+
   return (
-    <section className={uiClasses.card}>
+    <section className={sectionClassName}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">{selectedDocumentName ? form.name || selectedDocumentName : "Document"}</h2>
@@ -51,9 +57,11 @@ export default function DocumentDetail({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={onNew} variant="secondary">
-            New
-          </Button>
+          {showNewButton ? (
+            <Button type="button" onClick={onNew} variant="secondary">
+              New
+            </Button>
+          ) : null}
           <Button type="button" onClick={onEdit} disabled={isSaving || !selectedDocumentName} variant="secondary">
             Edit
           </Button>

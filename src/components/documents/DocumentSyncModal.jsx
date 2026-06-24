@@ -1,6 +1,13 @@
 import Modal from "../shared/Modal";
 import Button from "../shared/Button";
 
+const DEFAULT_SYNC_OPTIONS = {
+  includeEmptyRows: false,
+  headerRow: "",
+  useAllSheets: true,
+  selectedSheets: [],
+};
+
 const inputClassName =
   "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
 
@@ -18,6 +25,9 @@ export default function DocumentSyncModal({
   onSubmit,
   onClose,
 }) {
+  const safeSyncOptions = syncOptions || DEFAULT_SYNC_OPTIONS;
+  const safeSyncSheetNames = Array.isArray(syncSheetNames) ? syncSheetNames : [];
+
   return (
     <Modal isOpen={isOpen} title="Sync Document" onClose={onClose} size="lg">
       <form className="mt-4 flex min-h-0 flex-1 flex-col" onSubmit={onSubmit}>
@@ -30,7 +40,7 @@ export default function DocumentSyncModal({
           <label className="flex items-center gap-2 text-sm text-slate-700">
             <input
               type="checkbox"
-              checked={syncOptions.includeEmptyRows}
+              checked={safeSyncOptions.includeEmptyRows}
               onChange={(event) => onSyncOptionChange("includeEmptyRows", event.target.checked)}
             />
             Include empty rows
@@ -40,7 +50,7 @@ export default function DocumentSyncModal({
             Header Row (optional, 1-based)
             <select
               className={inputClassName}
-              value={syncOptions.headerRow}
+              value={safeSyncOptions.headerRow}
               onChange={(event) => onSyncOptionChange("headerRow", event.target.value)}
             >
               <option value="">None header</option>
@@ -54,20 +64,20 @@ export default function DocumentSyncModal({
 
           {isLoadingSyncMeta ? <p className="text-sm text-slate-600">Loading sheets...</p> : null}
 
-          {syncSheetNames.length ? (
+          {safeSyncSheetNames.length ? (
             <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Sheets</p>
               <div className="grid gap-2 md:grid-cols-2">
                 <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                  <input type="checkbox" checked={syncOptions.useAllSheets} onChange={(event) => onToggleAllSheets(event.target.checked)} />
+                  <input type="checkbox" checked={safeSyncOptions.useAllSheets} onChange={(event) => onToggleAllSheets(event.target.checked)} />
                   all
                 </label>
-                {syncSheetNames.map((sheetName) => (
+                {safeSyncSheetNames.map((sheetName) => (
                   <label key={sheetName} className="flex items-center gap-2 text-sm text-slate-700">
                     <input
                       type="checkbox"
-                      disabled={syncOptions.useAllSheets}
-                      checked={syncOptions.selectedSheets.includes(sheetName)}
+                      disabled={safeSyncOptions.useAllSheets}
+                      checked={safeSyncOptions.selectedSheets.includes(sheetName)}
                       onChange={(event) => onToggleSyncSheet(sheetName, event.target.checked)}
                     />
                     {sheetName}

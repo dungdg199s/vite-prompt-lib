@@ -1,38 +1,34 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { documentsClient } from "../lib/documents-client";
 import { promptsClient } from "../lib/prompts-client";
 import { workspacesClient } from "../lib/workspaces-client";
 import { useAppData } from "../contexts/AppDataContext";
 import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
 import WorkspaceDetail from "../components/workspaces/WorkspaceDetail";
 import PromptViewer from "../components/prompts/PromptViewer";
+import DocumentDetail from "../components/documents/DocumentDetail";
+import DocumentContentPreview from "../components/documents/DocumentContentPreview";
 import { uiClasses } from "../components/shared/uiClasses";
 import { useCrudToast } from "../lib/toast";
-
-const DEFAULT_WORKSPACE_FORM = {
-  name: "",
-  description: "",
-  shareMode: "private",
-  shareWith: "",
-};
-
-const DEFAULT_PROMPT_FORM = {
-  name: "",
-  workspace: "",
-  description: "",
-  content: "",
-  shareMode: "private",
-  shareWith: "",
-};
+import { useWorkspacePageState } from "../state/workspaces/useWorkspacePageState";
+import {
+  DEFAULT_DOCUMENT_FORM,
+  DEFAULT_PROMPT_FORM,
+} from "../state/workspaces/workspacePageState";
+import {
+  DRAFT_DOCUMENT_TAB_ID,
+  WORKSPACE_OVERVIEW_TAB,
+  getUrlTargetTab,
+} from "../state/workspaces/tablistState";
+import { createWorkspacePageActions } from "../state/workspaces/workspaceActionsController";
+import {
+  buildDocumentPayload,
+  buildPromptPayload,
+  buildWorkspacePayload,
+} from "../state/workspaces/workspacePayloads";
 
 const TOKEN_REGEX = /\$\{([^}|]+)\|([^}]+)\}/g;
-
-const normalizeShareWith = (raw) => {
-  return String(raw || "")
-    .split(",")
-    .map((item) => item.trim())
-    .filter(Boolean);
-};
 
 const parsePromptTokens = (promptText) => {
   if (!promptText) {
@@ -84,12 +80,46 @@ const getPromptText = (prompt) => {
   return String(prompt.content || prompt.template || prompt.prompt || prompt.description || "");
 };
 
+const parseContentJSON = (rawContent) => {
+  if (!rawContent) {
+    return null;
+  }
+
+  if (typeof rawContent === "object") {
+    return rawContent;
+  }
+
+  try {
+    return JSON.parse(rawContent);
+  } catch {
+    return null;
+  }
+};
+
+const stringifyContentJSON = (rawContent) => {
+  if (rawContent === null || rawContent === undefined || rawContent === "") {
+    return "";
+  }
+
+  if (typeof rawContent === "string") {
+    return rawContent;
+  }
+
+  try {
+    return JSON.stringify(rawContent, null, 2);
+  } catch {
+    return String(rawContent);
+  }
+};
+
 const STORAGE_KEY = "workspacesPageState";
 
 export default function WorkspacesPage() {
   const navigate = useNavigate();
   const params = useParams();
   const [searchParams] = useSearchParams();
+  const hasRestoredState = useRef(false);
+  const previousWorkspaceRef = useRef("");
 
   const {
     workspaces: workspaceList,
@@ -103,33 +133,115 @@ export default function WorkspacesPage() {
     refreshAfterPromptUpdate,
     refreshAfterPromptDelete,
     refreshAfterDocumentCreate,
+    refreshAfterDocumentUpdate,
+    refreshAfterDocumentDelete,
   } = useAppData();
 
   const workspaceNameFromUrl = params["*"] || "";
   const promptNameFromUrl = searchParams.get("prompt") || "";
+  const documentNameFromUrl = searchParams.get("document") || "";
+
+  const workspacePageState = useWorkspacePageState({
+    promptNameFromUrl,
+    documentNameFromUrl,
+  });
+
+  const {
+    selectedWorkspace,
+    promptInputValues,
+    promptForm,
+    documentForm,
+    workspaceForm,
+    openTabs,
+    activeTabId,
+    editingMode,
+    promptEditingMode,
+    documentEditingMode,
+    documentFormPhase,
+    isWorkspaceModalOpen,
+    isDeleteModalOpen,
+    isPromptModalOpen,
+    isPromptDeleteModalOpen,
+    isDocumentModalOpen,
+    isDocumentDeleteModalOpen,
+    isDocumentSyncModalOpen,
+    isLoadingWorkspace,
+    isLoadingDocument,
+    isLoadingDocumentSyncMeta,
+    isSavingWorkspace,
+    isSavingPrompt,
+    isSavingDocument,
+    documentSyncOptions,
+    documentSyncPreasheetName,
+    documentSyncSheetNames,
+    errorMessage,
+    actions: {
+      setSelectedWorkspace,
+      setPromptInputValues,
+      setPromptDetail,
+      setDocumentDetail,
+      setWorkspaceDetail,
+      setOpenTabs,
+      setActiveTabId,
+      setEditingMode,
+      setPromptEditingMode,
+      setDocumentEditingMode,
+      setDocumentFormPhase,
+      setIsWorkspaceModalOpen,
+      setIsDeleteModalOpen,
+      setIsPromptModalOpen,
+      setIsPromptDeleteModalOpen,
+      setIsDocumentModalOpen,
+      setIsDocumentDeleteModalOpen,
+      setIsDocumentSyncModalOpen,
+      setIsLoadingWorkspace,
+      setIsLoadingDocument,
+      setIsLoadingDocumentSyncMeta,
+      setIsSavingWorkspace,
+      setIsSavingPrompt,
+      setIsSavingDocument,
+      setDocumentSyncOptions,
+      setDocumentSyncPreasheetName,
+      setDocumentSyncSheetNames,
+      setErrorMessage,
+      resetDocumentSyncOptions,
+      resetTabList,
+      resetPromptInputs,
+    },
+  } = workspacePageState;
 
   // Save URL state to localStorage
   useEffect(() => {
-    if (workspaceNameFromUrl || promptNameFromUrl) {
+    if (workspaceNameFromUrl || promptNameFromUrl || documentNameFromUrl) {
       const state = {
         workspace: workspaceNameFromUrl,
         prompt: promptNameFromUrl,
+        document: documentNameFromUrl,
       };
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     }
-  }, [workspaceNameFromUrl, promptNameFromUrl]);
+  }, [workspaceNameFromUrl, promptNameFromUrl, documentNameFromUrl]);
 
   // Restore state from localStorage if no URL hash
   useEffect(() => {
-    if (!workspaceNameFromUrl && !promptNameFromUrl) {
+    if (hasRestoredState.current) {
+      return;
+    }
+
+    hasRestoredState.current = true;
+
+    if (!workspaceNameFromUrl && !promptNameFromUrl && !documentNameFromUrl) {
       try {
         const savedState = localStorage.getItem(STORAGE_KEY);
         if (savedState) {
-          const { workspace, prompt } = JSON.parse(savedState);
+          const { workspace, prompt, document } = JSON.parse(savedState);
           if (workspace) {
-            const targetUrl = prompt
-              ? `/workspaces/${encodeURIComponent(workspace)}?prompt=${encodeURIComponent(prompt)}`
-              : `/workspaces/${encodeURIComponent(workspace)}`;
+            const targetQuery = prompt
+              ? `?prompt=${encodeURIComponent(prompt)}`
+              : document
+                ? `?document=${encodeURIComponent(document)}`
+                : "";
+            const targetUrl = `/workspaces/${encodeURIComponent(workspace)}${targetQuery}`;
             navigate(targetUrl, { replace: true });
           }
         }
@@ -138,28 +250,124 @@ export default function WorkspacesPage() {
         console.error("Failed to restore state from localStorage:", error);
       }
     }
-  }, []);
+  }, [workspaceNameFromUrl, promptNameFromUrl, documentNameFromUrl, navigate]);
 
-  const [selectedWorkspace, setSelectedWorkspace] = useState(null);
-  const [promptInputValues, setPromptInputValues] = useState({});
-  const [promptForm, setPromptDetail] = useState(DEFAULT_PROMPT_FORM);
-  const [workspaceForm, setWorkspaceDetail] = useState(DEFAULT_WORKSPACE_FORM);
-  const [editingMode, setEditingMode] = useState("create");
-  const [promptEditingMode, setPromptEditingMode] = useState("create");
-  const [isWorkspaceModalOpen, setIsWorkspaceModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
-  const [isPromptDeleteModalOpen, setIsPromptDeleteModalOpen] = useState(false);
-  const [isLoadingWorkspace, setIsLoadingWorkspace] = useState(false);
-  const [isSavingWorkspace, setIsSavingWorkspace] = useState(false);
-  const [isSavingPrompt, setIsSavingPrompt] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const workspaceToast = useCrudToast("Workspace");
   const promptToast = useCrudToast("Prompt");
+  const documentToast = useCrudToast("Document");
 
   // Use URL params as source of truth
   const selectedWorkspaceName = workspaceNameFromUrl;
   const selectedPromptName = promptNameFromUrl;
+  const selectedDocumentName = documentNameFromUrl;
+
+  const {
+    resetWorkspaceDetail,
+    resetDocumentDetail,
+    openCreateModal,
+    openCreatePromptModal,
+    openCreateDocumentModal,
+    openCreateDocumentFromSidebar,
+    openEditModal,
+    openEditPromptModal,
+    openEditDocumentModal,
+    openDeleteModal,
+    openDeletePromptModal,
+    openDeleteDocumentModal,
+    closeWorkspaceModal,
+    closePromptModal,
+    closeDeleteModal,
+    closePromptDeleteModal,
+    closeDocumentModal,
+    closeDocumentDeleteModal,
+    closeDocumentSyncModal,
+    handleBack,
+    openChildTab,
+    openWorkspace,
+    openPrompt,
+    openDocument,
+    activateTab,
+    closeTab,
+  } = createWorkspacePageActions({
+    navigate,
+    selectedWorkspaceName,
+    selectedPromptName,
+    selectedDocumentName,
+    openTabs,
+    activeTabId,
+    documentEditingMode,
+    setters: {
+      setSelectedWorkspace,
+      setPromptInputValues,
+      setPromptDetail,
+      setDocumentDetail,
+      setWorkspaceDetail,
+      setOpenTabs,
+      setActiveTabId,
+      setEditingMode,
+      setPromptEditingMode,
+      setDocumentEditingMode,
+      setDocumentFormPhase,
+      setIsWorkspaceModalOpen,
+      setIsDeleteModalOpen,
+      setIsPromptModalOpen,
+      setIsPromptDeleteModalOpen,
+      setIsDocumentModalOpen,
+      setIsDocumentDeleteModalOpen,
+      setIsDocumentSyncModalOpen,
+      setErrorMessage,
+      resetDocumentSyncOptions,
+      resetTabList,
+      resetPromptInputs,
+    },
+  });
+
+  useEffect(() => {
+    const previousWorkspace = previousWorkspaceRef.current;
+    if (selectedWorkspaceName === previousWorkspace) {
+      return;
+    }
+
+    previousWorkspaceRef.current = selectedWorkspaceName;
+
+    const initialTabs = [WORKSPACE_OVERVIEW_TAB];
+    if (selectedPromptName) {
+      initialTabs.push({ id: `prompt:${selectedPromptName}`, type: "prompt", name: selectedPromptName, label: selectedPromptName });
+    } else if (selectedDocumentName) {
+      initialTabs.push({ id: `document:${selectedDocumentName}`, type: "document", name: selectedDocumentName, label: selectedDocumentName });
+    }
+
+    queueMicrotask(() => {
+      setOpenTabs(initialTabs);
+      setActiveTabId(getUrlTargetTab(selectedPromptName, selectedDocumentName).id);
+    });
+  }, [selectedWorkspaceName, selectedPromptName, selectedDocumentName, setActiveTabId, setOpenTabs]);
+
+  useEffect(() => {
+    if (!selectedWorkspaceName) {
+      return;
+    }
+
+    const targetTab = getUrlTargetTab(selectedPromptName, selectedDocumentName);
+
+    queueMicrotask(() => {
+      setOpenTabs((prev) => {
+        const tabs = prev.length ? prev : [WORKSPACE_OVERVIEW_TAB];
+
+        if (targetTab.type === "workspace") {
+          return tabs;
+        }
+
+        if (tabs.some((tab) => tab.id === targetTab.id)) {
+          return tabs;
+        }
+
+        return [...tabs, targetTab];
+      });
+
+      setActiveTabId(targetTab.id);
+    });
+  }, [selectedWorkspaceName, selectedPromptName, selectedDocumentName, setActiveTabId, setOpenTabs]);
 
   // Load workspace data when URL changes
   useEffect(() => {
@@ -195,7 +403,7 @@ export default function WorkspacesPage() {
     };
 
     loadWorkspace();
-  }, [selectedWorkspaceName]);
+  }, [selectedWorkspaceName, setEditingMode, setErrorMessage, setIsLoadingWorkspace, setPromptDetail, setSelectedWorkspace, setWorkspaceDetail]);
 
   const loadSyncPrompt = async () => {
     if (!selectedPromptName) {
@@ -256,7 +464,64 @@ export default function WorkspacesPage() {
     if (selectedPromptName && selectedWorkspaceName) {
       loadPrompt();
     }
-  }, [selectedPromptName, selectedWorkspaceName]);
+  }, [selectedPromptName, selectedWorkspaceName, setErrorMessage, setPromptDetail, setPromptEditingMode, setPromptInputValues]);
+
+  useEffect(() => {
+    const loadDocument = async () => {
+      if (!selectedDocumentName || !selectedWorkspaceName) {
+        setDocumentDetail(DEFAULT_DOCUMENT_FORM);
+        setDocumentEditingMode("create");
+        setDocumentFormPhase("type");
+        resetDocumentSyncOptions();
+        return;
+      }
+
+      setErrorMessage("");
+      setIsLoadingDocument(true);
+      try {
+        const document = await documentsClient.getDocument(selectedDocumentName);
+        setDocumentDetail({
+          id: document?.id,
+          name: document?.name || "",
+          type: document?.type || "Spreadsheets",
+          workspace: document?.workspace || selectedWorkspaceName,
+          fileName: document?.fileName || "",
+          preasheetId: document?.preasheetId || "",
+          description: document?.description || "",
+          contentMarkdown: document?.contentMarkdown || "",
+          contentJSON: stringifyContentJSON(document?.contentJSON),
+          contentHTML: document?.contentHTML || "",
+          shareMode: document?.shareMode || "private",
+          shareWith: Array.isArray(document?.shareWith) ? document.shareWith.join(", ") : "",
+          syncOptions: document?.syncOptions || null,
+        });
+
+        const storedSyncOptions = document?.syncOptions || {};
+        const storedSheets = Array.isArray(storedSyncOptions.sheets)
+          ? storedSyncOptions.sheets.filter(Boolean)
+          : [];
+        setDocumentSyncOptions({
+          includeEmptyRows: storedSyncOptions.includeEmptyRows === true,
+          headerRow:
+            storedSyncOptions.headerRow !== null &&
+            storedSyncOptions.headerRow !== undefined
+              ? String(storedSyncOptions.headerRow)
+              : "",
+          useAllSheets: storedSheets.length === 0,
+          selectedSheets: storedSheets,
+        });
+        setDocumentEditingMode("edit");
+        setDocumentFormPhase("details");
+      } catch (error) {
+        console.log(error);
+        setErrorMessage(error.message || "Can not load document detail");
+      } finally {
+        setIsLoadingDocument(false);
+      }
+    };
+
+    loadDocument();
+  }, [selectedDocumentName, selectedWorkspaceName, resetDocumentSyncOptions, setDocumentDetail, setDocumentEditingMode, setDocumentFormPhase, setDocumentSyncOptions, setErrorMessage, setIsLoadingDocument]);
 
   const handleFormChange = (field, value) => {
     setWorkspaceDetail((prev) => ({ ...prev, [field]: value }));
@@ -273,7 +538,15 @@ export default function WorkspacesPage() {
     return selectedWorkspace.prompts.find((item) => item.name === selectedPromptName) || null;
   }, [selectedWorkspace, selectedPromptName]);
 
-  const promptText = getPromptText(selectedPrompt);
+  const workspaceDocuments = useMemo(() => {
+    if (!selectedWorkspaceName) {
+      return [];
+    }
+    return (documents || []).filter((document) => document.workspace === selectedWorkspaceName);
+  }, [documents, selectedWorkspaceName]);
+
+  const promptSource = selectedPrompt || (selectedPromptName ? promptForm : null);
+  const promptText = getPromptText(promptSource);
 
   const parsedTokens = parsePromptTokens(promptText);
 
@@ -288,110 +561,194 @@ export default function WorkspacesPage() {
     }, promptText);
   })();
 
-  const resetWorkspaceDetail = () => {
-    setWorkspaceDetail(DEFAULT_WORKSPACE_FORM);
-    setEditingMode("create");
-  };
+  const parsedDocumentJSON = useMemo(() => parseContentJSON(documentForm.contentJSON), [documentForm.contentJSON]);
 
-  const resetPromptDetail = () => {
-    setPromptDetail({
-      ...DEFAULT_PROMPT_FORM,
-      workspace: selectedWorkspaceName || "",
+  const fallbackDocumentSheets = useMemo(() => {
+    const sheets = parsedDocumentJSON?.sheets;
+    if (!Array.isArray(sheets)) {
+      return [];
+    }
+
+    return sheets
+      .map((sheet) => String(sheet?.name || "").trim())
+      .filter(Boolean);
+  }, [parsedDocumentJSON]);
+
+  const activeTab = useMemo(() => {
+    return openTabs.find((tab) => tab.id === activeTabId) || openTabs[0] || { id: "workspace:overview", type: "workspace", label: "Overview" };
+  }, [openTabs, activeTabId]);
+
+  const handleDocumentDetailChange = (field, value) => {
+    setErrorMessage("");
+    setDocumentDetail((prev) => {
+      if (field === "name") {
+        return {
+          ...prev,
+          name: value,
+          fileName:
+            (prev.type || "Spreadsheets") === "Spreadsheets"
+              ? String(value || "").trim()
+              : prev.fileName,
+        };
+      }
+
+      if (field !== "type") {
+        return { ...prev, [field]: value };
+      }
+
+      const nextType = value || "Spreadsheets";
+      return {
+        ...prev,
+        type: nextType,
+        fileName:
+          nextType === "Spreadsheets"
+            ? String(prev.fileName || prev.name || "").trim()
+            : "",
+        preasheetId: nextType === "Spreadsheets" ? prev.preasheetId : "",
+      };
     });
-    setPromptEditingMode("create");
   };
 
-  const openCreateModal = () => {
+  const handleDocumentSyncOptionChange = (field, value) => {
+    setDocumentSyncOptions((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleToggleDocumentSyncSheet = (sheetName, checked) => {
+    setDocumentSyncOptions((prev) => {
+      const selected = new Set(prev.selectedSheets || []);
+      if (checked) {
+        selected.add(sheetName);
+      } else {
+        selected.delete(sheetName);
+      }
+
+      return {
+        ...prev,
+        useAllSheets: false,
+        selectedSheets: Array.from(selected),
+      };
+    });
+  };
+
+  const handleToggleAllDocumentSheets = (checked) => {
+    setDocumentSyncOptions((prev) => ({
+      ...prev,
+      useAllSheets: checked,
+      selectedSheets: checked ? [] : prev.selectedSheets,
+    }));
+  };
+
+  const handleSelectDocumentType = (type) => {
     setErrorMessage("");
-    resetWorkspaceDetail();
-    setIsDeleteModalOpen(false);
-    setIsWorkspaceModalOpen(true);
+    setDocumentDetail((prev) => ({
+      ...prev,
+      type,
+      preasheetId: type === "Spreadsheets" ? prev.preasheetId : "",
+    }));
   };
 
-  const openCreatePromptModal = () => {
-    setErrorMessage("");
-    resetPromptDetail();
-    setIsPromptDeleteModalOpen(false);
-    setIsPromptModalOpen(true);
-  };
-
-  const openEditModal = () => {
-    if (!selectedWorkspaceName) {
+  const handleNextDocumentTypePhase = () => {
+    if (!documentForm.type) {
+      setErrorMessage("Document type is required");
       return;
     }
+
     setErrorMessage("");
-    setEditingMode("edit");
-    setIsDeleteModalOpen(false);
-    setIsWorkspaceModalOpen(true);
+    setDocumentFormPhase("details");
   };
 
-  const openEditPromptModal = () => {
-    if (!selectedPromptName) {
+  const loadDocumentPreasheetMetadata = async (preasheetId) => {
+    setIsLoadingDocumentSyncMeta(true);
+
+    try {
+      const preasheet = await documentsClient.getPreasheet(preasheetId);
+      const names = Array.isArray(preasheet?.sheetNames)
+        ? preasheet.sheetNames.map((name) => String(name || "").trim()).filter(Boolean)
+        : [];
+
+      const finalSheetNames = names.length ? names : fallbackDocumentSheets;
+      const nextFileName = String(
+        preasheet?.preasheetName || documentForm.fileName || documentForm.name || "",
+      ).trim();
+
+      setDocumentDetail((prev) => ({
+        ...prev,
+        fileName: nextFileName,
+      }));
+      setDocumentSyncPreasheetName(preasheet?.preasheetName || documentForm.fileName || "");
+      setDocumentSyncSheetNames(finalSheetNames);
+      setDocumentSyncOptions((prev) => ({
+        ...prev,
+        selectedSheets: Array.isArray(prev.selectedSheets) ? prev.selectedSheets : [],
+      }));
+
+      return true;
+    } catch (error) {
+      console.log(error);
+      setErrorMessage(error.message || "Cannot load spreadsheet metadata");
+      return false;
+    } finally {
+      setIsLoadingDocumentSyncMeta(false);
+    }
+  };
+
+  const handleNextDocumentFormPhase = async () => {
+    const name = documentForm.name.trim();
+
+    if (!name) {
+      setErrorMessage("Document name is required");
       return;
     }
-    setErrorMessage("");
-    setPromptEditingMode("edit");
-    setIsPromptDeleteModalOpen(false);
-    setIsPromptModalOpen(true);
-  };
 
-  const openDeleteModal = () => {
-    if (!selectedWorkspaceName) {
+    if (documentForm.type !== "Spreadsheets") {
       return;
     }
-    setErrorMessage("");
-    setIsWorkspaceModalOpen(false);
-    setIsDeleteModalOpen(true);
-  };
 
-  const openDeletePromptModal = () => {
-    if (!selectedPromptName) {
+    const preasheetId = documentForm.preasheetId.trim();
+    if (!preasheetId) {
+      setErrorMessage("Spreadsheet ID is required");
       return;
     }
+
     setErrorMessage("");
-    setIsPromptModalOpen(false);
-    setIsPromptDeleteModalOpen(true);
+    const loaded = await loadDocumentPreasheetMetadata(preasheetId);
+    if (loaded) {
+      setDocumentFormPhase("sync");
+    }
   };
 
-  const closeWorkspaceModal = () => {
-    setIsWorkspaceModalOpen(false);
+  const handleBackDocumentFormPhase = () => {
+    setErrorMessage("");
+    setDocumentFormPhase(documentEditingMode === "create" ? "type" : "details");
   };
 
-  const closePromptModal = () => {
-    setIsPromptModalOpen(false);
-  };
+  const openDocumentSyncModal = async () => {
+    if (!selectedDocumentName) {
+      return;
+    }
 
-  const closeDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-  };
+    if ((documentForm.type || "Spreadsheets") !== "Spreadsheets") {
+      setErrorMessage("Sync is only available for Spreadsheets documents");
+      return;
+    }
 
-  const closePromptDeleteModal = () => {
-    setIsPromptDeleteModalOpen(false);
-  };
+    if (!documentForm.preasheetId) {
+      setErrorMessage("Spreadsheet ID is required to sync");
+      return;
+    }
 
-  const handleBack = () => {
-    navigate("/workspaces");
-    setSelectedWorkspace(null);
-    setPromptInputValues({});
-    setPromptDetail(DEFAULT_PROMPT_FORM);
-    setIsWorkspaceModalOpen(false);
-    setIsDeleteModalOpen(false);
-    setIsPromptModalOpen(false);
-    setIsPromptDeleteModalOpen(false);
-    resetWorkspaceDetail();
+    setErrorMessage("");
+    setIsDocumentModalOpen(false);
+    setIsDocumentDeleteModalOpen(false);
+
+    const loaded = await loadDocumentPreasheetMetadata(documentForm.preasheetId);
+    if (loaded) {
+      setIsDocumentSyncModalOpen(true);
+    }
   };
 
   const refreshWorkspaceList = async () => {
     await refreshWorkspaces();
-  };
-
-  const openWorkspace = async (name) => {
-    navigate(`/workspaces/${encodeURIComponent(name)}`);
-  };
-
-  const openPrompt = async (name) => {
-    if (!selectedWorkspaceName) return;
-    navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}?prompt=${encodeURIComponent(name)}`);
   };
 
   const handleSaveWorkspace = async (event) => {
@@ -399,13 +756,7 @@ export default function WorkspacesPage() {
     setIsSavingWorkspace(true);
     setErrorMessage("");
 
-    const payload = {
-      id: workspaceForm.id,
-      name: workspaceForm.name.trim(),
-      description: workspaceForm.description.trim(),
-      shareMode: workspaceForm.shareMode,
-      shareWith: workspaceForm.shareMode === "shared" ? normalizeShareWith(workspaceForm.shareWith) : [],
-    };
+    const payload = buildWorkspacePayload(workspaceForm);
 
     if (!payload.name) {
       setErrorMessage("Workspace name is required");
@@ -464,15 +815,7 @@ export default function WorkspacesPage() {
     setIsSavingPrompt(true);
     setErrorMessage("");
 
-    const payload = {
-      id: formData.id,
-      name: formData.name.trim(),
-      workspace: formData.workspace.trim(),
-      description: formData.description.trim(),
-      content: formData.content,
-      shareMode: formData.shareMode,
-      shareWith: formData.shareMode === "shared" ? normalizeShareWith(promptForm.shareWith) : [],
-    };
+    const payload = buildPromptPayload(formData);
 
     if (!payload.name) {
       setErrorMessage("Prompt name is required");
@@ -500,6 +843,7 @@ export default function WorkspacesPage() {
 
       const targetWorkspaceName = payload.workspace || selectedWorkspaceName;
       if (targetWorkspaceName) {
+        openChildTab("prompt", payload.name);
         navigate(`/workspaces/${encodeURIComponent(targetWorkspaceName)}?prompt=${encodeURIComponent(payload.name)}`);
       } else {
         await refreshWorkspaceList();
@@ -546,24 +890,208 @@ export default function WorkspacesPage() {
     }
   };
 
+  const handleSaveDocument = async (event) => {
+    event.preventDefault();
+    setIsSavingDocument(true);
+    setErrorMessage("");
+
+    const { payload, isSpreadsheetType, syncOptions: normalizedSyncOptions } = buildDocumentPayload({
+      documentForm,
+      selectedWorkspaceName,
+      documentSyncOptions,
+    });
+
+    if (!payload.name) {
+      setErrorMessage("Document name is required");
+      setIsSavingDocument(false);
+      return;
+    }
+
+    if (!payload.workspace) {
+      setErrorMessage("Workspace is required");
+      setIsSavingDocument(false);
+      return;
+    }
+
+    if (isSpreadsheetType && !payload.preasheetId) {
+      setErrorMessage("Spreadsheet ID is required");
+      setIsSavingDocument(false);
+      return;
+    }
+
+    if (isSpreadsheetType && !documentSyncOptions.useAllSheets && !(normalizedSyncOptions.sheets || []).length) {
+      setErrorMessage("Please select at least one sheet or choose all");
+      setIsSavingDocument(false);
+      return;
+    }
+
+    payload.syncOptions = normalizedSyncOptions;
+
+    try {
+      if (documentEditingMode === "create") {
+        await documentsClient.createDocument(payload);
+        await refreshAfterDocumentCreate();
+        documentToast.created();
+      } else {
+        await documentsClient.updateDocument(payload);
+        await refreshAfterDocumentUpdate();
+        documentToast.updated();
+      }
+
+      if (isSpreadsheetType && documentEditingMode !== "create") {
+        await documentsClient.syncDocument(payload.name, normalizedSyncOptions);
+        documentToast.synced();
+      }
+
+      setOpenTabs((prev) => prev.filter((tab) => tab.id !== DRAFT_DOCUMENT_TAB_ID));
+      setDocumentFormPhase("details");
+      setIsDocumentModalOpen(false);
+      openDocument(payload.name);
+    } catch (error) {
+      console.log(error);
+      const message = documentToast.error(error, "Cannot save document");
+      setErrorMessage(message);
+    } finally {
+      setIsSavingDocument(false);
+    }
+  };
+
+  const handleDeleteDocument = async () => {
+    if (!selectedDocumentName) {
+      return;
+    }
+
+    setIsSavingDocument(true);
+    setErrorMessage("");
+
+    try {
+      await documentsClient.deleteDocument(selectedDocumentName);
+      await refreshAfterDocumentDelete();
+      setIsDocumentDeleteModalOpen(false);
+      resetDocumentDetail();
+      resetDocumentSyncOptions();
+      documentToast.deleted();
+      navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}`);
+    } catch (error) {
+      console.log(error);
+      const message = documentToast.error(error, "Cannot delete document");
+      setErrorMessage(message);
+    } finally {
+      setIsSavingDocument(false);
+    }
+  };
+
+  const handleSyncDocument = async (event) => {
+    event.preventDefault();
+
+    if (!selectedDocumentName) {
+      return;
+    }
+
+    if ((documentForm.type || "Spreadsheets") !== "Spreadsheets") {
+      setErrorMessage("Sync is only available for Spreadsheets documents");
+      return;
+    }
+
+    setIsSavingDocument(true);
+    setErrorMessage("");
+
+    const mergedSheets = Array.from(new Set([...(documentSyncOptions.selectedSheets || [])]));
+
+    const normalizedOptions = {
+      includeEmptyRows: Boolean(documentSyncOptions.includeEmptyRows),
+    };
+
+    const parsedHeaderRow = Number.parseInt(documentSyncOptions.headerRow, 10);
+    if (Number.isInteger(parsedHeaderRow) && parsedHeaderRow > 0) {
+      normalizedOptions.headerRow = parsedHeaderRow;
+    }
+
+    if (!documentSyncOptions.useAllSheets) {
+      if (!mergedSheets.length) {
+        setErrorMessage("Please select at least one sheet or choose all");
+        setIsSavingDocument(false);
+        return;
+      }
+      normalizedOptions.sheets = mergedSheets;
+    }
+
+    try {
+      await documentsClient.syncDocument(selectedDocumentName, normalizedOptions);
+      await refreshAfterDocumentUpdate();
+      setIsDocumentSyncModalOpen(false);
+      documentToast.synced();
+    } catch (error) {
+      console.log(error);
+      const message = documentToast.error(error, "Cannot sync document");
+      setErrorMessage(message);
+    } finally {
+      setIsSavingDocument(false);
+    }
+  };
+
   return (
     <div className={uiClasses.pageSurface}>
       <div className={uiClasses.pageGrid}>
         <WorkspaceSidebar
           workspaceList={workspaceList}
+          documentList={workspaceDocuments}
           selectedWorkspaceName={selectedWorkspaceName}
           selectedWorkspace={selectedWorkspace}
           selectedPromptName={selectedPromptName}
+          selectedDocumentName={selectedDocumentName}
           isLoadingList={isLoadingWorkspaces}
           isLoadingWorkspace={isLoadingWorkspace}
           onRefresh={refreshWorkspaceList}
           onSelectWorkspace={openWorkspace}
           onSelectPrompt={openPrompt}
+          onSelectDocument={openDocument}
+          onCreatePrompt={openCreatePromptModal}
+          onCreateDocument={openCreateDocumentFromSidebar}
           onBack={handleBack}
         />
 
-        <main className="grid content-start gap-4 p-4 md:p-6 lg:p-8">
-          {selectedPromptName ? null : (
+        <main className="grid content-start gap-0">
+          {selectedWorkspaceName ? (
+            <div className="overflow-x-auto border-x border-t border-stone-300 bg-[#fffef8]">
+              <div className="flex min-w-max items-center gap-1 px-2 py-1">
+                {openTabs.map((tab) => (
+                  <div
+                    key={tab.id}
+                    className={`flex items-center gap-1 border px-2.5 py-1.5 text-sm ${
+                      activeTab.id === tab.id
+                        ? "border-teal-700 bg-teal-100 text-slate-900"
+                        : "border-stone-300 bg-white text-slate-700"
+                    }`}
+                    role="tab"
+                    aria-selected={activeTab.id === tab.id}
+                    tabIndex={0}
+                  >
+                    <button
+                      type="button"
+                      className="max-w-[180px] truncate text-left"
+                      onClick={() => activateTab(tab)}
+                      title={tab.label}
+                    >
+                      {tab.type === "workspace" ? "Workspace" : tab.label}
+                    </button>
+                    {tab.type !== "workspace" ? (
+                      <button
+                        type="button"
+                        className="rounded px-1 text-xs text-slate-600 hover:bg-stone-200"
+                        onClick={() => closeTab(tab.id)}
+                        aria-label={`Close ${tab.label} tab`}
+                      >
+                        x
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
+          {activeTab.type === "workspace" ? (
             <WorkspaceDetail
               selectedWorkspaceName={selectedWorkspaceName}
               selectedPromptName={selectedPromptName}
@@ -582,34 +1110,94 @@ export default function WorkspacesPage() {
               onDelete={handleDeleteWorkspace}
               onCloseModal={closeWorkspaceModal}
               onCloseDelete={closeDeleteModal}
+              embedded={true}
             />
-          )}
-          <PromptViewer
-            selectedPrompt={selectedPrompt}
-            selectedPromptName={selectedPromptName}
-            promptText={promptText}
-            parsedTokens={parsedTokens}
-            generatedPrompt={generatedPrompt}
-            promptInputValues={promptInputValues}
-            promptForm={promptForm}
-            workspaceList={workspaceList}
-            documents={documents}
-            onDocumentCreated={refreshAfterDocumentCreate}
-            promptEditingMode={promptEditingMode}
-            isSavingPrompt={isSavingPrompt}
-            errorMessage={errorMessage}
-            isPromptModalOpen={isPromptModalOpen}
-            isPromptDeleteModalOpen={isPromptDeleteModalOpen}
-            onInputChange={(id, value) => setPromptInputValues((prev) => ({ ...prev, [id]: value }))}
-            onPromptDetailChange={handlePromptDetailChange}
-            onPromptSubmit={handleSavePrompt}
-            onNewPrompt={openCreatePromptModal}
-            onEditPrompt={openEditPromptModal}
-            onOpenDeletePrompt={openDeletePromptModal}
-            onDeletePrompt={handleDeletePrompt}
-            onClosePromptModal={closePromptModal}
-            onCloseDeletePrompt={closePromptDeleteModal}
-          />
+          ) : null}
+
+          {activeTab.type === "prompt" ? (
+            <PromptViewer
+              selectedPrompt={promptSource}
+              selectedPromptName={selectedPromptName}
+              promptText={promptText}
+              parsedTokens={parsedTokens}
+              generatedPrompt={generatedPrompt}
+              promptInputValues={promptInputValues}
+              promptForm={promptForm}
+              workspaceList={workspaceList}
+              documents={documents}
+              onDocumentCreated={refreshAfterDocumentCreate}
+              promptEditingMode={promptEditingMode}
+              isSavingPrompt={isSavingPrompt}
+              errorMessage={errorMessage}
+              isPromptModalOpen={isPromptModalOpen}
+              isPromptDeleteModalOpen={isPromptDeleteModalOpen}
+              onInputChange={(id, value) => setPromptInputValues((prev) => ({ ...prev, [id]: value }))}
+              onPromptDetailChange={handlePromptDetailChange}
+              onPromptSubmit={handleSavePrompt}
+              onNewPrompt={openCreatePromptModal}
+              onEditPrompt={openEditPromptModal}
+              onOpenDeletePrompt={openDeletePromptModal}
+              onDeletePrompt={handleDeletePrompt}
+              onClosePromptModal={closePromptModal}
+              onCloseDeletePrompt={closePromptDeleteModal}
+              embedded={true}
+              showNewButton={false}
+            />
+          ) : null}
+
+          {activeTab.type === "document" ? (
+            <>
+              <DocumentDetail
+                selectedDocumentName={selectedDocumentName}
+                form={documentForm}
+                editingMode={documentEditingMode}
+                formPhase={documentFormPhase}
+                workspaceList={workspaceList}
+                isSaving={isSavingDocument}
+                errorMessage={errorMessage}
+                isModalOpen={isDocumentModalOpen}
+                isDeleteModalOpen={isDocumentDeleteModalOpen}
+                isSyncModalOpen={isDocumentSyncModalOpen}
+                syncOptions={documentSyncOptions}
+                syncPreasheetName={documentSyncPreasheetName}
+                syncSheetNames={documentSyncSheetNames}
+                isLoadingSyncMeta={isLoadingDocumentSyncMeta}
+                onFormChange={handleDocumentDetailChange}
+                onSyncOptionChange={handleDocumentSyncOptionChange}
+                onToggleSyncSheet={handleToggleDocumentSyncSheet}
+                onToggleAllSheets={handleToggleAllDocumentSheets}
+                onSelectType={handleSelectDocumentType}
+                onNextTypePhase={handleNextDocumentTypePhase}
+                onNextPhase={handleNextDocumentFormPhase}
+                onBackPhase={handleBackDocumentFormPhase}
+                onSubmit={handleSaveDocument}
+                onSubmitSync={handleSyncDocument}
+                onNew={openCreateDocumentModal}
+                onEdit={openEditDocumentModal}
+                onOpenDelete={openDeleteDocumentModal}
+                onOpenSync={openDocumentSyncModal}
+                onDelete={handleDeleteDocument}
+                onCloseModal={closeDocumentModal}
+                onCloseDelete={closeDocumentDeleteModal}
+                onCloseSync={closeDocumentSyncModal}
+                embedded={true}
+                showNewButton={false}
+              />
+
+              {isLoadingDocument ? <p className="text-sm text-slate-600">Loading document...</p> : null}
+
+              {!isLoadingDocument && selectedDocumentName ? (
+                <div className="mt-4">
+                  <DocumentContentPreview
+                    type={documentForm.type}
+                    contentMarkdown={documentForm.contentMarkdown}
+                    contentJSON={parsedDocumentJSON || documentForm.contentJSON}
+                    contentHTML={documentForm.contentHTML}
+                  />
+                </div>
+              ) : null}
+            </>
+          ) : null}
         </main>
       </div>
     </div>

@@ -60,7 +60,7 @@ export default function Modal({
             </p>
           </div>
           <Button type="button" variant="secondary" onClick={onClose}>
-            Close
+            🗙
           </Button>
         </div>
 

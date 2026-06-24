@@ -34,10 +34,47 @@ const mockDb = {
         "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
     },
     {
+      name: "Landing Hero Copy 2",
+      workspace: "growth-team",
+      description: "Generate hero section copy",
+      owner: "12312",
+      createdBy: "dunglh8",
+      createdAt: new Date().toISOString(),
+      updatedBy: "dunglh8",
+      updatedAt: new Date().toISOString(),
+      content:
+        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+    },
+    {
+      name: "Landing Hero Copy 3",
+      workspace: "growth-team",
+      description: "Generate hero section copy",
+      owner: "12312",
+      createdBy: "dunglh8",
+      createdAt: new Date().toISOString(),
+      updatedBy: "dunglh8",
+      updatedAt: new Date().toISOString(),
+      content:
+        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+    },
+    {
+      name: "Landing Hero Copy 4",
+      workspace: "growth-team",
+      description: "Generate hero section copy",
+      owner: "12312",
+      createdBy: "dunglh8",
+      createdAt: new Date().toISOString(),
+      updatedBy: "dunglh8",
+      updatedAt: new Date().toISOString(),
+      content:
+        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+    },
+    {
       name: "Design Critic",
       workspace: "frontend-lab",
       description: "Review a design JSON and suggest improvements",
-      content: "Analyze this design payload: ${Design JSON|textarea}. Reply in ${Language|options:English,Japan}",
+      content:
+        "Analyze this design payload: ${Design JSON|textarea}. Reply in ${Language|options:English,Japan}",
     },
   ],
   documents: [
@@ -48,7 +85,8 @@ const mockDb = {
       fileName: "growth-kpis",
       preasheetId: "mock-sheet-id-001",
       description: "Weekly marketing KPI extract",
-      contentMarkdown: "# growth-kpis\n\n## Overview\n\n| Metric | Value |\n| --- | --- |\n| CTR | 3.2% |",
+      contentMarkdown:
+        "# growth-kpis\n\n## Overview\n\n| Metric | Value |\n| --- | --- |\n| CTR | 3.2% |",
       contentJSON: {
         name: "growth-kpis",
         sheets: [

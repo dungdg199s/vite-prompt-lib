@@ -33,6 +33,8 @@ export default function PromptViewer({
   onDeletePrompt,
   onClosePromptModal,
   onCloseDeletePrompt,
+  embedded = false,
+  showNewButton = true,
 }) {
   const [isDocumentSelectorOpen, setIsDocumentSelectorOpen] = useState(false);
   const [editingTokenId, setEditingTokenId] = useState(null);
@@ -78,8 +80,12 @@ export default function PromptViewer({
     );
   };
 
+  const sectionClassName = embedded
+    ? "border-x border-b border-stone-300 bg-[#fffef8] p-4 shadow-none md:p-5"
+    : uiClasses.card;
+
   return (
-    <section className={uiClasses.card}>
+    <section className={sectionClassName}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">{selectedPrompt ? selectedPrompt.name : "Prompt"}</h2>
@@ -88,9 +94,11 @@ export default function PromptViewer({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Button type="button" onClick={onNewPrompt} variant="secondary">
-            New Prompt
-          </Button>
+          {showNewButton ? (
+            <Button type="button" onClick={onNewPrompt} variant="secondary">
+              New Prompt
+            </Button>
+          ) : null}
           <Button type="button" onClick={onEditPrompt} disabled={isSavingPrompt || !selectedPrompt} variant="secondary">
             Edit
           </Button>
@@ -171,7 +179,7 @@ export default function PromptViewer({
           <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">Generated Prompt</h3>
-              <div>
+              <div className="flex gap-1">
                 <Button
                   type="button"
                   onClick={copyToClipboard}
