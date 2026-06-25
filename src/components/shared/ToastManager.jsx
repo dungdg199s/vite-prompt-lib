@@ -4,39 +4,45 @@ import { ToastContext } from "../../contexts/ToastContext";
 export const ToastProvider = ({ children }) => {
   const [toasts, setToasts] = useState([]);
 
-  const showToast = useCallback((input, legacyMessage, legacyDuration = 3000) => {
-    // Support object API: showToast({ type, message, duration }) while preserving old signature.
-    const payload =
-      typeof input === "object" && input !== null
-        ? input
-        : {
-            type: input,
-            message: legacyMessage,
-            duration: legacyDuration,
-          };
+  const showToast = useCallback(
+    (input, legacyMessage, legacyDuration = 3000) => {
+      // Support object API: showToast({ type, message, duration }) while preserving old signature.
+      const payload =
+        typeof input === "object" && input !== null
+          ? input
+          : {
+              type: input,
+              message: legacyMessage,
+              duration: legacyDuration,
+            };
 
-    const type = payload.type || "info";
-    const message = String(payload.message || "").trim();
-    const normalizedDuration = Number.isFinite(payload.duration) ? payload.duration : 3000;
-    const duration = type === "error" || type === "warning" ? 0 : normalizedDuration;
+      const type = payload.type || "info";
+      const message = String(payload.message || "").trim();
+      const normalizedDuration = Number.isFinite(payload.duration)
+        ? payload.duration
+        : 3000;
+      const duration =
+        type === "error" || type === "warning" ? 0 : normalizedDuration;
 
-    if (!message) {
-      return null;
-    }
+      if (!message) {
+        return null;
+      }
 
-    const id = Date.now();
-    const toast = { id, type, message };
+      const id = Date.now();
+      const toast = { id, type, message };
 
-    setToasts((prev) => [...prev, toast]);
+      setToasts((prev) => [...prev, toast]);
 
-    if (duration > 0) {
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, duration);
-    }
+      if (duration > 0) {
+        setTimeout(() => {
+          setToasts((prev) => prev.filter((t) => t.id !== id));
+        }, duration);
+      }
 
-    return id;
-  }, []);
+      return id;
+    },
+    [],
+  );
 
   const removeToast = useCallback((id) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));

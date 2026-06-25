@@ -57,8 +57,8 @@ export default function DocumentSidebar({
           >
             <span className="font-medium">{document.name}</span>
             <small className="text-xs text-slate-500">
-              {(document.workspace && `@${document.workspace}`) || "No workspace"}
-              {" "}
+              {(document.workspace && `@${document.workspace}`) ||
+                "No workspace"}{" "}
               &middot; {document.description || "No description"}
             </small>
           </button>

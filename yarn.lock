@@ -731,6 +731,13 @@
   resolved "https://registry.yarnpkg.com/@oxc-project/types/-/types-0.133.0.tgz#2e282ef9e1d26e06b68ccd14b73f310a3b2cf7f8"
   integrity sha512-KzkdCd6Uxqnf6l3HOw1xfatAlUURA0g14cvBYFyJ5SaNOQbOUvBr9PKArcPcrNIeRsBdgcUzOGrhKveVpvOIGA==
 
+"@playwright/test@^1.61.1":
+  version "1.61.1"
+  resolved "https://registry.yarnpkg.com/@playwright/test/-/test-1.61.1.tgz#48568dc22af7819e55fa5e8e3bc79b7e6a3e6675"
+  integrity sha512-8nKv6+0RJSL9FE4jYOEGXnPeM/Hg12qZpmqzZjRh3qM0Y7c3z1mrOTfFLids72RDQYVh9WpLEfR5WdpNX4fkig==
+  dependencies:
+    playwright "1.61.1"
+
 "@rolldown/binding-android-arm64@1.0.3":
   version "1.0.3"
   resolved "https://registry.yarnpkg.com/@rolldown/binding-android-arm64/-/binding-android-arm64-1.0.3.tgz#54ce8f8382213f4a314a0c2f7ba83f81ffeae592"
@@ -969,6 +976,13 @@
   integrity sha512-6oYBAi5ikg4Pl+kGsoYtawUMBT2zZMCvPNF7pVLnHZfd1zf38DRiWn/gT01RYCdUqkv7Fhr+C9ot4/tb+2sVvA==
   dependencies:
     undici-types "~6.21.0"
+
+"@types/node@^26.0.1":
+  version "26.0.1"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-26.0.1.tgz#4a60e2c7a6d68bd261e265f8983bfe1601263ce3"
+  integrity sha512-fc3KiUoBt6kie0N9bIW3E47vZsuaMf0PM2AaUpLCLT0s/LvX1nxAim6Fc049cNxODPpGm6qRAuUOB86SkRuPQw==
+  dependencies:
+    undici-types "~8.3.0"
 
 "@types/normalize-package-data@^2.4.3":
   version "2.4.4"
@@ -1763,6 +1777,11 @@ fresh@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-2.0.0.tgz#8dd7df6a1b3a1b3a5cf186c05a5dd267622635a4"
   integrity sha512-Rx/WycZ60HOaqLKAi6cHRKKI7zxWbJ31MhntmtwMoaTeF7XFH9hhBp8vITaMidfljRQ6eYWCKkaTK+ykVJHP2A==
+
+fsevents@2.3.2:
+  version "2.3.2"
+  resolved "https://registry.yarnpkg.com/fsevents/-/fsevents-2.3.2.tgz#8a526f78b8fdf4623b709e0b975c52c24c02fd1a"
+  integrity sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==
 
 fsevents@~2.3.3:
   version "2.3.3"
@@ -2581,6 +2600,20 @@ pkce-challenge@^5.0.0:
   resolved "https://registry.yarnpkg.com/pkce-challenge/-/pkce-challenge-5.0.1.tgz#3b4446865b17b1745e9ace2016a31f48ddf6230d"
   integrity sha512-wQ0b/W4Fr01qtpHlqSqspcj3EhBvimsdh0KlHhH8HRZnMsEa0ea2fTULOXOS9ccQr3om+GcGRk4e+isrZWV8qQ==
 
+playwright-core@1.61.1:
+  version "1.61.1"
+  resolved "https://registry.yarnpkg.com/playwright-core/-/playwright-core-1.61.1.tgz#3c99841307efbbabc9d724c41a88c914705d15fc"
+  integrity sha512-h7Qlt6m4REp25qvIdvbDtVmD4LqVXfpRxhORv9L0jzETM05p4fuPJ3dKyuSXQxDSbXnmS79HAgi9589lGSpLkg==
+
+playwright@1.61.1:
+  version "1.61.1"
+  resolved "https://registry.yarnpkg.com/playwright/-/playwright-1.61.1.tgz#d8c0c06eb93c28981afc747bace453bdbd5018bc"
+  integrity sha512-DWnY5o3YbLWK4GovuAVwpqL+1VwGNdUGrRr++8j8PtQQzvAVZUIMjKQ90fY689sEJZJBbZVw1rXaOKSTitkzPQ==
+  dependencies:
+    playwright-core "1.61.1"
+  optionalDependencies:
+    fsevents "2.3.2"
+
 postcss@^8.5.15:
   version "8.5.15"
   resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.15.tgz#d1eaf677a324e9ec02196da2d3fecf4a0b9a735c"
@@ -2595,7 +2628,7 @@ prelude-ls@^1.2.1:
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
   integrity sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==
 
-prettier@^3.8.4:
+prettier@3.8.4:
   version "3.8.4"
   resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.8.4.tgz#f334f013ac04a96676f24dabc23c1c4ae1bae411"
   integrity sha512-N2MylSdi48+5N/6S5j+maeHbUSIzzZ5uOcX5Hm4QpV8Dkb1HFjfAKTKX6yNPJQD9AhcT3ifHNB66tWTTJDi11Q==

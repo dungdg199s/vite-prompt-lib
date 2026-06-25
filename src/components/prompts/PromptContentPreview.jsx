@@ -5,10 +5,10 @@ export default function PromptContentPreview({ content }) {
 
   return (
     <section className={uiClasses.card}>
-      <h2 className="mb-3 text-lg font-semibold tracking-tight">Content Preview</h2>
-      <pre className={uiClasses.darkCodeBlock}>
-        {content}
-      </pre>
+      <h2 className="mb-3 text-lg font-semibold tracking-tight">
+        Content Preview
+      </h2>
+      <pre className={uiClasses.darkCodeBlock}>{content}</pre>
     </section>
   );
 }

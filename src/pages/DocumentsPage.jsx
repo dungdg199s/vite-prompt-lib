@@ -69,7 +69,7 @@ const stringifyContentJSON = (rawContent) => {
   }
 };
 
-const STORAGE_KEY = 'documentsPageState';
+const STORAGE_KEY = "documentsPageState";
 
 export default function DocumentsPage() {
   const navigate = useNavigate();
@@ -85,7 +85,7 @@ export default function DocumentsPage() {
     refreshAfterDocumentDelete,
   } = useAppData();
 
-  const documentNameFromUrl = params['*'] || '';
+  const documentNameFromUrl = params["*"] || "";
 
   const [documentForm, setDocumentDetail] = useState(DEFAULT_DOCUMENT_FORM);
   const [editingMode, setEditingMode] = useState("create");
@@ -126,12 +126,14 @@ export default function DocumentsPage() {
         if (savedState) {
           const { document } = JSON.parse(savedState);
           if (document) {
-            navigate(`/documents/${encodeURIComponent(document)}`, { replace: true });
+            navigate(`/documents/${encodeURIComponent(document)}`, {
+              replace: true,
+            });
           }
         }
       } catch (error) {
         console.log(error);
-        console.error('Failed to restore state from localStorage:', error);
+        console.error("Failed to restore state from localStorage:", error);
       }
     }
   }, []);
@@ -152,7 +154,8 @@ export default function DocumentsPage() {
 
       setErrorMessage("");
       try {
-        const document = await documentsClient.getDocument(selectedDocumentName);
+        const document =
+          await documentsClient.getDocument(selectedDocumentName);
         setDocumentDetail({
           id: document?.id,
           name: document?.name || "",
@@ -325,27 +328,36 @@ export default function DocumentsPage() {
     try {
       const preasheet = await documentsClient.getPreasheet(preasheetId);
       const names = Array.isArray(preasheet?.sheetNames)
-        ? preasheet.sheetNames.map((name) => String(name || "").trim()).filter(Boolean)
+        ? preasheet.sheetNames
+            .map((name) => String(name || "").trim())
+            .filter(Boolean)
         : [];
 
       const finalSheetNames = names.length ? names : fallbackSheets;
       const nextFileName = String(
-        preasheet?.preasheetName || documentForm.fileName || documentForm.name || "",
+        preasheet?.preasheetName ||
+          documentForm.fileName ||
+          documentForm.name ||
+          "",
       ).trim();
 
       setDocumentDetail((prev) => ({
         ...prev,
         fileName: nextFileName,
       }));
-      setSyncPreasheetName(preasheet?.preasheetName || documentForm.fileName || "");
+      setSyncPreasheetName(
+        preasheet?.preasheetName || documentForm.fileName || "",
+      );
       setSyncSheetNames(finalSheetNames);
       setSyncOptions((prev) => ({
         ...prev,
-        selectedSheets: Array.isArray(prev.selectedSheets) ? prev.selectedSheets : [],
+        selectedSheets: Array.isArray(prev.selectedSheets)
+          ? prev.selectedSheets
+          : [],
       }));
       return true;
     } catch (error) {
-        console.log(error);
+      console.log(error);
       setErrorMessage(error.message || "Cannot load spreadsheet metadata");
       return false;
     } finally {
@@ -494,7 +506,9 @@ export default function DocumentsPage() {
     };
 
     if (isSpreadsheetType) {
-      const mergedSheets = Array.from(new Set([...(syncOptions.selectedSheets || [])]));
+      const mergedSheets = Array.from(
+        new Set([...(syncOptions.selectedSheets || [])]),
+      );
       normalizedSyncOptions = {
         includeEmptyRows: Boolean(syncOptions.includeEmptyRows),
       };
@@ -582,7 +596,9 @@ export default function DocumentsPage() {
     setIsSaving(true);
     setErrorMessage("");
 
-    const mergedSheets = Array.from(new Set([...(syncOptions.selectedSheets || [])]));
+    const mergedSheets = Array.from(
+      new Set([...(syncOptions.selectedSheets || [])]),
+    );
 
     const normalizedOptions = {
       includeEmptyRows: Boolean(syncOptions.includeEmptyRows),
@@ -603,7 +619,10 @@ export default function DocumentsPage() {
     }
 
     try {
-      await documentsClient.syncDocument(selectedDocumentName, normalizedOptions);
+      await documentsClient.syncDocument(
+        selectedDocumentName,
+        normalizedOptions,
+      );
       await refreshAfterDocumentUpdate();
       await openDocument(selectedDocumentName);
       setIsSyncModalOpen(false);

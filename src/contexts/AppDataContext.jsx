@@ -26,7 +26,7 @@ export const AppDataProvider = ({ children }) => {
       setPrompts(promptsList || []);
       setDocuments(documentsList || []);
     } catch (error) {
-        console.log(error);
+      console.log(error);
       console.error("Error loading all data:", error);
     } finally {
       setIsLoadingAll(false);
@@ -39,7 +39,7 @@ export const AppDataProvider = ({ children }) => {
       const list = await workspacesClient.getWorkspaces();
       setWorkspaces(list || []);
     } catch (error) {
-        console.log(error);
+      console.log(error);
       console.error("Error refreshing workspaces:", error);
     } finally {
       setIsLoadingWorkspaces(false);
@@ -52,7 +52,7 @@ export const AppDataProvider = ({ children }) => {
       const list = await promptsClient.getPrompts();
       setPrompts(list || []);
     } catch (error) {
-        console.log(error);
+      console.log(error);
       console.error("Error refreshing prompts:", error);
     } finally {
       setIsLoadingPrompts(false);
@@ -65,7 +65,7 @@ export const AppDataProvider = ({ children }) => {
       const list = await documentsClient.getDocuments();
       setDocuments(list || []);
     } catch (error) {
-        console.log(error);
+      console.log(error);
       console.error("Error refreshing documents:", error);
     } finally {
       setIsLoadingDocuments(false);

@@ -1,9 +1,13 @@
-import Button from "../shared/Button";
-import WorkspaceEditModal from "./WorkspaceEditModal";
-import WorkspaceDeleteModal from "./WorkspaceDeleteModal";
-import { uiClasses } from "../shared/uiClasses";
+import AppModal from "../shared/AppModal";
 
-export default function WorkspaceDetail({
+const inputClassName =
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
+const secondaryButtonClassName =
+  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
+const primaryButtonClassName =
+  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
+
+export default function WorkspaceForm({
   selectedWorkspaceName,
   selectedPromptName,
   form,
@@ -21,7 +25,6 @@ export default function WorkspaceDetail({
   onDelete,
   onCloseModal,
   onCloseDelete,
-  embedded = false,
 }) {
   const shareWithSummary = form.shareWith || "No shared members";
   const isSharedMode = form.shareMode === "shared";
@@ -37,12 +40,8 @@ export default function WorkspaceDetail({
     return `${person}, ${dateStr}`;
   };
 
-  const sectionClassName = embedded
-    ? "border-x border-b border-stone-300 bg-[#fffef8] p-4 shadow-none md:p-5"
-    : uiClasses.card;
-
   return (
-    <section className={sectionClassName}>
+    <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
       {!shouldHideOverview ? (
         <>
           <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
@@ -59,25 +58,29 @@ export default function WorkspaceDetail({
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button type="button" onClick={onNew} variant="secondary">
+              <button
+                type="button"
+                onClick={onNew}
+                className={secondaryButtonClassName}
+              >
                 New Workspace
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
                 onClick={onEdit}
                 disabled={isSaving || !selectedWorkspaceName}
-                variant="secondary"
+                className={secondaryButtonClassName}
               >
                 Edit
-              </Button>
-              <Button
+              </button>
+              <button
                 type="button"
-                variant="danger"
+                className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
                 onClick={onOpenDelete}
                 disabled={isSaving || !selectedWorkspaceName}
               >
                 Delete
-              </Button>
+              </button>
             </div>
           </div>
 
@@ -162,23 +165,122 @@ export default function WorkspaceDetail({
         </>
       ) : null}
 
-      <WorkspaceEditModal
-        workspace={form}
-        editMode={editingMode}
+      <AppModal
         isOpen={isModalOpen}
+        title={editingMode === "create" ? "Create Workspace" : "Edit Workspace"}
         onClose={onCloseModal}
-        onSubmit={onSubmit}
-        onFormChange={onFormChange}
-        isSaving={isSaving}
-      />
+        size="lg"
+      >
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <h3 className="text-lg font-semibold tracking-tight">
+            {editingMode === "create" ? "Create Workspace" : "Edit Workspace"}
+          </h3>
+          <button
+            type="button"
+            className={secondaryButtonClassName}
+            onClick={onCloseModal}
+          >
+            Close
+          </button>
+        </div>
 
-      <WorkspaceDeleteModal
-        workspaceName={selectedWorkspaceName}
+        <form className="grid gap-3" onSubmit={onSubmit}>
+          <label className="grid gap-1.5 text-sm">
+            Workspace Name
+            <input
+              className={inputClassName}
+              value={form.name}
+              onChange={(e) => onFormChange("name", e.target.value)}
+              disabled={editingMode === "edit"}
+              placeholder="workspace-name"
+            />
+          </label>
+
+          <label className="grid gap-1.5 text-sm">
+            Description
+            <textarea
+              className={inputClassName}
+              value={form.description}
+              onChange={(e) => onFormChange("description", e.target.value)}
+              rows={3}
+              placeholder="Workspace description"
+            />
+          </label>
+
+          <label className="grid gap-1.5 text-sm">
+            Share Mode
+            <select
+              className={inputClassName}
+              value={form.shareMode}
+              onChange={(e) => onFormChange("shareMode", e.target.value)}
+            >
+              <option value="private">private</option>
+              <option value="shared">shared</option>
+              <option value="public">public</option>
+            </select>
+          </label>
+
+          {form.shareMode === "shared" ? (
+            <label className="grid gap-1.5 text-sm">
+              Share With (comma separated emails)
+              <input
+                className={inputClassName}
+                value={form.shareWith}
+                onChange={(e) => onFormChange("shareWith", e.target.value)}
+                placeholder="a@company.com, b@company.com"
+              />
+            </label>
+          ) : null}
+
+          <div className="flex flex-wrap justify-end gap-2 pt-2">
+            <button
+              type="button"
+              onClick={onCloseModal}
+              className={secondaryButtonClassName}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className={primaryButtonClassName}
+            >
+              {editingMode === "create" ? "Create" : "Update"}
+            </button>
+          </div>
+        </form>
+      </AppModal>
+
+      <AppModal
         isOpen={isDeleteModalOpen}
-        isSaving={isSaving}
+        title="Delete Workspace"
         onClose={onCloseDelete}
-        onDelete={onDelete}
-      />
+      >
+        <h3 className="text-lg font-semibold tracking-tight">
+          Delete Workspace
+        </h3>
+        <p className="mt-2 text-sm text-slate-600">
+          Delete <strong>{selectedWorkspaceName}</strong>? This action cannot be
+          undone.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <button
+            type="button"
+            onClick={onCloseDelete}
+            className={secondaryButtonClassName}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+            onClick={onDelete}
+            disabled={isSaving}
+          >
+            Delete
+          </button>
+        </div>
+      </AppModal>
 
       {errorMessage ? (
         <p className="mt-2 text-sm text-red-700">{errorMessage}</p>

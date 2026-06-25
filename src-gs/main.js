@@ -8,6 +8,6 @@ export function doGet(e) {
 }
 
 export function invoke(method, requestUrl, payload) {
-    const result = gasServer.invoke(method, requestUrl, payload);
-    return result;
+  const result = gasServer.invoke(method, requestUrl, payload);
+  return result;
 }

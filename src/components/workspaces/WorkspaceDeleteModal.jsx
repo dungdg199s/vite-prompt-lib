@@ -17,7 +17,12 @@ export default function WorkspaceDeleteModal({
         <Button type="button" onClick={onClose} variant="secondary">
           Cancel
         </Button>
-        <Button type="button" variant="danger" onClick={onDelete} disabled={isSaving}>
+        <Button
+          type="button"
+          variant="danger"
+          onClick={onDelete}
+          disabled={isSaving}
+        >
           Delete
         </Button>
       </div>

@@ -10,7 +10,9 @@ const _invoke = (method, url, payload) => {
 
     if (!scriptsApi) {
       scriptsApi = mockScriptsApi;
-      console.warn("Google Scripts API is not available. Using mock API for testing purposes.");
+      console.warn(
+        "Google Scripts API is not available. Using mock API for testing purposes.",
+      );
     }
 
     const object = url.split("/")[2];

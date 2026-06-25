@@ -1,12 +1,13 @@
 import { useMemo, useReducer } from "react";
 import { setIn, updateIn } from "../treeState";
-import {
-  createWorkspacePageState,
-} from "./workspacePageState";
+import { createWorkspacePageState } from "./workspacePageState";
 import { createTabListState } from "./tablistState";
 import { DEFAULT_WORKSPACE_FORM } from "./workspaceSliceState";
 import { DEFAULT_PROMPT_FORM } from "./promptSliceState";
-import { DEFAULT_DOCUMENT_FORM, DEFAULT_SYNC_OPTIONS } from "./documentSliceState";
+import {
+  DEFAULT_DOCUMENT_FORM,
+  DEFAULT_SYNC_OPTIONS,
+} from "./documentSliceState";
 
 const applyUpdate = (state, path, valueOrUpdater) => {
   if (typeof valueOrUpdater === "function") {
@@ -35,7 +36,10 @@ const createPathSetter = (dispatch, path) => {
   };
 };
 
-export function useWorkspacePageState({ promptNameFromUrl = "", documentNameFromUrl = "" } = {}) {
+export function useWorkspacePageState({
+  promptNameFromUrl = "",
+  documentNameFromUrl = "",
+} = {}) {
   const [state, dispatch] = useReducer(
     reducer,
     { promptNameFromUrl, documentNameFromUrl },
@@ -45,34 +49,116 @@ export function useWorkspacePageState({ promptNameFromUrl = "", documentNameFrom
 
   const actions = useMemo(() => {
     return {
-      setSelectedWorkspace: createPathSetter(dispatch, ["workspace", "selected"]),
-      setPromptInputValues: createPathSetter(dispatch, ["prompt", "inputValues"]),
+      setSelectedWorkspace: createPathSetter(dispatch, [
+        "workspace",
+        "selected",
+      ]),
+      setPromptInputValues: createPathSetter(dispatch, [
+        "prompt",
+        "inputValues",
+      ]),
       setPromptDetail: createPathSetter(dispatch, ["prompt", "form"]),
       setDocumentDetail: createPathSetter(dispatch, ["document", "form"]),
       setWorkspaceDetail: createPathSetter(dispatch, ["workspace", "form"]),
       setOpenTabs: createPathSetter(dispatch, ["tablist", "openTabs"]),
       setActiveTabId: createPathSetter(dispatch, ["tablist", "activeTabId"]),
       setEditingMode: createPathSetter(dispatch, ["workspace", "editingMode"]),
-      setPromptEditingMode: createPathSetter(dispatch, ["prompt", "editingMode"]),
-      setDocumentEditingMode: createPathSetter(dispatch, ["document", "editingMode"]),
-      setDocumentFormPhase: createPathSetter(dispatch, ["document", "formPhase"]),
-      setIsWorkspaceModalOpen: createPathSetter(dispatch, ["workspace", "modal", "workspace"]),
-      setIsDeleteModalOpen: createPathSetter(dispatch, ["workspace", "modal", "delete"]),
-      setIsPromptModalOpen: createPathSetter(dispatch, ["prompt", "modal", "editor"]),
-      setIsPromptDeleteModalOpen: createPathSetter(dispatch, ["prompt", "modal", "delete"]),
-      setIsDocumentModalOpen: createPathSetter(dispatch, ["document", "modal", "editor"]),
-      setIsDocumentDeleteModalOpen: createPathSetter(dispatch, ["document", "modal", "delete"]),
-      setIsDocumentSyncModalOpen: createPathSetter(dispatch, ["document", "modal", "sync"]),
-      setIsLoadingWorkspace: createPathSetter(dispatch, ["workspace", "loading", "workspace"]),
-      setIsLoadingDocument: createPathSetter(dispatch, ["workspace", "loading", "document"]),
-      setIsLoadingDocumentSyncMeta: createPathSetter(dispatch, ["workspace", "loading", "documentSyncMeta"]),
-      setIsSavingWorkspace: createPathSetter(dispatch, ["workspace", "saving", "workspace"]),
-      setIsSavingPrompt: createPathSetter(dispatch, ["workspace", "saving", "prompt"]),
-      setIsSavingDocument: createPathSetter(dispatch, ["workspace", "saving", "document"]),
-      setDocumentSyncOptions: createPathSetter(dispatch, ["document", "sync", "options"]),
-      setDocumentSyncPreasheetName: createPathSetter(dispatch, ["document", "sync", "preasheetName"]),
-      setDocumentSyncSheetNames: createPathSetter(dispatch, ["document", "sync", "sheetNames"]),
-      setErrorMessage: createPathSetter(dispatch, ["workspace", "errorMessage"]),
+      setPromptEditingMode: createPathSetter(dispatch, [
+        "prompt",
+        "editingMode",
+      ]),
+      setDocumentEditingMode: createPathSetter(dispatch, [
+        "document",
+        "editingMode",
+      ]),
+      setDocumentFormPhase: createPathSetter(dispatch, [
+        "document",
+        "formPhase",
+      ]),
+      setIsWorkspaceModalOpen: createPathSetter(dispatch, [
+        "workspace",
+        "modal",
+        "workspace",
+      ]),
+      setIsDeleteModalOpen: createPathSetter(dispatch, [
+        "workspace",
+        "modal",
+        "delete",
+      ]),
+      setIsPromptModalOpen: createPathSetter(dispatch, [
+        "prompt",
+        "modal",
+        "editor",
+      ]),
+      setIsPromptDeleteModalOpen: createPathSetter(dispatch, [
+        "prompt",
+        "modal",
+        "delete",
+      ]),
+      setIsDocumentModalOpen: createPathSetter(dispatch, [
+        "document",
+        "modal",
+        "editor",
+      ]),
+      setIsDocumentDeleteModalOpen: createPathSetter(dispatch, [
+        "document",
+        "modal",
+        "delete",
+      ]),
+      setIsDocumentSyncModalOpen: createPathSetter(dispatch, [
+        "document",
+        "modal",
+        "sync",
+      ]),
+      setIsLoadingWorkspace: createPathSetter(dispatch, [
+        "workspace",
+        "loading",
+        "workspace",
+      ]),
+      setIsLoadingDocument: createPathSetter(dispatch, [
+        "workspace",
+        "loading",
+        "document",
+      ]),
+      setIsLoadingDocumentSyncMeta: createPathSetter(dispatch, [
+        "workspace",
+        "loading",
+        "documentSyncMeta",
+      ]),
+      setIsSavingWorkspace: createPathSetter(dispatch, [
+        "workspace",
+        "saving",
+        "workspace",
+      ]),
+      setIsSavingPrompt: createPathSetter(dispatch, [
+        "workspace",
+        "saving",
+        "prompt",
+      ]),
+      setIsSavingDocument: createPathSetter(dispatch, [
+        "workspace",
+        "saving",
+        "document",
+      ]),
+      setDocumentSyncOptions: createPathSetter(dispatch, [
+        "document",
+        "sync",
+        "options",
+      ]),
+      setDocumentSyncPreasheetName: createPathSetter(dispatch, [
+        "document",
+        "sync",
+        "preasheetName",
+      ]),
+      setDocumentSyncSheetNames: createPathSetter(dispatch, [
+        "document",
+        "sync",
+        "sheetNames",
+      ]),
+      setErrorMessage: createPathSetter(dispatch, [
+        "workspace",
+        "errorMessage",
+      ]),
       resetDocumentSyncOptions: () => {
         dispatch({
           type: "set",
@@ -83,7 +169,11 @@ export function useWorkspacePageState({ promptNameFromUrl = "", documentNameFrom
         });
       },
       resetWorkspaceForm: () => {
-        dispatch({ type: "set", path: ["workspace", "form"], value: { ...DEFAULT_WORKSPACE_FORM } });
+        dispatch({
+          type: "set",
+          path: ["workspace", "form"],
+          value: { ...DEFAULT_WORKSPACE_FORM },
+        });
       },
       resetPromptForm: (workspaceName = "") => {
         dispatch({
@@ -106,7 +196,11 @@ export function useWorkspacePageState({ promptNameFromUrl = "", documentNameFrom
         });
       },
       resetTabList: () => {
-        dispatch({ type: "set", path: ["tablist"], value: createTabListState() });
+        dispatch({
+          type: "set",
+          path: ["tablist"],
+          value: createTabListState(),
+        });
       },
       resetPromptInputs: () => {
         dispatch({ type: "set", path: ["prompt", "inputValues"], value: {} });

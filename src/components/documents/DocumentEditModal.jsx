@@ -35,9 +35,12 @@ export default function DocumentEditModal({
   onClose,
 }) {
   const safeSyncOptions = syncOptions || DEFAULT_SYNC_OPTIONS;
-  const safeSyncSheetNames = Array.isArray(syncSheetNames) ? syncSheetNames : [];
+  const safeSyncSheetNames = Array.isArray(syncSheetNames)
+    ? syncSheetNames
+    : [];
 
-  const isSpreadsheetType = (document?.type || "Spreadsheets") === "Spreadsheets";
+  const isSpreadsheetType =
+    (document?.type || "Spreadsheets") === "Spreadsheets";
 
   const stepHelpText =
     formPhase === "type"
@@ -59,29 +62,38 @@ export default function DocumentEditModal({
           <>
             <div className="min-h-0 flex-1 overflow-y-auto pr-1">
               <div className="grid gap-2">
-                {["Spreadsheets", "Markdown", "JSON", "HTML"].map((typeItem) => (
-                  <button
-                    key={typeItem}
-                    type="button"
-                    onClick={() => onSelectType(typeItem)}
-                    className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
-                      (document?.type || "Spreadsheets") === typeItem
-                        ? "border-teal-700 bg-teal-100"
-                        : "border-stone-300 bg-white hover:border-teal-700/40"
-                    }`}
-                  >
-                    {typeItem}
-                  </button>
-                ))}
+                {["Spreadsheets", "Markdown", "JSON", "HTML"].map(
+                  (typeItem) => (
+                    <button
+                      key={typeItem}
+                      type="button"
+                      onClick={() => onSelectType(typeItem)}
+                      className={`rounded-lg border px-3 py-2 text-left text-sm transition ${
+                        (document?.type || "Spreadsheets") === typeItem
+                          ? "border-teal-700 bg-teal-100"
+                          : "border-stone-300 bg-white hover:border-teal-700/40"
+                      }`}
+                    >
+                      {typeItem}
+                    </button>
+                  ),
+                )}
               </div>
-              {errorMessage ? <p className="mt-3 text-sm text-red-700">{errorMessage}</p> : null}
+              {errorMessage ? (
+                <p className="mt-3 text-sm text-red-700">{errorMessage}</p>
+              ) : null}
             </div>
 
             <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
               <Button type="button" onClick={onClose} variant="secondary">
                 Cancel
               </Button>
-              <Button type="button" disabled={isSaving} variant="primary" onClick={onNextTypePhase}>
+              <Button
+                type="button"
+                disabled={isSaving}
+                variant="primary"
+                onClick={onNextTypePhase}
+              >
                 Next
               </Button>
             </div>
@@ -102,7 +114,11 @@ export default function DocumentEditModal({
 
               <label className="grid gap-1.5 text-sm">
                 Type
-                <select className={inputClassName} value={document?.type || "Spreadsheets"} onChange={(event) => onFormChange("type", event.target.value)}>
+                <select
+                  className={inputClassName}
+                  value={document?.type || "Spreadsheets"}
+                  onChange={(event) => onFormChange("type", event.target.value)}
+                >
                   <option value="Spreadsheets">Spreadsheets</option>
                   <option value="Markdown">Markdown</option>
                   <option value="JSON">JSON</option>
@@ -112,7 +128,13 @@ export default function DocumentEditModal({
 
               <label className="grid gap-1.5 text-sm">
                 Workspace
-                <select className={inputClassName} value={document?.workspace || ""} onChange={(event) => onFormChange("workspace", event.target.value)}>
+                <select
+                  className={inputClassName}
+                  value={document?.workspace || ""}
+                  onChange={(event) =>
+                    onFormChange("workspace", event.target.value)
+                  }
+                >
                   <option value="">- No workspace -</option>
                   {workspaceList.map((workspace) => (
                     <option key={workspace.name} value={workspace.name}>
@@ -132,7 +154,9 @@ export default function DocumentEditModal({
                     disabled
                     placeholder="Auto-filled from spreadsheet"
                   />
-                  <span className="text-xs text-slate-500">Auto-filled. File name is managed by spreadsheet metadata.</span>
+                  <span className="text-xs text-slate-500">
+                    Auto-filled. File name is managed by spreadsheet metadata.
+                  </span>
                 </label>
               ) : null}
 
@@ -142,7 +166,9 @@ export default function DocumentEditModal({
                   <input
                     className={inputClassName}
                     value={document?.preasheetId || ""}
-                    onChange={(event) => onFormChange("preasheetId", event.target.value)}
+                    onChange={(event) =>
+                      onFormChange("preasheetId", event.target.value)
+                    }
                     placeholder="1AbCdEfGh..."
                   />
                 </label>
@@ -154,7 +180,9 @@ export default function DocumentEditModal({
                   <textarea
                     className={inputClassName}
                     value={document?.contentMarkdown || ""}
-                    onChange={(event) => onFormChange("contentMarkdown", event.target.value)}
+                    onChange={(event) =>
+                      onFormChange("contentMarkdown", event.target.value)
+                    }
                     rows={8}
                     placeholder="Write markdown content..."
                   />
@@ -167,7 +195,9 @@ export default function DocumentEditModal({
                   <textarea
                     className={inputClassName}
                     value={document?.contentJSON || ""}
-                    onChange={(event) => onFormChange("contentJSON", event.target.value)}
+                    onChange={(event) =>
+                      onFormChange("contentJSON", event.target.value)
+                    }
                     rows={8}
                     placeholder='{"key": "value"}'
                   />
@@ -180,7 +210,9 @@ export default function DocumentEditModal({
                   <textarea
                     className={inputClassName}
                     value={document?.contentHTML || ""}
-                    onChange={(event) => onFormChange("contentHTML", event.target.value)}
+                    onChange={(event) =>
+                      onFormChange("contentHTML", event.target.value)
+                    }
                     rows={8}
                     placeholder="<h1>Title</h1>"
                   />
@@ -192,7 +224,9 @@ export default function DocumentEditModal({
                 <textarea
                   className={inputClassName}
                   value={document?.description || ""}
-                  onChange={(event) => onFormChange("description", event.target.value)}
+                  onChange={(event) =>
+                    onFormChange("description", event.target.value)
+                  }
                   rows={3}
                   placeholder="Short description of this document"
                 />
@@ -200,7 +234,13 @@ export default function DocumentEditModal({
 
               <label className="grid gap-1.5 text-sm">
                 Share Mode
-                <select className={inputClassName} value={document?.shareMode || "private"} onChange={(event) => onFormChange("shareMode", event.target.value)}>
+                <select
+                  className={inputClassName}
+                  value={document?.shareMode || "private"}
+                  onChange={(event) =>
+                    onFormChange("shareMode", event.target.value)
+                  }
+                >
                   <option value="private">private</option>
                   <option value="shared">shared</option>
                   <option value="public">public</option>
@@ -213,12 +253,16 @@ export default function DocumentEditModal({
                   <input
                     className={inputClassName}
                     value={document?.shareWith || ""}
-                    onChange={(event) => onFormChange("shareWith", event.target.value)}
+                    onChange={(event) =>
+                      onFormChange("shareWith", event.target.value)
+                    }
                     placeholder="a@company.com, b@company.com"
                   />
                 </label>
               ) : null}
-              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
+              {errorMessage ? (
+                <p className="text-sm text-red-700">{errorMessage}</p>
+              ) : null}
             </div>
 
             <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
@@ -226,7 +270,12 @@ export default function DocumentEditModal({
                 Cancel
               </Button>
               {isSpreadsheetType ? (
-                <Button type="button" disabled={isSaving} variant="primary" onClick={onNextPhase}>
+                <Button
+                  type="button"
+                  disabled={isSaving}
+                  variant="primary"
+                  onClick={onNextPhase}
+                >
                   Next
                 </Button>
               ) : (
@@ -240,15 +289,21 @@ export default function DocumentEditModal({
           <>
             <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
               <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet Name</p>
-                <p className="mt-1 text-sm font-medium text-slate-800">{syncPreasheetName || "Unknown spreadsheet"}</p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Spreadsheet Name
+                </p>
+                <p className="mt-1 text-sm font-medium text-slate-800">
+                  {syncPreasheetName || "Unknown spreadsheet"}
+                </p>
               </div>
 
               <label className="flex items-center gap-2 text-sm text-slate-700">
                 <input
                   type="checkbox"
                   checked={safeSyncOptions.includeEmptyRows}
-                  onChange={(event) => onSyncOptionChange("includeEmptyRows", event.target.checked)}
+                  onChange={(event) =>
+                    onSyncOptionChange("includeEmptyRows", event.target.checked)
+                  }
                 />
                 Include empty rows
               </label>
@@ -258,10 +313,14 @@ export default function DocumentEditModal({
                 <select
                   className={inputClassName}
                   value={safeSyncOptions.headerRow}
-                  onChange={(event) => onSyncOptionChange("headerRow", event.target.value)}
+                  onChange={(event) =>
+                    onSyncOptionChange("headerRow", event.target.value)
+                  }
                 >
                   <option value="">None header</option>
-                  {Array.from({ length: 20 }, (_, index) => String(index + 1)).map((rowValue) => (
+                  {Array.from({ length: 20 }, (_, index) =>
+                    String(index + 1),
+                  ).map((rowValue) => (
                     <option key={rowValue} value={rowValue}>
                       Row {rowValue}
                     </option>
@@ -269,23 +328,40 @@ export default function DocumentEditModal({
                 </select>
               </label>
 
-              {isLoadingSyncMeta ? <p className="text-sm text-slate-600">Loading sheets...</p> : null}
+              {isLoadingSyncMeta ? (
+                <p className="text-sm text-slate-600">Loading sheets...</p>
+              ) : null}
 
               {safeSyncSheetNames.length ? (
                 <div className="rounded-lg border border-stone-200 bg-[#fffcf7] p-3">
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">Sheets</p>
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Sheets
+                  </p>
                   <div className="grid gap-2 md:grid-cols-2">
                     <label className="flex items-center gap-2 text-sm font-medium text-slate-800">
-                      <input type="checkbox" checked={safeSyncOptions.useAllSheets} onChange={(event) => onToggleAllSheets(event.target.checked)} />
+                      <input
+                        type="checkbox"
+                        checked={safeSyncOptions.useAllSheets}
+                        onChange={(event) =>
+                          onToggleAllSheets(event.target.checked)
+                        }
+                      />
                       all
                     </label>
                     {safeSyncSheetNames.map((sheetName) => (
-                      <label key={sheetName} className="flex items-center gap-2 text-sm text-slate-700">
+                      <label
+                        key={sheetName}
+                        className="flex items-center gap-2 text-sm text-slate-700"
+                      >
                         <input
                           type="checkbox"
                           disabled={safeSyncOptions.useAllSheets}
-                          checked={safeSyncOptions.selectedSheets.includes(sheetName)}
-                          onChange={(event) => onToggleSyncSheet(sheetName, event.target.checked)}
+                          checked={safeSyncOptions.selectedSheets.includes(
+                            sheetName,
+                          )}
+                          onChange={(event) =>
+                            onToggleSyncSheet(sheetName, event.target.checked)
+                          }
                         />
                         {sheetName}
                       </label>
@@ -294,7 +370,9 @@ export default function DocumentEditModal({
                 </div>
               ) : null}
 
-              {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
+              {errorMessage ? (
+                <p className="text-sm text-red-700">{errorMessage}</p>
+              ) : null}
             </div>
 
             <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">

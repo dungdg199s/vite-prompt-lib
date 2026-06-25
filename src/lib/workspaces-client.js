@@ -1,7 +1,5 @@
 import { gasClient } from "./gas-client";
 
-const workspaces = {}
-
 export const workspacesClient = {
   getWorkspaces: () => gasClient.get("/api/workspaces"),
   getWorkspace: (name) => gasClient.get(`/api/workspaces/${name}`),

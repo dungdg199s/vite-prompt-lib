@@ -156,6 +156,8 @@ class SheetTable {
 
     const newRow = [normalizedName, JSON.stringify(data)];
     this.worksheet.appendRow(newRow);
+
+    return this.getByName(name);
   }
 
   update(record) {
@@ -197,12 +199,10 @@ class SheetTable {
       row.createdAt = sysDate;
     }
 
-    // eslint-disable-next-line no-unused-vars
-    const { id, ...rowData } = row;
     this.worksheet
       .getRange(row.id, 1, 1, 2)
       .setValues([[normalizedName, JSON.stringify({ ...rowData, ...data })]]);
-    return true;
+    return this.getById(row.id);
   }
 
   delete(record) {

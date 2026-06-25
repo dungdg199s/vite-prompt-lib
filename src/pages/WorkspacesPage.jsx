@@ -128,11 +128,11 @@ export default function WorkspacesPage() {
   const hasRestoredState = useRef(false);
   const previousWorkspaceRef = useRef("");
 
-  const { loadWorkspaces, workspaces: workspaceList } = useWorkspaces();
+  const { fetchWorkspaces, workspaces: workspaceList } = useWorkspaces();
 
   useEffect(() => {
-    loadWorkspaces();
-  }, [loadWorkspaces]);
+    fetchWorkspaces();
+  }, [fetchWorkspaces]);
 
   const {
     documents,

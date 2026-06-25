@@ -11,7 +11,10 @@ export const buildWorkspacePayload = (workspaceForm) => {
     name: String(workspaceForm.name || "").trim(),
     description: String(workspaceForm.description || "").trim(),
     shareMode: workspaceForm.shareMode,
-    shareWith: workspaceForm.shareMode === "shared" ? normalizeShareWith(workspaceForm.shareWith) : [],
+    shareWith:
+      workspaceForm.shareMode === "shared"
+        ? normalizeShareWith(workspaceForm.shareWith)
+        : [],
   };
 };
 
@@ -23,12 +26,17 @@ export const buildPromptPayload = (formData) => {
     description: String(formData.description || "").trim(),
     content: formData.content,
     shareMode: formData.shareMode,
-    shareWith: formData.shareMode === "shared" ? normalizeShareWith(formData.shareWith) : [],
+    shareWith:
+      formData.shareMode === "shared"
+        ? normalizeShareWith(formData.shareWith)
+        : [],
   };
 };
 
 export const buildDocumentSyncOptions = (documentSyncOptions) => {
-  const mergedSheets = Array.from(new Set([...(documentSyncOptions.selectedSheets || [])]));
+  const mergedSheets = Array.from(
+    new Set([...(documentSyncOptions.selectedSheets || [])]),
+  );
   const normalizedOptions = {
     includeEmptyRows: Boolean(documentSyncOptions.includeEmptyRows),
   };
@@ -45,9 +53,16 @@ export const buildDocumentSyncOptions = (documentSyncOptions) => {
   return normalizedOptions;
 };
 
-export const buildDocumentPayload = ({ documentForm, selectedWorkspaceName, documentSyncOptions }) => {
-  const workspace = String(documentForm.workspace || selectedWorkspaceName || "").trim();
-  const isSpreadsheetType = (documentForm.type || "Spreadsheets") === "Spreadsheets";
+export const buildDocumentPayload = ({
+  documentForm,
+  selectedWorkspaceName,
+  documentSyncOptions,
+}) => {
+  const workspace = String(
+    documentForm.workspace || selectedWorkspaceName || "",
+  ).trim();
+  const isSpreadsheetType =
+    (documentForm.type || "Spreadsheets") === "Spreadsheets";
   const fileName = isSpreadsheetType
     ? String(documentForm.fileName || documentForm.name || "").trim()
     : "";
@@ -64,10 +79,15 @@ export const buildDocumentPayload = ({ documentForm, selectedWorkspaceName, docu
     contentJSON: documentForm.contentJSON,
     contentHTML: documentForm.contentHTML,
     shareMode: documentForm.shareMode,
-    shareWith: documentForm.shareMode === "shared" ? normalizeShareWith(documentForm.shareWith) : [],
+    shareWith:
+      documentForm.shareMode === "shared"
+        ? normalizeShareWith(documentForm.shareWith)
+        : [],
   };
 
-  const syncOptions = isSpreadsheetType ? buildDocumentSyncOptions(documentSyncOptions) : { includeEmptyRows: false, headerRow: 1, sheets: [] };
+  const syncOptions = isSpreadsheetType
+    ? buildDocumentSyncOptions(documentSyncOptions)
+    : { includeEmptyRows: false, headerRow: 1, sheets: [] };
 
   return {
     payload,

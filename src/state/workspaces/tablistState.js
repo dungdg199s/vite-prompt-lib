@@ -10,9 +10,19 @@ export const createInitialTabs = (promptName = "", documentName = "") => {
   const tabs = [WORKSPACE_OVERVIEW_TAB];
 
   if (promptName) {
-    tabs.push({ id: `prompt:${promptName}`, type: "prompt", name: promptName, label: promptName });
+    tabs.push({
+      id: `prompt:${promptName}`,
+      type: "prompt",
+      name: promptName,
+      label: promptName,
+    });
   } else if (documentName) {
-    tabs.push({ id: `document:${documentName}`, type: "document", name: documentName, label: documentName });
+    tabs.push({
+      id: `document:${documentName}`,
+      type: "document",
+      name: documentName,
+      label: documentName,
+    });
   }
 
   return tabs;
@@ -20,17 +30,30 @@ export const createInitialTabs = (promptName = "", documentName = "") => {
 
 export const getUrlTargetTab = (promptName = "", documentName = "") => {
   if (promptName) {
-    return { id: `prompt:${promptName}`, type: "prompt", name: promptName, label: promptName };
+    return {
+      id: `prompt:${promptName}`,
+      type: "prompt",
+      name: promptName,
+      label: promptName,
+    };
   }
 
   if (documentName) {
-    return { id: `document:${documentName}`, type: "document", name: documentName, label: documentName };
+    return {
+      id: `document:${documentName}`,
+      type: "document",
+      name: documentName,
+      label: documentName,
+    };
   }
 
   return WORKSPACE_OVERVIEW_TAB;
 };
 
-export const createTabListState = ({ promptName = "", documentName = "" } = {}) => {
+export const createTabListState = ({
+  promptName = "",
+  documentName = "",
+} = {}) => {
   const activeTab = getUrlTargetTab(promptName, documentName);
 
   return {

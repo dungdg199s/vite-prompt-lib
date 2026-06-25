@@ -25,14 +25,21 @@ export const useCrudToast = (entityLabel) => {
 
   const success = useCallback(
     (action, duration = 3000) => {
-      showToast({ type: "success", message: `${label} ${action} successfully`, duration });
+      showToast({
+        type: "success",
+        message: `${label} ${action} successfully`,
+        duration,
+      });
     },
     [label, showToast],
   );
 
   const error = useCallback(
     (err, fallbackMessage) => {
-      const message = getErrorMessage(err, fallbackMessage || `Cannot process ${label.toLowerCase()}`);
+      const message = getErrorMessage(
+        err,
+        fallbackMessage || `Cannot process ${label.toLowerCase()}`,
+      );
       showToast({ type: "error", message });
       return message;
     },

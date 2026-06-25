@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
-import Modal from "../shared/Modal";
+import AppModal from "../shared/AppModal";
 import Button from "../shared/Button";
 import Input from "../shared/Input";
 import { workspacesClient } from "../../lib/workspaces-client";
 
-export default function PromptEditModal({
+export default function PromptEditor({
   prompt,
   isOpen,
   editMode,
   onClose,
   onSubmit,
-  onFormChange,
   isSaving,
 }) {
+  const [promptForm, setPromptForm] = useState(prompt);
   const [workspaces, setWorkspaces] = useState([]);
 
   useEffect(() => {
@@ -22,9 +22,7 @@ export default function PromptEditModal({
   }, []);
 
   const onChange = (prop, value) => {
-    if (typeof onFormChange === "function") {
-      onFormChange(prop, value);
-    }
+    setPromptForm((prev) => ({ ...prev, [prop]: value }));
   };
 
   const workspaceOptions = useMemo(() => {
@@ -39,17 +37,26 @@ export default function PromptEditModal({
   }, []);
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       onClose={onClose}
       title={editMode === "create" ? "Create Prompt" : "Edit Prompt"}
       size="lg"
     >
-      <form className="grid gap-3" onSubmit={(e) => onSubmit(e, prompt)}>
+      <div className="mb-4 flex items-center justify-between gap-3">
+        <h3 className="text-lg font-semibold tracking-tight">
+          {editMode === "create" ? "Create Prompt" : "Edit Prompt"}
+        </h3>
+        <Button variant="primary" onClick={onClose}>
+          Close
+        </Button>
+      </div>
+
+      <form className="grid gap-3" onSubmit={(e) => onSubmit(e, promptForm)}>
         <Input
           type="text"
           label="Prompt Name"
-          value={prompt?.name || ""}
+          value={promptForm.name}
           onChange={(e) => onChange("name", e.target.value)}
           placeholder="my-prompt-name"
           required
@@ -58,7 +65,7 @@ export default function PromptEditModal({
         <Input
           label="Workspace"
           type="select"
-          value={prompt?.workspace || ""}
+          value={promptForm.workspace}
           onChange={(e) => onChange("workspace", e.target.value)}
           placeholder="— Select workspace —"
           options={workspaceOptions}
@@ -68,7 +75,7 @@ export default function PromptEditModal({
         <Input
           type="text"
           label="Description"
-          value={prompt?.description || ""}
+          value={promptForm.description}
           onChange={(e) => onChange("description", e.target.value)}
           placeholder="Short description of this prompt"
         ></Input>
@@ -77,7 +84,7 @@ export default function PromptEditModal({
           type="textarea"
           label="Content"
           rows={8}
-          value={prompt?.content || ""}
+          value={promptForm.content}
           onChange={(e) => onChange("content", e.target.value)}
           placeholder="Write your prompt template here.\nUse ${VariableName|description} for tokens.\nExample: ${Topic|options:React,Vue,Angular}"
           required
@@ -86,17 +93,17 @@ export default function PromptEditModal({
         <Input
           label="Share Mode"
           type="select"
-          value={prompt?.shareMode || "private"}
+          value={promptForm.shareMode}
           onChange={(e) => onChange("shareMode", e.target.value)}
           options={shareOptions}
           required
         ></Input>
 
-        {prompt?.shareMode === "shared" ? (
+        {promptForm.shareMode === "shared" ? (
           <Input
             type="text"
             label="Share With (comma separated emails)"
-            value={prompt?.shareWith || ""}
+            value={promptForm.shareWith}
             onChange={(e) => onChange("shareWith", e.target.value)}
             placeholder="a@company.com, b@company.com"
           ></Input>
@@ -106,11 +113,11 @@ export default function PromptEditModal({
           <Button type="button" variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" disabled={isSaving}>
+          <Button type="submit" variant="secondary" disabled={isSaving}>
             {editMode === "create" ? "Create" : "Update"}
           </Button>
         </div>
       </form>
-    </Modal>
+    </AppModal>
   );
 }

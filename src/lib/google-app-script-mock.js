@@ -12,6 +12,63 @@ const mockDb = {
       updatedBy: "dunglh8",
       updatedAt: new Date().toISOString(),
       shareWith: [],
+      prompts: [
+        {
+          name: "Landing Hero Copy",
+          workspace: "growth-team",
+          description: "Generate hero section copy",
+          owner: "12312",
+          createdBy: "dunglh8",
+          createdAt: new Date().toISOString(),
+          updatedBy: "dunglh8",
+          updatedAt: new Date().toISOString(),
+          content:
+            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+        },
+        {
+          name: "Landing Hero Copy 2",
+          workspace: "growth-team",
+          description: "Generate hero section copy",
+          owner: "12312",
+          createdBy: "dunglh8",
+          createdAt: new Date().toISOString(),
+          updatedBy: "dunglh8",
+          updatedAt: new Date().toISOString(),
+          content:
+            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+        },
+        {
+          name: "Landing Hero Copy 3",
+          workspace: "growth-team",
+          description: "Generate hero section copy",
+          owner: "12312",
+          createdBy: "dunglh8",
+          createdAt: new Date().toISOString(),
+          updatedBy: "dunglh8",
+          updatedAt: new Date().toISOString(),
+          content:
+            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+        },
+        {
+          name: "Landing Hero Copy 4",
+          workspace: "growth-team",
+          description: "Generate hero section copy",
+          owner: "12312",
+          createdBy: "dunglh8",
+          createdAt: new Date().toISOString(),
+          updatedBy: "dunglh8",
+          updatedAt: new Date().toISOString(),
+          content:
+            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
+        },
+        {
+          name: "Design Critic",
+          workspace: "frontend-lab",
+          description: "Review a design JSON and suggest improvements",
+          content:
+            "Analyze this design payload: ${Design JSON|textarea}. Reply in ${Language|options:English,Japan}",
+        },
+      ],
     },
     {
       name: "growth-team",
@@ -148,7 +205,9 @@ const findDocumentByName = (name) => {
 };
 
 const findDocumentByPreasheetId = (preasheetId) => {
-  return mockDb.documents.find((item) => item.preasheetId === String(preasheetId));
+  return mockDb.documents.find(
+    (item) => item.preasheetId === String(preasheetId),
+  );
 };
 
 const routes = [
@@ -167,7 +226,9 @@ const routes = [
         throw new Error(`Workspace "${params.name}" not found`);
       }
 
-      const prompts = mockDb.prompts.filter((prompt) => prompt.workspace === workspace.name);
+      const prompts = mockDb.prompts.filter(
+        (prompt) => prompt.workspace === workspace.name,
+      );
 
       return clone({ ...workspace, prompts });
     },
@@ -220,13 +281,17 @@ const routes = [
     path: "/api/workspaces/:name",
     handler: ({ params }) => {
       const previousLength = mockDb.workspaces.length;
-      mockDb.workspaces = mockDb.workspaces.filter((item) => item.name !== params.name);
+      mockDb.workspaces = mockDb.workspaces.filter(
+        (item) => item.name !== params.name,
+      );
 
       if (mockDb.workspaces.length === previousLength) {
         throw new Error(`Workspace "${params.name}" not found`);
       }
 
-      mockDb.prompts = mockDb.prompts.filter((prompt) => prompt.workspace !== params.name);
+      mockDb.prompts = mockDb.prompts.filter(
+        (prompt) => prompt.workspace !== params.name,
+      );
 
       return { success: true };
     },
@@ -269,7 +334,11 @@ const routes = [
     handler: ({ params }) => {
       const document = findDocumentByPreasheetId(params.preasheetId);
       const sheets = document?.contentJSON?.sheets;
-      const sheetNames = Array.isArray(sheets) ? sheets.map((sheet) => String(sheet?.name || "").trim()).filter(Boolean) : ["Overview", "Details"];
+      const sheetNames = Array.isArray(sheets)
+        ? sheets
+            .map((sheet) => String(sheet?.name || "").trim())
+            .filter(Boolean)
+        : ["Overview", "Details"];
 
       return {
         preasheetId: String(params.preasheetId),
@@ -360,7 +429,9 @@ const routes = [
     path: "/api/documents/:name",
     handler: ({ params }) => {
       const previousLength = mockDb.documents.length;
-      mockDb.documents = mockDb.documents.filter((item) => item.name !== params.name);
+      mockDb.documents = mockDb.documents.filter(
+        (item) => item.name !== params.name,
+      );
 
       if (mockDb.documents.length === previousLength) {
         throw new Error(`Document "${params.name}" not found`);
@@ -383,15 +454,24 @@ const routes = [
       }
 
       const options = body || {};
-      const sheetNames = Array.isArray(options.sheets) && options.sheets.length ? options.sheets : ["Overview", "Details"];
+      const sheetNames =
+        Array.isArray(options.sheets) && options.sheets.length
+          ? options.sheets
+          : ["Overview", "Details"];
 
       document.syncOptions = {
         includeEmptyRows: options.includeEmptyRows !== false,
-        headerRow: Number.isInteger(options.headerRow) ? options.headerRow : null,
+        headerRow: Number.isInteger(options.headerRow)
+          ? options.headerRow
+          : null,
         sheets: Array.isArray(options.sheets) ? options.sheets : [],
       };
 
-      document.contentMarkdown = [`# ${document.fileName || document.name}`, "", ...sheetNames.map((sheetName) => `## ${sheetName}`)].join("\n");
+      document.contentMarkdown = [
+        `# ${document.fileName || document.name}`,
+        "",
+        ...sheetNames.map((sheetName) => `## ${sheetName}`),
+      ].join("\n");
 
       document.contentJSON = {
         name: document.fileName || document.name,
@@ -421,7 +501,10 @@ const executeMockRequest = (method, url, payload) => {
   const parsedUrl = new URL(url, "http://localhost");
 
   const route = routes.find((item) => {
-    return item.method === method && matchPath(item.path, parsedUrl.pathname) !== null;
+    return (
+      item.method === method &&
+      matchPath(item.path, parsedUrl.pathname) !== null
+    );
   });
 
   if (!route) {

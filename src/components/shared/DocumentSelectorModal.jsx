@@ -1,11 +1,13 @@
 import { useState, useMemo } from "react";
-import Modal from "../shared/Modal";
+import AppModal from "./AppModal";
 import { documentsClient } from "../../lib/documents-client";
-import Button from "../shared/Button";
-import Input from "../shared/Input";
-import { uiClasses } from "../shared/uiClasses";
 
-const inputClassName = uiClasses.input;
+const inputClassName =
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
+const secondaryButtonClassName =
+  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
+const primaryButtonClassName =
+  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function DocumentSelectorModal({
   isOpen,
@@ -21,8 +23,7 @@ export default function DocumentSelectorModal({
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSavingDocument, setIsSavingDocument] = useState(false);
   const [createErrorMessage, setCreateErrorMessage] = useState("");
-  const [selectionErrorMessage, setSelectionErrorMessage] = useState("");
-  const [newDocumentDetail, setNewDocumentDetail] = useState({
+  const [newDocumentForm, setNewDocumentForm] = useState({
     name: "",
     workspace: "",
     type: "Markdown",
@@ -59,7 +60,6 @@ export default function DocumentSelectorModal({
   };
 
   const handleDocumentSelect = (doc) => {
-    setSelectionErrorMessage("");
     const availableTypes = getAvailableContentTypes(doc);
     if (availableTypes.length === 1) {
       // Auto-select if only one type available
@@ -69,7 +69,7 @@ export default function DocumentSelectorModal({
       setSelectedDocument(doc);
       setSelectedContentType(null);
     } else {
-      setSelectionErrorMessage("Document has no available content to insert.");
+      alert("Document has no content");
     }
   };
 
@@ -91,7 +91,7 @@ export default function DocumentSelectorModal({
       onSelectContent(content);
       resetModal();
     } else {
-      setSelectionErrorMessage(`No ${contentType} content available.`);
+      alert(`No ${contentType} content available`);
     }
   };
 
@@ -101,8 +101,7 @@ export default function DocumentSelectorModal({
     setSelectedContentType(null);
     setIsAddModalOpen(false);
     setCreateErrorMessage("");
-    setSelectionErrorMessage("");
-    setNewDocumentDetail({
+    setNewDocumentForm({
       name: "",
       workspace: "",
       type: "Markdown",
@@ -117,7 +116,7 @@ export default function DocumentSelectorModal({
 
   const handleNewDocumentChange = (field, value) => {
     setCreateErrorMessage("");
-    setNewDocumentDetail((prev) => ({ ...prev, [field]: value }));
+    setNewDocumentForm((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleCreateDocument = async (event) => {
@@ -126,15 +125,15 @@ export default function DocumentSelectorModal({
     setCreateErrorMessage("");
 
     const payload = {
-      name: String(newDocumentDetail.name || "").trim(),
-      workspace: String(newDocumentDetail.workspace || "").trim(),
-      type: newDocumentDetail.type || "Markdown",
-      preasheetId: String(newDocumentDetail.preasheetId || "").trim(),
-      fileName: String(newDocumentDetail.name || "").trim(),
-      description: String(newDocumentDetail.description || "").trim(),
-      contentMarkdown: newDocumentDetail.contentMarkdown || "",
-      contentJSON: newDocumentDetail.contentJSON || "",
-      contentHTML: newDocumentDetail.contentHTML || "",
+      name: String(newDocumentForm.name || "").trim(),
+      workspace: String(newDocumentForm.workspace || "").trim(),
+      type: newDocumentForm.type || "Markdown",
+      preasheetId: String(newDocumentForm.preasheetId || "").trim(),
+      fileName: String(newDocumentForm.name || "").trim(),
+      description: String(newDocumentForm.description || "").trim(),
+      contentMarkdown: newDocumentForm.contentMarkdown || "",
+      contentJSON: newDocumentForm.contentJSON || "",
+      contentHTML: newDocumentForm.contentHTML || "",
       shareMode: "private",
       shareWith: [],
       syncOptions: {
@@ -168,7 +167,7 @@ export default function DocumentSelectorModal({
         await onDocumentCreated();
       }
       setIsAddModalOpen(false);
-      setNewDocumentDetail((prev) => ({
+      setNewDocumentForm((prev) => ({
         ...prev,
         name: "",
         preasheetId: "",
@@ -187,10 +186,10 @@ export default function DocumentSelectorModal({
 
   if (isAddModalOpen) {
     const isSpreadsheetType =
-      (newDocumentDetail.type || "Markdown") === "Spreadsheets";
+      (newDocumentForm.type || "Markdown") === "Spreadsheets";
 
     return (
-      <Modal
+      <AppModal
         isOpen={isOpen}
         title="Add Document"
         onClose={resetModal}
@@ -198,63 +197,68 @@ export default function DocumentSelectorModal({
       >
         <div className="mb-3 flex items-center justify-between gap-2">
           <h3 className="text-base font-semibold">Add Document</h3>
-          <Button
+          <button
             type="button"
             onClick={() => setIsAddModalOpen(false)}
-            variant="secondary"
+            className={secondaryButtonClassName}
           >
             Back
-          </Button>
+          </button>
         </div>
 
         <form className="grid gap-3" onSubmit={handleCreateDocument}>
-          <Input
-            type="text"
-            label="Document Name"
-            value={newDocumentDetail.name}
-            onChange={(event) =>
-              handleNewDocumentChange("name", event.target.value)
-            }
-            placeholder="my-document"
-            required
-          />
+          <label className="grid gap-1.5 text-sm">
+            Document Name
+            <input
+              className={inputClassName}
+              value={newDocumentForm.name}
+              onChange={(event) =>
+                handleNewDocumentChange("name", event.target.value)
+              }
+              placeholder="my-document"
+            />
+          </label>
 
-          <Input
-            type="select"
-            label="Workspace"
-            value={newDocumentDetail.workspace}
-            onChange={(event) =>
-              handleNewDocumentChange("workspace", event.target.value)
-            }
-            noneLabel="- Select workspace -"
-            options={workspaceList.map((workspace) => ({
-              label: workspace.name,
-              value: workspace.name,
-            }))}
-            required
-          />
+          <label className="grid gap-1.5 text-sm">
+            Workspace
+            <select
+              className={inputClassName}
+              value={newDocumentForm.workspace}
+              onChange={(event) =>
+                handleNewDocumentChange("workspace", event.target.value)
+              }
+            >
+              <option value="">- Select workspace -</option>
+              {workspaceList.map((workspace) => (
+                <option key={workspace.name} value={workspace.name}>
+                  {workspace.name}
+                </option>
+              ))}
+            </select>
+          </label>
 
-          <Input
-            type="select"
-            label="Type"
-            value={newDocumentDetail.type}
-            onChange={(event) =>
-              handleNewDocumentChange("type", event.target.value)
-            }
-            options={[
-              { label: "Markdown", value: "Markdown" },
-              { label: "JSON", value: "JSON" },
-              { label: "HTML", value: "HTML" },
-              { label: "Spreadsheets", value: "Spreadsheets" },
-            ]}
-          />
+          <label className="grid gap-1.5 text-sm">
+            Type
+            <select
+              className={inputClassName}
+              value={newDocumentForm.type}
+              onChange={(event) =>
+                handleNewDocumentChange("type", event.target.value)
+              }
+            >
+              <option value="Markdown">Markdown</option>
+              <option value="JSON">JSON</option>
+              <option value="HTML">HTML</option>
+              <option value="Spreadsheets">Spreadsheets</option>
+            </select>
+          </label>
 
           {isSpreadsheetType ? (
             <label className="grid gap-1.5 text-sm">
               Spreadsheet ID
               <input
                 className={inputClassName}
-                value={newDocumentDetail.preasheetId}
+                value={newDocumentForm.preasheetId}
                 onChange={(event) =>
                   handleNewDocumentChange("preasheetId", event.target.value)
                 }
@@ -263,13 +267,13 @@ export default function DocumentSelectorModal({
             </label>
           ) : null}
 
-          {newDocumentDetail.type === "Markdown" ? (
+          {newDocumentForm.type === "Markdown" ? (
             <label className="grid gap-1.5 text-sm">
               Markdown Content
               <textarea
                 className={inputClassName}
                 rows={6}
-                value={newDocumentDetail.contentMarkdown}
+                value={newDocumentForm.contentMarkdown}
                 onChange={(event) =>
                   handleNewDocumentChange("contentMarkdown", event.target.value)
                 }
@@ -278,13 +282,13 @@ export default function DocumentSelectorModal({
             </label>
           ) : null}
 
-          {newDocumentDetail.type === "JSON" ? (
+          {newDocumentForm.type === "JSON" ? (
             <label className="grid gap-1.5 text-sm">
               JSON Content
               <textarea
                 className={inputClassName}
                 rows={6}
-                value={newDocumentDetail.contentJSON}
+                value={newDocumentForm.contentJSON}
                 onChange={(event) =>
                   handleNewDocumentChange("contentJSON", event.target.value)
                 }
@@ -293,13 +297,13 @@ export default function DocumentSelectorModal({
             </label>
           ) : null}
 
-          {newDocumentDetail.type === "HTML" ? (
+          {newDocumentForm.type === "HTML" ? (
             <label className="grid gap-1.5 text-sm">
               HTML Content
               <textarea
                 className={inputClassName}
                 rows={6}
-                value={newDocumentDetail.contentHTML}
+                value={newDocumentForm.contentHTML}
                 onChange={(event) =>
                   handleNewDocumentChange("contentHTML", event.target.value)
                 }
@@ -312,7 +316,7 @@ export default function DocumentSelectorModal({
             Description
             <input
               className={inputClassName}
-              value={newDocumentDetail.description}
+              value={newDocumentForm.description}
               onChange={(event) =>
                 handleNewDocumentChange("description", event.target.value)
               }
@@ -325,19 +329,23 @@ export default function DocumentSelectorModal({
           ) : null}
 
           <div className="flex justify-end gap-2 pt-1">
-            <Button
+            <button
               type="button"
               onClick={() => setIsAddModalOpen(false)}
-              variant="secondary"
+              className={secondaryButtonClassName}
             >
               Cancel
-            </Button>
-            <Button type="submit" disabled={isSavingDocument} variant="primary">
+            </button>
+            <button
+              type="submit"
+              disabled={isSavingDocument}
+              className={primaryButtonClassName}
+            >
               Create
-            </Button>
+            </button>
           </div>
         </form>
-      </Modal>
+      </AppModal>
     );
   }
 
@@ -345,7 +353,7 @@ export default function DocumentSelectorModal({
     const availableTypes = getAvailableContentTypes(selectedDocument);
 
     return (
-      <Modal
+      <AppModal
         isOpen={isOpen}
         title="Select Content Type"
         onClose={resetModal}
@@ -382,34 +390,31 @@ export default function DocumentSelectorModal({
           </div>
 
           <div className="flex gap-2 pt-2">
-            <Button
+            <button
               type="button"
               onClick={() => setSelectedDocument(null)}
-              variant="secondary"
+              className={secondaryButtonClassName}
             >
               Back
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
               onClick={() =>
                 handleContentSelect(selectedDocument, selectedContentType)
               }
               disabled={!selectedContentType}
-              variant="primary"
+              className={primaryButtonClassName}
             >
               Insert
-            </Button>
+            </button>
           </div>
-          {selectionErrorMessage ? (
-            <p className="text-sm text-red-700">{selectionErrorMessage}</p>
-          ) : null}
         </div>
-      </Modal>
+      </AppModal>
     );
   }
 
   return (
-    <Modal
+    <AppModal
       isOpen={isOpen}
       title="Select Document"
       onClose={resetModal}
@@ -424,18 +429,17 @@ export default function DocumentSelectorModal({
             onChange={(e) => setSearchQuery(e.target.value)}
             className={inputClassName}
           />
-          <Button
+          <button
             type="button"
             onClick={() => {
               setCreateErrorMessage("");
               setIsAddModalOpen(true);
             }}
-            variant="primary"
-            size="sm"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-teal-700 bg-teal-700 text-base font-semibold text-white transition hover:bg-teal-800"
             title="Add document"
           >
             +
-          </Button>
+          </button>
         </div>
 
         <div className="max-h-96 overflow-y-auto">
@@ -470,10 +474,7 @@ export default function DocumentSelectorModal({
             </div>
           )}
         </div>
-        {selectionErrorMessage ? (
-          <p className="text-sm text-red-700">{selectionErrorMessage}</p>
-        ) : null}
       </div>
-    </Modal>
+    </AppModal>
   );
 }

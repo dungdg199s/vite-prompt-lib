@@ -129,7 +129,10 @@ function getSafeWorkbookId(id) {
   }
 
   // Kiểm tra định dạng Excel
-  if (mimeType === MimeType.MICROSOFT_EXCEL || mimeType === MimeType.MICROSOFT_EXCEL_LEGACY) {
+  if (
+    mimeType === MimeType.MICROSOFT_EXCEL ||
+    mimeType === MimeType.MICROSOFT_EXCEL_LEGACY
+  ) {
     const fileName = file.getName();
     const currentLastUpdated = file.getLastUpdated().getTime().toString(); // Lấy timestamp ngày cập nhật
     const props = PropertiesService.getScriptProperties();
@@ -156,7 +159,9 @@ function getSafeWorkbookId(id) {
       else {
         try {
           // Dùng Drive API v2 để cập nhật (ghi đè) nội dung mới từ file Excel vào ID Google Sheet cũ
-          Drive.Files.update({}, cachedData.convertedId, file.getBlob(), { convert: true });
+          Drive.Files.update({}, cachedData.convertedId, file.getBlob(), {
+            convert: true,
+          });
 
           // Cập nhật lại ngày LastUpdated mới vào Properties
           cachedData.lastUpdated = currentLastUpdated;

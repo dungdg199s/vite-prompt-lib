@@ -2,7 +2,24 @@ import { sheetDb } from "./g-sheet-db";
 import { gasServer } from "./gas-server";
 
 gasServer.get("/api/workspaces", () => {
-  return sheetDb.table("workspaces").getAll();
+  const allPrompts = sheetDb.table("prompt").getAll();
+
+  const allDocuments = sheetDb.table("documents").getAll();
+
+  const workspaces = sheetDb.table("workspaces").getAll();
+
+  return workspaces.map((workspace) => {
+    const name = workspace.name;
+    const prompts = allPrompts.filter((prompt) => {
+      return prompt.workspace === name;
+    });
+
+    const documents = allDocuments.filter((document) => {
+      return document.workspace === name;
+    });
+
+    return { ...workspace, prompts, documents };
+  });
 });
 
 gasServer.get("/api/workspaces/:name", (req) => {
@@ -41,9 +58,7 @@ gasServer.post("/api/workspaces", (req) => {
     shareWith: payload.shareWith || [],
   };
 
-  sheetDb.table("workspaces").create(newRecord);
-
-  return { success: true };
+  return sheetDb.table("workspaces").create(newRecord);
 });
 
 gasServer.put("/api/workspaces", (req) => {
@@ -59,12 +74,7 @@ gasServer.put("/api/workspaces", (req) => {
     shareWith: payload.shareWith || [],
   };
 
-  const success = sheetDb.table("workspaces").update(updatedRecord);
-  if (!success) {
-    throw new Error("Workspace not found for update");
-  }
-
-  return { success: true };
+  return sheetDb.table("workspaces").update(updatedRecord);
 });
 
 gasServer.delete("/api/workspaces/:name", (req) => {

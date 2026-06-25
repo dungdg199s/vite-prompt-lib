@@ -29,9 +29,7 @@ gasServer.post("/api/prompts", (req) => {
     shareWith: payload.shareWith || [],
   };
 
-  sheetDb.table("prompt").create(newRecord);
-
-  return { success: true };
+  return sheetDb.table("prompt").create(newRecord);
 });
 
 gasServer.put("/api/prompts", (req) => {
@@ -52,12 +50,7 @@ gasServer.put("/api/prompts", (req) => {
     shareWith: payload.shareWith || [],
   };
 
-  const success = sheetDb.table("prompt").update(updatedRecord);
-  if (!success) {
-    throw new Error("Prompt not found for update");
-  }
-
-  return { success: true };
+  return sheetDb.table("prompt").update(updatedRecord);
 });
 
 gasServer.delete("/api/prompts/:name", (req) => {

@@ -51,9 +51,15 @@ export default function DocumentDetail({
     <section className={sectionClassName}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-semibold tracking-tight">{selectedDocumentName ? form.name || selectedDocumentName : "Document"}</h2>
+          <h2 className="text-lg font-semibold tracking-tight">
+            {selectedDocumentName
+              ? form.name || selectedDocumentName
+              : "Document"}
+          </h2>
           <p className="mt-1 text-sm text-slate-600">
-            {selectedDocumentName ? form.description || "No description" : "Select a document or create a new one."}
+            {selectedDocumentName
+              ? form.description || "No description"
+              : "Select a document or create a new one."}
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -62,7 +68,12 @@ export default function DocumentDetail({
               New
             </Button>
           ) : null}
-          <Button type="button" onClick={onEdit} disabled={isSaving || !selectedDocumentName} variant="secondary">
+          <Button
+            type="button"
+            onClick={onEdit}
+            disabled={isSaving || !selectedDocumentName}
+            variant="secondary"
+          >
             Edit
           </Button>
           <Button
@@ -87,48 +98,91 @@ export default function DocumentDetail({
       {selectedDocumentName ? (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Name</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{form.name}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Name
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {form.name}
+            </p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Workspace</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{form.workspace || "No workspace"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Workspace
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {form.workspace || "No workspace"}
+            </p>
           </div>
           {isSpreadsheetType ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">File Name</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                File Name
+              </p>
               <p className="mt-1 text-sm font-medium text-slate-800">
-                {form.fileName ? <a title="Open Google Sheet" className="text-blue-600 hover:text-blue-800 underline" href={`https://docs.google.com/spreadsheets/d/${form.preasheetId}/edit`} target="_blank">{form.fileName}</a> : "Auto-filled"}
+                {form.fileName ? (
+                  <a
+                    title="Open Google Sheet"
+                    className="text-blue-600 hover:text-blue-800 underline"
+                    href={`https://docs.google.com/spreadsheets/d/${form.preasheetId}/edit`}
+                    target="_blank"
+                  >
+                    {form.fileName}
+                  </a>
+                ) : (
+                  "Auto-filled"
+                )}
               </p>
             </div>
           ) : null}
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Type</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{form.type || "Spreadsheets"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Type
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {form.type || "Spreadsheets"}
+            </p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
-            <p className="mt-1 text-sm font-medium capitalize text-slate-800">{form.shareMode}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Share Mode
+            </p>
+            <p className="mt-1 text-sm font-medium capitalize text-slate-800">
+              {form.shareMode}
+            </p>
           </div>
           {isSpreadsheetType ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Spreadsheet ID</p>
-              <p className="mt-1 break-all text-sm font-medium text-slate-800">{form.preasheetId || "No spreadsheet id"}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Spreadsheet ID
+              </p>
+              <p className="mt-1 break-all text-sm font-medium text-slate-800">
+                {form.preasheetId || "No spreadsheet id"}
+              </p>
             </div>
           ) : null}
           {isSharedMode ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share With</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">{form.shareWith || "No shared members"}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Share With
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-800">
+                {form.shareWith || "No shared members"}
+              </p>
             </div>
           ) : null}
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2 xl:col-span-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Description</p>
-            <p className="mt-1 text-sm text-slate-700">{form.description || "No description"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Description
+            </p>
+            <p className="mt-1 text-sm text-slate-700">
+              {form.description || "No description"}
+            </p>
           </div>
         </div>
       ) : (
-        <div className="rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-4 text-sm text-slate-600">No document selected.</div>
+        <div className="rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-4 text-sm text-slate-600">
+          No document selected.
+        </div>
       )}
 
       <DocumentEditModal
@@ -178,7 +232,9 @@ export default function DocumentDetail({
         onDelete={onDelete}
       />
 
-      {errorMessage ? <p className="mt-2 text-sm text-red-700">{errorMessage}</p> : null}
+      {errorMessage ? (
+        <p className="mt-2 text-sm text-red-700">{errorMessage}</p>
+      ) : null}
     </section>
   );
 }

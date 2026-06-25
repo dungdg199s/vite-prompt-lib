@@ -7,6 +7,7 @@
     "dev": "vite",
     "build": "vite build && node gs.build.cjs",
     "lint": "eslint .",
+    "format": "prettier --write .",
     "preview": "vite preview",
     "push": "yarn run build && clasp push -f",
     "pull": "clasp pull",
@@ -24,7 +25,9 @@
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "@google/clasp": "^3.3.0",
+    "@playwright/test": "^1.61.1",
     "@types/google-apps-script": "^2.0.11",
+    "@types/node": "^26.0.1",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
@@ -33,7 +36,7 @@
     "eslint-plugin-react-hooks": "^7.1.1",
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.6.0",
-    "prettier": "^3.8.4",
+    "prettier": "3.8.4",
     "vite": "^8.0.12",
     "vite-plugin-gas": "^0.5.2",
     "vite-plugin-singlefile": "^2.3.3"

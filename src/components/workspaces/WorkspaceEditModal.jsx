@@ -1,16 +1,32 @@
 import Modal from "../shared/Modal";
 import Button from "../shared/Button";
 import Input from "../shared/Input";
+import { useWorkspaces } from "../../store/workspaceStore";
+import { useState } from "react";
 
 export default function WorkspaceEditModal({
   workspace,
   editMode,
   isOpen,
   onClose,
-  onSubmit,
-  onFormChange,
   isSaving,
 }) {
+  const { createWorkspace, updateWorkspace } = useWorkspaces();
+
+  const [formData, setFormData] = useState({ ...workspace });
+
+  const onFormChange = (propName, value) => {
+    setFormData((prev) => ({ ...prev, [propName]: value }));
+  };
+
+  const onSubmit = () => {
+    if (editMode === "create") {
+      createWorkspace(formData);
+    } else {
+      updateWorkspace(formData);
+    }
+  };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -22,7 +38,7 @@ export default function WorkspaceEditModal({
         <Input
           type="text"
           label="Workspace Name"
-          value={workspace?.name || ""}
+          value={formData?.name || ""}
           onChange={(e) => onFormChange("name", e.target.value)}
           disabled={editMode === "edit"}
           placeholder="workspace-name"
@@ -32,7 +48,7 @@ export default function WorkspaceEditModal({
         <Input
           type="textarea"
           label="Description"
-          value={workspace?.description || ""}
+          value={formData?.description || ""}
           onChange={(e) => onFormChange("description", e.target.value)}
           rows={3}
           placeholder="Workspace description"
@@ -41,7 +57,7 @@ export default function WorkspaceEditModal({
         <Input
           type="select"
           label="Share Mode"
-          value={workspace?.shareMode || "private"}
+          value={formData?.shareMode || "private"}
           onChange={(e) => onFormChange("shareMode", e.target.value)}
           options={[
             { label: "private", value: "private" },
@@ -54,7 +70,7 @@ export default function WorkspaceEditModal({
           <Input
             type="text"
             label="Share With (comma separated emails)"
-            value={workspace?.shareWith || ""}
+            value={formData?.shareWith || ""}
             onChange={(e) => onFormChange("shareWith", e.target.value)}
             placeholder="a@company.com, b@company.com"
           />

@@ -1,5 +1,9 @@
 import { DRAFT_DOCUMENT_TAB_ID, WORKSPACE_OVERVIEW_TAB } from "./tablistState";
-import { DEFAULT_DOCUMENT_FORM, DEFAULT_PROMPT_FORM, DEFAULT_WORKSPACE_FORM } from "./workspacePageState";
+import {
+  DEFAULT_DOCUMENT_FORM,
+  DEFAULT_PROMPT_FORM,
+  DEFAULT_WORKSPACE_FORM,
+} from "./workspacePageState";
 
 const createTabItem = (type, name, label = name) => ({
   id: `${type}:${name}`,
@@ -70,13 +74,17 @@ export const createWorkspacePageActions = ({
 
     if (tab.type === "prompt") {
       setters.setActiveTabId(tab.id);
-      navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}?prompt=${encodeURIComponent(tab.name)}`);
+      navigate(
+        `/workspaces/${encodeURIComponent(selectedWorkspaceName)}?prompt=${encodeURIComponent(tab.name)}`,
+      );
       return;
     }
 
     if (tab.type === "document") {
       setters.setActiveTabId(tab.id);
-      navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}?document=${encodeURIComponent(tab.name)}`);
+      navigate(
+        `/workspaces/${encodeURIComponent(selectedWorkspaceName)}?document=${encodeURIComponent(tab.name)}`,
+      );
     }
   };
 
@@ -92,7 +100,10 @@ export const createWorkspacePageActions = ({
     setters.setOpenTabs(resolvedTabs);
 
     if (activeTabId === tabId) {
-      const fallbackTab = resolvedTabs[currentIndex - 1] || resolvedTabs[currentIndex] || resolvedTabs[0];
+      const fallbackTab =
+        resolvedTabs[currentIndex - 1] ||
+        resolvedTabs[currentIndex] ||
+        resolvedTabs[0];
       if (fallbackTab) {
         activateTab(fallbackTab);
       }
@@ -220,13 +231,18 @@ export const createWorkspacePageActions = ({
   const closeWorkspaceModal = () => setters.setIsWorkspaceModalOpen(false);
   const closePromptModal = () => setters.setIsPromptModalOpen(false);
   const closeDeleteModal = () => setters.setIsDeleteModalOpen(false);
-  const closePromptDeleteModal = () => setters.setIsPromptDeleteModalOpen(false);
+  const closePromptDeleteModal = () =>
+    setters.setIsPromptDeleteModalOpen(false);
   const closeDocumentModal = () => {
-    setters.setDocumentFormPhase(documentEditingMode === "create" ? "type" : "details");
+    setters.setDocumentFormPhase(
+      documentEditingMode === "create" ? "type" : "details",
+    );
     setters.setIsDocumentModalOpen(false);
   };
-  const closeDocumentDeleteModal = () => setters.setIsDocumentDeleteModalOpen(false);
-  const closeDocumentSyncModal = () => setters.setIsDocumentSyncModalOpen(false);
+  const closeDocumentDeleteModal = () =>
+    setters.setIsDocumentDeleteModalOpen(false);
+  const closeDocumentSyncModal = () =>
+    setters.setIsDocumentSyncModalOpen(false);
 
   const handleBack = () => {
     navigate("/workspaces");
@@ -252,13 +268,17 @@ export const createWorkspacePageActions = ({
   const openPrompt = (name) => {
     if (!selectedWorkspaceName) return;
     openChildTab("prompt", name);
-    navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}?prompt=${encodeURIComponent(name)}`);
+    navigate(
+      `/workspaces/${encodeURIComponent(selectedWorkspaceName)}?prompt=${encodeURIComponent(name)}`,
+    );
   };
 
   const openDocument = (name) => {
     if (!selectedWorkspaceName) return;
     openChildTab("document", name);
-    navigate(`/workspaces/${encodeURIComponent(selectedWorkspaceName)}?document=${encodeURIComponent(name)}`);
+    navigate(
+      `/workspaces/${encodeURIComponent(selectedWorkspaceName)}?document=${encodeURIComponent(name)}`,
+    );
   };
 
   const refreshWorkspaceList = async (refreshWorkspaces) => {

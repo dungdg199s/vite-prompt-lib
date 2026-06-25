@@ -35,7 +35,9 @@ export default function DocumentContentPreview({
       <section className="grid gap-4">
         <article className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-lg font-semibold tracking-tight">HTML Content</h2>
+            <h2 className="text-lg font-semibold tracking-tight">
+              HTML Content
+            </h2>
             <button
               type="button"
               onClick={() => copyText(contentHTML, "html")}
@@ -61,7 +63,9 @@ export default function DocumentContentPreview({
       <section className="grid gap-4">
         <article className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-lg font-semibold tracking-tight">JSON Content</h2>
+            <h2 className="text-lg font-semibold tracking-tight">
+              JSON Content
+            </h2>
             <button
               type="button"
               onClick={() => copyText(jsonPreview, "json")}
@@ -87,7 +91,9 @@ export default function DocumentContentPreview({
       <section className="grid gap-4">
         <article className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
           <div className="flex items-start justify-between gap-2">
-            <h2 className="text-lg font-semibold tracking-tight">Markdown Content</h2>
+            <h2 className="text-lg font-semibold tracking-tight">
+              Markdown Content
+            </h2>
             <button
               type="button"
               onClick={() => copyText(contentMarkdown, "markdown")}
@@ -112,7 +118,9 @@ export default function DocumentContentPreview({
     <section className="grid gap-4 lg:grid-cols-2">
       <article className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
         <div className="flex items-start justify-between gap-2">
-          <h2 className="text-lg font-semibold tracking-tight">Markdown Content</h2>
+          <h2 className="text-lg font-semibold tracking-tight">
+            Markdown Content
+          </h2>
           <button
             type="button"
             onClick={() => copyText(contentMarkdown, "spreadsheet-markdown")}
@@ -126,7 +134,8 @@ export default function DocumentContentPreview({
           Synced markdown generated from spreadsheet data.
         </p>
         <pre className="mt-3 max-h-[420px] overflow-auto rounded-xl border border-stone-200 bg-[#fffcf7] p-3 text-xs text-slate-700">
-          {contentMarkdown || "No markdown content. Use Sync to generate output."}
+          {contentMarkdown ||
+            "No markdown content. Use Sync to generate output."}
         </pre>
       </article>
 

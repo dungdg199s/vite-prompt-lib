@@ -17,7 +17,7 @@ const DEFAULT_PROMPT_FORM = {
   shareWith: "",
 };
 
-const STORAGE_KEY = 'promptsPageState';
+const STORAGE_KEY = "promptsPageState";
 
 const normalizeShareWith = (raw) => {
   return String(raw || "")
@@ -29,7 +29,7 @@ const normalizeShareWith = (raw) => {
 export default function PromptsPage() {
   const navigate = useNavigate();
   const params = useParams();
-  
+
   const {
     prompts: promptList,
     workspaces: workspaceList,
@@ -40,7 +40,7 @@ export default function PromptsPage() {
     refreshAfterPromptDelete,
   } = useAppData();
 
-  const promptNameFromUrl = params['*'] || '';
+  const promptNameFromUrl = params["*"] || "";
 
   // Save URL state to localStorage
   useEffect(() => {
@@ -60,12 +60,14 @@ export default function PromptsPage() {
         if (savedState) {
           const { prompt } = JSON.parse(savedState);
           if (prompt) {
-            navigate(`/prompts/${encodeURIComponent(prompt)}`, { replace: true });
+            navigate(`/prompts/${encodeURIComponent(prompt)}`, {
+              replace: true,
+            });
           }
         }
       } catch (error) {
         console.log(error);
-        console.error('Failed to restore state from localStorage:', error);
+        console.error("Failed to restore state from localStorage:", error);
       }
     }
   }, []);
@@ -224,7 +226,7 @@ export default function PromptsPage() {
     try {
       await promptsClient.deletePrompt(selectedPromptName);
       await refreshAfterPromptDelete();
-      navigate('/prompts');
+      navigate("/prompts");
       setIsDeleteModalOpen(false);
       resetForm();
       promptToast.deleted();

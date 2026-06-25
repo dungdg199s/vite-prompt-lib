@@ -61,26 +61,46 @@ export default function PromptDetail({
       {selectedPromptName ? (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Name</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{form.name}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Name
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {form.name}
+            </p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Workspace</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{form.workspace || "No workspace"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Workspace
+            </p>
+            <p className="mt-1 text-sm font-medium text-slate-800">
+              {form.workspace || "No workspace"}
+            </p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
-            <p className="mt-1 text-sm font-medium capitalize text-slate-800">{form.shareMode}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Share Mode
+            </p>
+            <p className="mt-1 text-sm font-medium capitalize text-slate-800">
+              {form.shareMode}
+            </p>
           </div>
           {isSharedMode ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share With</p>
-              <p className="mt-1 text-sm font-medium text-slate-800">{form.shareWith || "No shared members"}</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+                Share With
+              </p>
+              <p className="mt-1 text-sm font-medium text-slate-800">
+                {form.shareWith || "No shared members"}
+              </p>
             </div>
           ) : null}
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2 xl:col-span-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Description</p>
-            <p className="mt-1 text-sm text-slate-700">{form.description || "No description"}</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Description
+            </p>
+            <p className="mt-1 text-sm text-slate-700">
+              {form.description || "No description"}
+            </p>
           </div>
         </div>
       ) : (

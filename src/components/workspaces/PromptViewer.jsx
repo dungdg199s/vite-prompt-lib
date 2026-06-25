@@ -1,13 +1,14 @@
-import { useState } from "react";
-import Modal from "../shared/Modal";
-import DocumentSelectorModal from "../documents/DocumentSelectorModal";
-import PromptEditModal from "./PromptEditModal";
-import Button from "../shared/Button";
-import { uiClasses } from "../shared/uiClasses";
+import { useEffect, useState } from "react";
+import AppModal from "../shared/AppModal";
+import DocumentSelectorModal from "../shared/DocumentSelectorModal";
+import PromptEditor from "../prompts/PromptEditor";
 
-const inputClassName = uiClasses.input;
+const inputClassName =
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
 const generatorInputClassName = `${inputClassName} h-11`;
 const generatorSelectClassName = `${generatorInputClassName} appearance-none bg-[linear-gradient(45deg,transparent_50%,#334155_50%),linear-gradient(135deg,#334155_50%,transparent_50%)] bg-[position:calc(100%-18px)_calc(50%+1px),calc(100%-12px)_calc(50%+1px)] bg-[size:6px_6px,6px_6px] bg-no-repeat pr-10`;
+const secondaryButtonClassName =
+  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
 
 export default function PromptViewer({
   selectedPrompt,
@@ -21,20 +22,17 @@ export default function PromptViewer({
   onDocumentCreated,
   promptEditingMode,
   isSavingPrompt,
-  errorMessage,
+  promptErrorMessage,
   isPromptModalOpen,
   isPromptDeleteModalOpen,
   onInputChange,
   onPromptSubmit,
-  onPromptDetailChange,
   onNewPrompt,
   onEditPrompt,
   onOpenDeletePrompt,
   onDeletePrompt,
   onClosePromptModal,
   onCloseDeletePrompt,
-  embedded = false,
-  showNewButton = true,
 }) {
   const [isDocumentSelectorOpen, setIsDocumentSelectorOpen] = useState(false);
   const [editingTokenId, setEditingTokenId] = useState(null);
@@ -80,12 +78,8 @@ export default function PromptViewer({
     );
   };
 
-  const sectionClassName = embedded
-    ? "border-x border-b border-stone-300 bg-[#fffef8] p-4 shadow-none md:p-5"
-    : uiClasses.card;
-
   return (
-    <section className={sectionClassName}>
+    <section className="rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">
@@ -98,27 +92,29 @@ export default function PromptViewer({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {showNewButton ? (
-            <Button type="button" onClick={onNewPrompt} variant="secondary">
-              New Prompt
-            </Button>
-          ) : null}
-          <Button
+          <button
+            type="button"
+            onClick={onNewPrompt}
+            className={secondaryButtonClassName}
+          >
+            New Prompt
+          </button>
+          <button
             type="button"
             onClick={onEditPrompt}
             disabled={isSavingPrompt || !selectedPrompt}
-            variant="secondary"
+            className={secondaryButtonClassName}
           >
             Edit
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="danger"
+            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onOpenDeletePrompt}
             disabled={isSavingPrompt || !selectedPrompt}
           >
             Delete
-          </Button>
+          </button>
         </div>
       </div>
 
@@ -197,8 +193,8 @@ export default function PromptViewer({
           <div className="mt-4 rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-3">
             <div className="mb-2 flex items-center justify-between gap-2">
               <h3 className="text-sm font-semibold">Generated Prompt</h3>
-              <div className="flex gap-1">
-                <Button
+              <div>
+                <button
                   type="button"
                   onClick={copyToClipboard}
                   disabled={
@@ -206,12 +202,11 @@ export default function PromptViewer({
                     generatedPrompt === "Generated prompt will appear here."
                   }
                   title="Copy to clipboard"
-                  variant="ghost"
-                  size="sm"
+                  className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Copy
-                </Button>
-                <Button
+                </button>
+                <button
                   type="button"
                   onClick={openGeminiWithPrompt}
                   disabled={
@@ -219,11 +214,10 @@ export default function PromptViewer({
                     generatedPrompt === "Generated prompt will appear here."
                   }
                   title="Open gemini"
-                  variant="ghost"
-                  size="sm"
+                  className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Open Gemini
-                </Button>
+                </button>
               </div>
             </div>
             <pre className="overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
@@ -273,17 +267,16 @@ export default function PromptViewer({
         onSelectContent={handleSelectDocumentContent}
       />
 
-      <PromptEditModal
+      <PromptEditor
         prompt={promptForm}
         isOpen={isPromptModalOpen}
         editMode={promptEditingMode}
         onClose={onClosePromptModal}
         onSubmit={onPromptSubmit}
-        onFormChange={onPromptDetailChange}
         isSaving={isSavingPrompt}
-      ></PromptEditModal>
+      ></PromptEditor>
 
-      <Modal
+      <AppModal
         isOpen={isPromptDeleteModalOpen}
         title="Delete Prompt"
         onClose={onCloseDeletePrompt}
@@ -294,26 +287,26 @@ export default function PromptViewer({
           undone.
         </p>
         <div className="mt-4 flex justify-end gap-2">
-          <Button
+          <button
             type="button"
             onClick={onCloseDeletePrompt}
-            variant="secondary"
+            className={secondaryButtonClassName}
           >
             Cancel
-          </Button>
-          <Button
+          </button>
+          <button
             type="button"
-            variant="danger"
+            className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
             onClick={onDeletePrompt}
             disabled={isSavingPrompt}
           >
             Delete
-          </Button>
+          </button>
         </div>
-      </Modal>
+      </AppModal>
 
-      {errorMessage ? (
-        <p className="mt-2 text-sm text-red-700">{errorMessage}</p>
+      {promptErrorMessage ? (
+        <p className="mt-2 text-sm text-red-700">{promptErrorMessage}</p>
       ) : null}
     </section>
   );
