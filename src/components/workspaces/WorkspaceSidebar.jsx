@@ -1,37 +1,37 @@
+import { useWorkspaces } from "../../store/workspaceStore";
 import Button from "../shared/Button";
 import { uiClasses } from "../shared/uiClasses";
 
 export default function WorkspaceSidebar({
-  workspaceList,
-  documentList,
-  selectedWorkspaceName,
-  selectedWorkspace,
-  selectedPromptName,
   selectedDocumentName,
   isLoadingList,
-  isLoadingWorkspace,
-  onRefresh,
-  onSelectWorkspace,
   onSelectPrompt,
   onSelectDocument,
   onCreatePrompt,
   onCreateDocument,
 }) {
+  const { setSelectedWorkspace, loadWorkspaces } = useWorkspaces();
+
+  const workspaceList = useWorkspaces((state) => state.workspaces);
+  const selectedWorkspace = useWorkspaces((state) => state.selectedWorkspace);
+  const isLoadingWorkspace = useWorkspaces((state) => state.isLoading);
+
   const promptList = selectedWorkspace?.prompts || [];
-  const docs = documentList || [];
+  const docs = selectedWorkspace?.documents || [];
+  const selectedPromptName = selectedWorkspace?.name || null;
 
   return (
     <aside className={uiClasses.sidebar}>
       <div className="mb-4 flex items-center gap-2.5">
-        {selectedWorkspaceName ? (
+        {selectedWorkspace ? (
           <>
             <h2 className="text-lg font-semibold tracking-tight">
-              {selectedWorkspaceName}
+              {selectedWorkspace?.name}
             </h2>
             <Button
               type="button"
               variant="secondary"
-              onClick={onRefresh}
+              // onClick={onRefresh}
               className="ml-auto"
             >
               ↻
@@ -43,19 +43,16 @@ export default function WorkspaceSidebar({
             <Button
               type="button"
               variant="secondary"
-              onClick={onRefresh}
+              onClick={() => loadWorkspaces()}
               className="ml-auto"
             >
               ↻
             </Button>
           </>
         )}
-        {/* <button type="button" onClick={onRefresh} className={buttonClassName}>
-          Refresh
-        </button> */}
       </div>
 
-      {selectedWorkspaceName ? (
+      {selectedWorkspace ? (
         <>
           {/* <div className="mb-4 flex items-center justify-between gap-2.5">
             <button type="button" className={buttonClassName} onClick={onBack}>
@@ -166,11 +163,11 @@ export default function WorkspaceSidebar({
               key={workspace.name}
               type="button"
               className={`grid cursor-pointer gap-1 rounded-xl border px-3 py-2 text-left transition ${
-                workspace.name === selectedWorkspaceName
+                workspace.name === selectedWorkspace?.name
                   ? "border-teal-700 bg-teal-100"
                   : "border-stone-300 bg-[#fffef8] hover:border-teal-700/40"
               }`}
-              onClick={() => onSelectWorkspace(workspace.name)}
+              onClick={() => setSelectedWorkspace(workspace)}
             >
               <span className="font-medium">{workspace.name}</span>
               <small className="text-xs text-slate-500">

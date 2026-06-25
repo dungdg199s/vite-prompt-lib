@@ -18,7 +18,14 @@ gasServer.get("/api/workspaces/:name", (req) => {
       return prompt.workspace === name;
     });
 
-  return { ...workspace, prompts };
+  const documents = sheetDb
+    .table("documents")
+    .getAll()
+    .filter((document) => {
+      return document.workspace === name;
+    });
+
+  return { ...workspace, prompts, documents };
 });
 
 gasServer.post("/api/workspaces", (req) => {

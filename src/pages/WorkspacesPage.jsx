@@ -27,6 +27,7 @@ import {
   buildPromptPayload,
   buildWorkspacePayload,
 } from "../state/workspaces/workspacePayloads";
+import { useWorkspaces } from "../store/workspaceStore";
 
 const TOKEN_REGEX = /\$\{([^}|]+)\|([^}]+)\}/g;
 
@@ -77,7 +78,13 @@ const getPromptText = (prompt) => {
     return "";
   }
 
-  return String(prompt.content || prompt.template || prompt.prompt || prompt.description || "");
+  return String(
+    prompt.content ||
+      prompt.template ||
+      prompt.prompt ||
+      prompt.description ||
+      "",
+  );
 };
 
 const parseContentJSON = (rawContent) => {
@@ -121,8 +128,13 @@ export default function WorkspacesPage() {
   const hasRestoredState = useRef(false);
   const previousWorkspaceRef = useRef("");
 
+  const { loadWorkspaces, workspaces: workspaceList } = useWorkspaces();
+
+  useEffect(() => {
+    loadWorkspaces();
+  }, [loadWorkspaces]);
+
   const {
-    workspaces: workspaceList,
     documents,
     isLoadingWorkspaces,
     refreshWorkspaces,
@@ -332,16 +344,34 @@ export default function WorkspacesPage() {
 
     const initialTabs = [WORKSPACE_OVERVIEW_TAB];
     if (selectedPromptName) {
-      initialTabs.push({ id: `prompt:${selectedPromptName}`, type: "prompt", name: selectedPromptName, label: selectedPromptName });
+      initialTabs.push({
+        id: `prompt:${selectedPromptName}`,
+        type: "prompt",
+        name: selectedPromptName,
+        label: selectedPromptName,
+      });
     } else if (selectedDocumentName) {
-      initialTabs.push({ id: `document:${selectedDocumentName}`, type: "document", name: selectedDocumentName, label: selectedDocumentName });
+      initialTabs.push({
+        id: `document:${selectedDocumentName}`,
+        type: "document",
+        name: selectedDocumentName,
+        label: selectedDocumentName,
+      });
     }
 
     queueMicrotask(() => {
       setOpenTabs(initialTabs);
-      setActiveTabId(getUrlTargetTab(selectedPromptName, selectedDocumentName).id);
+      setActiveTabId(
+        getUrlTargetTab(selectedPromptName, selectedDocumentName).id,
+      );
     });
-  }, [selectedWorkspaceName, selectedPromptName, selectedDocumentName, setActiveTabId, setOpenTabs]);
+  }, [
+    selectedWorkspaceName,
+    selectedPromptName,
+    selectedDocumentName,
+    setActiveTabId,
+    setOpenTabs,
+  ]);
 
   useEffect(() => {
     if (!selectedWorkspaceName) {
@@ -367,7 +397,13 @@ export default function WorkspacesPage() {
 
       setActiveTabId(targetTab.id);
     });
-  }, [selectedWorkspaceName, selectedPromptName, selectedDocumentName, setActiveTabId, setOpenTabs]);
+  }, [
+    selectedWorkspaceName,
+    selectedPromptName,
+    selectedDocumentName,
+    setActiveTabId,
+    setOpenTabs,
+  ]);
 
   // Load workspace data when URL changes
   useEffect(() => {
@@ -382,7 +418,9 @@ export default function WorkspacesPage() {
       setErrorMessage("");
 
       try {
-        const workspace = await workspacesClient.getWorkspace(selectedWorkspaceName);
+        const workspace = await workspacesClient.getWorkspace(
+          selectedWorkspaceName,
+        );
         setSelectedWorkspace(workspace);
         setWorkspaceDetail({
           ...workspace,
@@ -390,9 +428,14 @@ export default function WorkspacesPage() {
           name: workspace?.name || "",
           description: workspace?.description || "",
           shareMode: workspace?.shareMode || "private",
-          shareWith: Array.isArray(workspace?.shareWith) ? workspace.shareWith.join(", ") : "",
+          shareWith: Array.isArray(workspace?.shareWith)
+            ? workspace.shareWith.join(", ")
+            : "",
         });
-        setPromptDetail((prev) => ({ ...prev, workspace: selectedWorkspaceName }));
+        setPromptDetail((prev) => ({
+          ...prev,
+          workspace: selectedWorkspaceName,
+        }));
         setEditingMode("edit");
       } catch (error) {
         console.log(error);
@@ -403,7 +446,15 @@ export default function WorkspacesPage() {
     };
 
     loadWorkspace();
-  }, [selectedWorkspaceName, setEditingMode, setErrorMessage, setIsLoadingWorkspace, setPromptDetail, setSelectedWorkspace, setWorkspaceDetail]);
+  }, [
+    selectedWorkspaceName,
+    setEditingMode,
+    setErrorMessage,
+    setIsLoadingWorkspace,
+    setPromptDetail,
+    setSelectedWorkspace,
+    setWorkspaceDetail,
+  ]);
 
   const loadSyncPrompt = async () => {
     if (!selectedPromptName) {
@@ -423,7 +474,9 @@ export default function WorkspacesPage() {
         description: prompt?.description || "",
         content: prompt?.content || "",
         shareMode: prompt?.shareMode || "private",
-        shareWith: Array.isArray(prompt?.shareWith) ? prompt.shareWith.join(", ") : "",
+        shareWith: Array.isArray(prompt?.shareWith)
+          ? prompt.shareWith.join(", ")
+          : "",
       });
       setPromptEditingMode("edit");
     } catch (error) {
@@ -452,7 +505,9 @@ export default function WorkspacesPage() {
           description: prompt?.description || "",
           content: prompt?.content || "",
           shareMode: prompt?.shareMode || "private",
-          shareWith: Array.isArray(prompt?.shareWith) ? prompt.shareWith.join(", ") : "",
+          shareWith: Array.isArray(prompt?.shareWith)
+            ? prompt.shareWith.join(", ")
+            : "",
         });
         setPromptEditingMode("edit");
       } catch (error) {
@@ -464,7 +519,14 @@ export default function WorkspacesPage() {
     if (selectedPromptName && selectedWorkspaceName) {
       loadPrompt();
     }
-  }, [selectedPromptName, selectedWorkspaceName, setErrorMessage, setPromptDetail, setPromptEditingMode, setPromptInputValues]);
+  }, [
+    selectedPromptName,
+    selectedWorkspaceName,
+    setErrorMessage,
+    setPromptDetail,
+    setPromptEditingMode,
+    setPromptInputValues,
+  ]);
 
   useEffect(() => {
     const loadDocument = async () => {
@@ -479,7 +541,8 @@ export default function WorkspacesPage() {
       setErrorMessage("");
       setIsLoadingDocument(true);
       try {
-        const document = await documentsClient.getDocument(selectedDocumentName);
+        const document =
+          await documentsClient.getDocument(selectedDocumentName);
         setDocumentDetail({
           id: document?.id,
           name: document?.name || "",
@@ -492,7 +555,9 @@ export default function WorkspacesPage() {
           contentJSON: stringifyContentJSON(document?.contentJSON),
           contentHTML: document?.contentHTML || "",
           shareMode: document?.shareMode || "private",
-          shareWith: Array.isArray(document?.shareWith) ? document.shareWith.join(", ") : "",
+          shareWith: Array.isArray(document?.shareWith)
+            ? document.shareWith.join(", ")
+            : "",
           syncOptions: document?.syncOptions || null,
         });
 
@@ -521,7 +586,17 @@ export default function WorkspacesPage() {
     };
 
     loadDocument();
-  }, [selectedDocumentName, selectedWorkspaceName, resetDocumentSyncOptions, setDocumentDetail, setDocumentEditingMode, setDocumentFormPhase, setDocumentSyncOptions, setErrorMessage, setIsLoadingDocument]);
+  }, [
+    selectedDocumentName,
+    selectedWorkspaceName,
+    resetDocumentSyncOptions,
+    setDocumentDetail,
+    setDocumentEditingMode,
+    setDocumentFormPhase,
+    setDocumentSyncOptions,
+    setErrorMessage,
+    setIsLoadingDocument,
+  ]);
 
   const handleFormChange = (field, value) => {
     setWorkspaceDetail((prev) => ({ ...prev, [field]: value }));
@@ -535,17 +610,24 @@ export default function WorkspacesPage() {
     if (!selectedWorkspace?.prompts?.length) {
       return null;
     }
-    return selectedWorkspace.prompts.find((item) => item.name === selectedPromptName) || null;
+    return (
+      selectedWorkspace.prompts.find(
+        (item) => item.name === selectedPromptName,
+      ) || null
+    );
   }, [selectedWorkspace, selectedPromptName]);
 
   const workspaceDocuments = useMemo(() => {
     if (!selectedWorkspaceName) {
       return [];
     }
-    return (documents || []).filter((document) => document.workspace === selectedWorkspaceName);
+    return (documents || []).filter(
+      (document) => document.workspace === selectedWorkspaceName,
+    );
   }, [documents, selectedWorkspaceName]);
 
-  const promptSource = selectedPrompt || (selectedPromptName ? promptForm : null);
+  const promptSource =
+    selectedPrompt || (selectedPromptName ? promptForm : null);
   const promptText = getPromptText(promptSource);
 
   const parsedTokens = parsePromptTokens(promptText);
@@ -561,7 +643,10 @@ export default function WorkspacesPage() {
     }, promptText);
   })();
 
-  const parsedDocumentJSON = useMemo(() => parseContentJSON(documentForm.contentJSON), [documentForm.contentJSON]);
+  const parsedDocumentJSON = useMemo(
+    () => parseContentJSON(documentForm.contentJSON),
+    [documentForm.contentJSON],
+  );
 
   const fallbackDocumentSheets = useMemo(() => {
     const sheets = parsedDocumentJSON?.sheets;
@@ -575,7 +660,14 @@ export default function WorkspacesPage() {
   }, [parsedDocumentJSON]);
 
   const activeTab = useMemo(() => {
-    return openTabs.find((tab) => tab.id === activeTabId) || openTabs[0] || { id: "workspace:overview", type: "workspace", label: "Overview" };
+    return (
+      openTabs.find((tab) => tab.id === activeTabId) ||
+      openTabs[0] || {
+        id: "workspace:overview",
+        type: "workspace",
+        label: "Overview",
+      }
+    );
   }, [openTabs, activeTabId]);
 
   const handleDocumentDetailChange = (field, value) => {
@@ -663,23 +755,32 @@ export default function WorkspacesPage() {
     try {
       const preasheet = await documentsClient.getPreasheet(preasheetId);
       const names = Array.isArray(preasheet?.sheetNames)
-        ? preasheet.sheetNames.map((name) => String(name || "").trim()).filter(Boolean)
+        ? preasheet.sheetNames
+            .map((name) => String(name || "").trim())
+            .filter(Boolean)
         : [];
 
       const finalSheetNames = names.length ? names : fallbackDocumentSheets;
       const nextFileName = String(
-        preasheet?.preasheetName || documentForm.fileName || documentForm.name || "",
+        preasheet?.preasheetName ||
+          documentForm.fileName ||
+          documentForm.name ||
+          "",
       ).trim();
 
       setDocumentDetail((prev) => ({
         ...prev,
         fileName: nextFileName,
       }));
-      setDocumentSyncPreasheetName(preasheet?.preasheetName || documentForm.fileName || "");
+      setDocumentSyncPreasheetName(
+        preasheet?.preasheetName || documentForm.fileName || "",
+      );
       setDocumentSyncSheetNames(finalSheetNames);
       setDocumentSyncOptions((prev) => ({
         ...prev,
-        selectedSheets: Array.isArray(prev.selectedSheets) ? prev.selectedSheets : [],
+        selectedSheets: Array.isArray(prev.selectedSheets)
+          ? prev.selectedSheets
+          : [],
       }));
 
       return true;
@@ -741,7 +842,9 @@ export default function WorkspacesPage() {
     setIsDocumentModalOpen(false);
     setIsDocumentDeleteModalOpen(false);
 
-    const loaded = await loadDocumentPreasheetMetadata(documentForm.preasheetId);
+    const loaded = await loadDocumentPreasheetMetadata(
+      documentForm.preasheetId,
+    );
     if (loaded) {
       setIsDocumentSyncModalOpen(true);
     }
@@ -844,7 +947,9 @@ export default function WorkspacesPage() {
       const targetWorkspaceName = payload.workspace || selectedWorkspaceName;
       if (targetWorkspaceName) {
         openChildTab("prompt", payload.name);
-        navigate(`/workspaces/${encodeURIComponent(targetWorkspaceName)}?prompt=${encodeURIComponent(payload.name)}`);
+        navigate(
+          `/workspaces/${encodeURIComponent(targetWorkspaceName)}?prompt=${encodeURIComponent(payload.name)}`,
+        );
       } else {
         await refreshWorkspaceList();
       }
@@ -895,7 +1000,11 @@ export default function WorkspacesPage() {
     setIsSavingDocument(true);
     setErrorMessage("");
 
-    const { payload, isSpreadsheetType, syncOptions: normalizedSyncOptions } = buildDocumentPayload({
+    const {
+      payload,
+      isSpreadsheetType,
+      syncOptions: normalizedSyncOptions,
+    } = buildDocumentPayload({
       documentForm,
       selectedWorkspaceName,
       documentSyncOptions,
@@ -919,7 +1028,11 @@ export default function WorkspacesPage() {
       return;
     }
 
-    if (isSpreadsheetType && !documentSyncOptions.useAllSheets && !(normalizedSyncOptions.sheets || []).length) {
+    if (
+      isSpreadsheetType &&
+      !documentSyncOptions.useAllSheets &&
+      !(normalizedSyncOptions.sheets || []).length
+    ) {
       setErrorMessage("Please select at least one sheet or choose all");
       setIsSavingDocument(false);
       return;
@@ -943,7 +1056,9 @@ export default function WorkspacesPage() {
         documentToast.synced();
       }
 
-      setOpenTabs((prev) => prev.filter((tab) => tab.id !== DRAFT_DOCUMENT_TAB_ID));
+      setOpenTabs((prev) =>
+        prev.filter((tab) => tab.id !== DRAFT_DOCUMENT_TAB_ID),
+      );
       setDocumentFormPhase("details");
       setIsDocumentModalOpen(false);
       openDocument(payload.name);
@@ -996,7 +1111,9 @@ export default function WorkspacesPage() {
     setIsSavingDocument(true);
     setErrorMessage("");
 
-    const mergedSheets = Array.from(new Set([...(documentSyncOptions.selectedSheets || [])]));
+    const mergedSheets = Array.from(
+      new Set([...(documentSyncOptions.selectedSheets || [])]),
+    );
 
     const normalizedOptions = {
       includeEmptyRows: Boolean(documentSyncOptions.includeEmptyRows),
@@ -1017,7 +1134,10 @@ export default function WorkspacesPage() {
     }
 
     try {
-      await documentsClient.syncDocument(selectedDocumentName, normalizedOptions);
+      await documentsClient.syncDocument(
+        selectedDocumentName,
+        normalizedOptions,
+      );
       await refreshAfterDocumentUpdate();
       setIsDocumentSyncModalOpen(false);
       documentToast.synced();
@@ -1131,7 +1251,9 @@ export default function WorkspacesPage() {
               errorMessage={errorMessage}
               isPromptModalOpen={isPromptModalOpen}
               isPromptDeleteModalOpen={isPromptDeleteModalOpen}
-              onInputChange={(id, value) => setPromptInputValues((prev) => ({ ...prev, [id]: value }))}
+              onInputChange={(id, value) =>
+                setPromptInputValues((prev) => ({ ...prev, [id]: value }))
+              }
               onPromptDetailChange={handlePromptDetailChange}
               onPromptSubmit={handleSavePrompt}
               onNewPrompt={openCreatePromptModal}
@@ -1184,7 +1306,9 @@ export default function WorkspacesPage() {
                 showNewButton={false}
               />
 
-              {isLoadingDocument ? <p className="text-sm text-slate-600">Loading document...</p> : null}
+              {isLoadingDocument ? (
+                <p className="text-sm text-slate-600">Loading document...</p>
+              ) : null}
 
               {!isLoadingDocument && selectedDocumentName ? (
                 <div className="mt-4">

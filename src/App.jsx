@@ -5,10 +5,9 @@ import { AppDataProvider, useAppData } from "./contexts/AppDataContext";
 import { LoadingOverlay } from "./components/shared/Skeleton";
 import { ToastProvider } from "./components/shared/ToastManager";
 import { uiClasses } from "./components/shared/uiClasses";
+import { useWorkspaces } from "./store/workspaceStore";
 
-const PAGES = [
-  { name: "Workspaces", path: "/workspaces" },
-];
+const PAGES = [{ name: "Workspaces", path: "/workspaces" }];
 
 const SEARCH_SCOPES = {
   ALL: "all",
@@ -21,6 +20,8 @@ function AppContent() {
   const { prompts, documents, isLoadingAll, loadAllData } = useAppData();
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState(SEARCH_SCOPES.ALL);
+
+  const { setSelectedWorkspace } = useWorkspaces();
 
   useEffect(() => {
     loadAllData();
@@ -68,10 +69,14 @@ function AppContent() {
       .slice(0, 8);
   }, [documents, normalizedQuery]);
 
-  const scopedPrompts = searchScope === SEARCH_SCOPES.DOCUMENTS ? [] : filteredPrompts;
-  const scopedDocuments = searchScope === SEARCH_SCOPES.PROMPTS ? [] : filteredDocuments;
+  const scopedPrompts =
+    searchScope === SEARCH_SCOPES.DOCUMENTS ? [] : filteredPrompts;
+  const scopedDocuments =
+    searchScope === SEARCH_SCOPES.PROMPTS ? [] : filteredDocuments;
 
-  const showSearchDropdown = Boolean(normalizedQuery) && (scopedPrompts.length > 0 || scopedDocuments.length > 0);
+  const showSearchDropdown =
+    Boolean(normalizedQuery) &&
+    (scopedPrompts.length > 0 || scopedDocuments.length > 0);
 
   const goToPrompt = (prompt) => {
     const workspace = String(prompt?.workspace || "").trim();
@@ -81,7 +86,9 @@ function AppContent() {
     }
 
     setSearchQuery("");
-    navigate(`/workspaces/${encodeURIComponent(workspace)}?prompt=${encodeURIComponent(name)}`);
+    navigate(
+      `/workspaces/${encodeURIComponent(workspace)}?prompt=${encodeURIComponent(name)}`,
+    );
   };
 
   const goToDocument = (document) => {
@@ -92,7 +99,9 @@ function AppContent() {
     }
 
     setSearchQuery("");
-    navigate(`/workspaces/${encodeURIComponent(workspace)}?document=${encodeURIComponent(name)}`);
+    navigate(
+      `/workspaces/${encodeURIComponent(workspace)}?document=${encodeURIComponent(name)}`,
+    );
   };
 
   return (
@@ -104,7 +113,10 @@ function AppContent() {
             <button
               key={page.name}
               type="button"
-              onClick={() => navigate(page.path)}
+              onClick={() => {
+                setSelectedWorkspace(null);
+                navigate(page.path);
+              }}
               disabled={isLoadingAll}
               className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
                 activePage === page.name
@@ -144,7 +156,9 @@ function AppContent() {
             <div className="absolute left-0 right-0 top-full z-40 mt-1 overflow-hidden rounded-lg border border-stone-300 bg-[#fffef8] shadow-[0_10px_24px_rgba(44,33,12,0.12)]">
               {scopedPrompts.length ? (
                 <div className="border-b border-stone-200 p-1.5">
-                  <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Prompts</p>
+                  <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Prompts
+                  </p>
                   <div className="grid gap-1">
                     {scopedPrompts.map((prompt) => (
                       <button
@@ -153,8 +167,12 @@ function AppContent() {
                         onClick={() => goToPrompt(prompt)}
                         className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-stone-100"
                       >
-                        <span className="truncate font-medium text-slate-800">{prompt.name}</span>
-                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{prompt.workspace || "-"}</span>
+                        <span className="truncate font-medium text-slate-800">
+                          {prompt.name}
+                        </span>
+                        <span className="ml-3 shrink-0 text-xs text-slate-500">
+                          @{prompt.workspace || "-"}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -163,7 +181,9 @@ function AppContent() {
 
               {scopedDocuments.length ? (
                 <div className="p-1.5">
-                  <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">Documents</p>
+                  <p className="px-2 pb-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    Documents
+                  </p>
                   <div className="grid gap-1">
                     {scopedDocuments.map((document) => (
                       <button
@@ -172,8 +192,12 @@ function AppContent() {
                         onClick={() => goToDocument(document)}
                         className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-stone-100"
                       >
-                        <span className="truncate font-medium text-slate-800">{document.name}</span>
-                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{document.workspace || "-"}</span>
+                        <span className="truncate font-medium text-slate-800">
+                          {document.name}
+                        </span>
+                        <span className="ml-3 shrink-0 text-xs text-slate-500">
+                          @{document.workspace || "-"}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -187,8 +211,14 @@ function AppContent() {
       </nav>
       <Routes>
         <Route path="/workspaces/*" element={<WorkspacesPage />} />
-        <Route path="/prompts/*" element={<Navigate to="/workspaces" replace />} />
-        <Route path="/documents/*" element={<Navigate to="/workspaces" replace />} />
+        <Route
+          path="/prompts/*"
+          element={<Navigate to="/workspaces" replace />}
+        />
+        <Route
+          path="/documents/*"
+          element={<Navigate to="/workspaces" replace />}
+        />
         <Route path="/" element={<Navigate to="/workspaces" replace />} />
       </Routes>
     </div>
