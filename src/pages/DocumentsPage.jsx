@@ -4,9 +4,10 @@ import DocumentSidebar from "../components/documents/DocumentSidebar";
 import DocumentDetail from "../components/documents/DocumentDetail";
 import DocumentContentPreview from "../components/documents/DocumentContentPreview";
 import { documentsClient } from "../lib/documents-client";
-import { useAppData } from "../contexts/AppDataContext";
 import { uiClasses } from "../components/shared/uiClasses";
 import { useCrudToast } from "../lib/toast";
+import { useDocuments } from "../store/documentStore";
+import { useWorkspaces } from "../store/workspaceStore";
 
 const DEFAULT_DOCUMENT_FORM = {
   name: "",
@@ -75,17 +76,21 @@ export default function DocumentsPage() {
   const navigate = useNavigate();
   const params = useParams();
 
-  const {
-    documents: documentList,
-    workspaces: workspaceList,
-    isLoadingDocuments: isLoadingList,
-    refreshDocuments,
-    refreshAfterDocumentCreate,
-    refreshAfterDocumentUpdate,
-    refreshAfterDocumentDelete,
-  } = useAppData();
+  const documentList = useDocuments((state) => state.documents);
+  const isLoadingList = useDocuments((state) => state.isLoading);
+  const refreshDocuments = useDocuments((state) => state.refreshDocuments);
+  const createDocument = useDocuments((state) => state.createDocument);
+  const updateDocument = useDocuments((state) => state.updateDocument);
+  const deleteDocument = useDocuments((state) => state.deleteDocument);
+  const workspaceList = useWorkspaces((state) => state.workspaces);
+  const refreshWorkspaces = useWorkspaces((state) => state.refreshWorkspaces);
 
   const documentNameFromUrl = params["*"] || "";
+
+  useEffect(() => {
+    refreshDocuments();
+    refreshWorkspaces();
+  }, [refreshDocuments, refreshWorkspaces]);
 
   const [documentForm, setDocumentDetail] = useState(DEFAULT_DOCUMENT_FORM);
   const [editingMode, setEditingMode] = useState("create");
@@ -136,7 +141,7 @@ export default function DocumentsPage() {
         console.error("Failed to restore state from localStorage:", error);
       }
     }
-  }, []);
+  }, [documentNameFromUrl, navigate]);
 
   // Use URL params as source of truth
   const selectedDocumentName = documentNameFromUrl;
@@ -532,12 +537,12 @@ export default function DocumentsPage() {
 
     try {
       if (editingMode === "create") {
-        await documentsClient.createDocument(payload);
-        await refreshAfterDocumentCreate();
+        await createDocument(payload);
+        await refreshDocuments();
         documentToast.created();
       } else {
-        await documentsClient.updateDocument(payload);
-        await refreshAfterDocumentUpdate();
+        await updateDocument(payload);
+        await refreshDocuments();
         documentToast.updated();
       }
 
@@ -567,8 +572,8 @@ export default function DocumentsPage() {
     setErrorMessage("");
 
     try {
-      await documentsClient.deleteDocument(selectedDocumentName);
-      await refreshAfterDocumentDelete();
+      await deleteDocument(selectedDocumentName);
+      await refreshDocuments();
       setIsDeleteModalOpen(false);
       resetDocumentDetail();
       resetSyncOptions();
@@ -623,7 +628,7 @@ export default function DocumentsPage() {
         selectedDocumentName,
         normalizedOptions,
       );
-      await refreshAfterDocumentUpdate();
+      await refreshDocuments();
       await openDocument(selectedDocumentName);
       setIsSyncModalOpen(false);
       documentToast.synced();

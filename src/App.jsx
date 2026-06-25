@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import WorkspacesPage from "./pages/WorkspacesPage";
-import { AppDataProvider, useAppData } from "./contexts/AppDataContext";
 import { LoadingOverlay } from "./components/shared/Skeleton";
 import { ToastProvider } from "./components/shared/ToastManager";
 import { uiClasses } from "./components/shared/uiClasses";
 import { useWorkspaces } from "./store/workspaceStore";
+import { usePrompts } from "./store/promptStore";
+import { useDocuments } from "./store/documentStore";
+import { loadAllAppData } from "./store/metaStore";
 
 const PAGES = [{ name: "Workspaces", path: "/workspaces" }];
 
@@ -17,15 +19,21 @@ const SEARCH_SCOPES = {
 
 function AppContent() {
   const navigate = useNavigate();
-  const { prompts, documents, isLoadingAll, loadAllData } = useAppData();
+  const prompts = usePrompts((state) => state.prompts);
+  const documents = useDocuments((state) => state.documents);
+  const isLoadingWorkspaces = useWorkspaces((state) => state.isLoading);
+  const isLoadingPrompts = usePrompts((state) => state.isLoading);
+  const isLoadingDocuments = useDocuments((state) => state.isLoading);
+  const isLoadingAll =
+    isLoadingWorkspaces || isLoadingPrompts || isLoadingDocuments;
   const [searchQuery, setSearchQuery] = useState("");
   const [searchScope, setSearchScope] = useState(SEARCH_SCOPES.ALL);
 
   const { setSelectedWorkspace } = useWorkspaces();
 
   useEffect(() => {
-    loadAllData();
-  }, [loadAllData]);
+    loadAllAppData();
+  }, []);
 
   const activePage = "Workspaces";
 
@@ -227,11 +235,9 @@ function AppContent() {
 
 function App() {
   return (
-    <AppDataProvider>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
-    </AppDataProvider>
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }
 

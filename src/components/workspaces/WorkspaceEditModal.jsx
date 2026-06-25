@@ -10,20 +10,35 @@ export default function WorkspaceEditModal({
   isOpen,
   onClose,
   isSaving,
+  onSubmit: onSubmitProp,
+  onFormChange: onFormChangeProp,
 }) {
   const { createWorkspace, updateWorkspace } = useWorkspaces();
 
-  const [formData, setFormData] = useState({ ...workspace });
+  const [localFormData, setLocalFormData] = useState(() => ({ ...workspace }));
+  const formData = onFormChangeProp ? workspace : localFormData;
 
   const onFormChange = (propName, value) => {
-    setFormData((prev) => ({ ...prev, [propName]: value }));
+    if (!onFormChangeProp) {
+      setLocalFormData((prev) => ({ ...prev, [propName]: value }));
+    }
+    if (typeof onFormChangeProp === "function") {
+      onFormChangeProp(propName, value);
+    }
   };
 
-  const onSubmit = () => {
+  const onSubmit = async (event) => {
+    event.preventDefault();
+
+    if (typeof onSubmitProp === "function") {
+      await onSubmitProp(event, formData);
+      return;
+    }
+
     if (editMode === "create") {
-      createWorkspace(formData);
+      await createWorkspace(formData);
     } else {
-      updateWorkspace(formData);
+      await updateWorkspace(formData);
     }
   };
 
@@ -66,7 +81,7 @@ export default function WorkspaceEditModal({
           ]}
         />
 
-        {workspace?.shareMode === "shared" ? (
+        {formData?.shareMode === "shared" ? (
           <Input
             type="text"
             label="Share With (comma separated emails)"

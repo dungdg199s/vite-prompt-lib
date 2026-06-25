@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { promptsClient } from "../lib/prompts-client";
-import { useAppData } from "../contexts/AppDataContext";
 import PromptSidebar from "../components/prompts/PromptSidebar";
 import PromptDetail from "../components/prompts/PromptDetail";
 import PromptContentPreview from "../components/prompts/PromptContentPreview";
 import { uiClasses } from "../components/shared/uiClasses";
 import { useCrudToast } from "../lib/toast";
+import { usePrompts } from "../store/promptStore";
+import { useWorkspaces } from "../store/workspaceStore";
 
 const DEFAULT_PROMPT_FORM = {
   name: "",
@@ -30,15 +30,15 @@ export default function PromptsPage() {
   const navigate = useNavigate();
   const params = useParams();
 
-  const {
-    prompts: promptList,
-    workspaces: workspaceList,
-    isLoadingPrompts: isLoadingList,
-    refreshPrompts,
-    refreshAfterPromptCreate,
-    refreshAfterPromptUpdate,
-    refreshAfterPromptDelete,
-  } = useAppData();
+  const promptList = usePrompts((state) => state.prompts);
+  const isLoadingList = usePrompts((state) => state.isLoading);
+  const refreshPrompts = usePrompts((state) => state.refreshPrompts);
+  const fetchPromptById = usePrompts((state) => state.fetchPromptById);
+  const createPrompt = usePrompts((state) => state.createPrompt);
+  const updatePrompt = usePrompts((state) => state.updatePrompt);
+  const deletePrompt = usePrompts((state) => state.deletePrompt);
+  const workspaceList = useWorkspaces((state) => state.workspaces);
+  const refreshWorkspaces = useWorkspaces((state) => state.refreshWorkspaces);
 
   const promptNameFromUrl = params["*"] || "";
 
@@ -70,7 +70,7 @@ export default function PromptsPage() {
         console.error("Failed to restore state from localStorage:", error);
       }
     }
-  }, []);
+  }, [promptNameFromUrl, navigate]);
 
   const [promptForm, setPromptDetail] = useState(DEFAULT_PROMPT_FORM);
   const [editingMode, setEditingMode] = useState("create");
@@ -84,6 +84,11 @@ export default function PromptsPage() {
   // Use URL params as source of truth
   const selectedPromptName = promptNameFromUrl;
 
+  useEffect(() => {
+    refreshPrompts();
+    refreshWorkspaces();
+  }, [refreshPrompts, refreshWorkspaces]);
+
   // Load prompt data when URL changes
   useEffect(() => {
     const loadPrompt = async () => {
@@ -95,7 +100,8 @@ export default function PromptsPage() {
 
       setErrorMessage("");
       try {
-        const prompt = await promptsClient.getPrompt(selectedPromptName);
+        await fetchPromptById(selectedPromptName);
+        const prompt = usePrompts.getState().selectedPrompt;
         setPromptDetail({
           id: prompt?.id,
           name: prompt?.name || "",
@@ -115,7 +121,7 @@ export default function PromptsPage() {
     };
 
     loadPrompt();
-  }, [selectedPromptName]);
+  }, [selectedPromptName, fetchPromptById]);
 
   const handleFormChange = (field, value) => {
     setPromptDetail((prev) => ({ ...prev, [field]: value }));
@@ -200,12 +206,12 @@ export default function PromptsPage() {
 
     try {
       if (editingMode === "create") {
-        await promptsClient.createPrompt(payload);
-        await refreshAfterPromptCreate();
+        await createPrompt(payload);
+        await refreshPrompts();
         promptToast.created();
       } else {
-        await promptsClient.updatePrompt(payload);
-        await refreshAfterPromptUpdate();
+        await updatePrompt(payload);
+        await refreshPrompts();
         promptToast.updated();
       }
       navigate(`/prompts/${encodeURIComponent(payload.name)}`);
@@ -224,8 +230,8 @@ export default function PromptsPage() {
     setIsSaving(true);
     setErrorMessage("");
     try {
-      await promptsClient.deletePrompt(selectedPromptName);
-      await refreshAfterPromptDelete();
+      await deletePrompt(selectedPromptName);
+      await refreshPrompts();
       navigate("/prompts");
       setIsDeleteModalOpen(false);
       resetForm();

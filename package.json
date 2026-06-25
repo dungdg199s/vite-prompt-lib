@@ -6,9 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node gs.build.cjs",
-    "lint": "eslint .",
-    "format": "prettier --write .",
+    "lint": "prettier --write . && eslint .",
     "preview": "vite preview",
+    "test:e2e": "playwright test",
+    "test:e2e:phase1": "playwright test tests/phase-gates/phase1.store-migration.spec.js --project=chromium",
+    "test:e2e:phase2": "playwright test tests/phase-gates/phase2.crud-navigation.spec.js --project=chromium",
     "push": "yarn run build && clasp push -f",
     "pull": "clasp pull",
     "publish": "yarn run push && node gs.publish.cjs"

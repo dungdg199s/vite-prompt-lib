@@ -3,7 +3,6 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { documentsClient } from "../lib/documents-client";
 import { promptsClient } from "../lib/prompts-client";
 import { workspacesClient } from "../lib/workspaces-client";
-import { useAppData } from "../contexts/AppDataContext";
 import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
 import WorkspaceDetail from "../components/workspaces/WorkspaceDetail";
 import PromptViewer from "../components/prompts/PromptViewer";
@@ -28,6 +27,8 @@ import {
   buildWorkspacePayload,
 } from "../state/workspaces/workspacePayloads";
 import { useWorkspaces } from "../store/workspaceStore";
+import { usePrompts } from "../store/promptStore";
+import { useDocuments } from "../store/documentStore";
 
 const TOKEN_REGEX = /\$\{([^}|]+)\|([^}]+)\}/g;
 
@@ -128,26 +129,27 @@ export default function WorkspacesPage() {
   const hasRestoredState = useRef(false);
   const previousWorkspaceRef = useRef("");
 
-  const { fetchWorkspaces, workspaces: workspaceList } = useWorkspaces();
+  const fetchWorkspaces = useWorkspaces((state) => state.fetchWorkspaces);
+  const workspaceList = useWorkspaces((state) => state.workspaces);
+  const isLoadingWorkspaces = useWorkspaces((state) => state.isLoading);
+  const refreshWorkspaces = useWorkspaces((state) => state.refreshWorkspaces);
+  const refreshPrompts = usePrompts((state) => state.refreshPrompts);
+  const documents = useDocuments((state) => state.documents);
+  const refreshDocuments = useDocuments((state) => state.refreshDocuments);
 
   useEffect(() => {
     fetchWorkspaces();
   }, [fetchWorkspaces]);
 
-  const {
-    documents,
-    isLoadingWorkspaces,
-    refreshWorkspaces,
-    refreshAfterWorkspaceCreate,
-    refreshAfterWorkspaceUpdate,
-    refreshAfterWorkspaceDelete,
-    refreshAfterPromptCreate,
-    refreshAfterPromptUpdate,
-    refreshAfterPromptDelete,
-    refreshAfterDocumentCreate,
-    refreshAfterDocumentUpdate,
-    refreshAfterDocumentDelete,
-  } = useAppData();
+  const refreshAfterWorkspaceCreate = refreshWorkspaces;
+  const refreshAfterWorkspaceUpdate = refreshWorkspaces;
+  const refreshAfterWorkspaceDelete = refreshWorkspaces;
+  const refreshAfterPromptCreate = refreshPrompts;
+  const refreshAfterPromptUpdate = refreshPrompts;
+  const refreshAfterPromptDelete = refreshPrompts;
+  const refreshAfterDocumentCreate = refreshDocuments;
+  const refreshAfterDocumentUpdate = refreshDocuments;
+  const refreshAfterDocumentDelete = refreshDocuments;
 
   const workspaceNameFromUrl = params["*"] || "";
   const promptNameFromUrl = searchParams.get("prompt") || "";

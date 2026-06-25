@@ -1,12 +1,12 @@
-import { useCallback, useContext, useMemo } from "react";
-import { ToastContext } from "../contexts/ToastContext";
+/**
+ * MIGRATION IN PROGRESS: useToast now uses Zustand toastStore instead of Context.
+ * Maintains backward-compatible API.
+ */
+
+import { useToastStore } from "../store/toastStore";
 
 export const useToast = () => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error("useToast must be used within ToastProvider");
-  }
-  return context;
+  return useToastStore();
 };
 
 const safeEntityLabel = (entity) => String(entity || "Item").trim() || "Item";
@@ -20,40 +20,32 @@ const getErrorMessage = (error, fallbackMessage) => {
 };
 
 export const useCrudToast = (entityLabel) => {
-  const { showToast } = useToast();
+  const { showToast } = useToastStore();
   const label = safeEntityLabel(entityLabel);
 
-  const success = useCallback(
-    (action, duration = 3000) => {
-      showToast({
-        type: "success",
-        message: `${label} ${action} successfully`,
-        duration,
-      });
-    },
-    [label, showToast],
-  );
+  const success = (action, duration = 3000) => {
+    showToast({
+      type: "success",
+      message: `${label} ${action} successfully`,
+      duration,
+    });
+  };
 
-  const error = useCallback(
-    (err, fallbackMessage) => {
-      const message = getErrorMessage(
-        err,
-        fallbackMessage || `Cannot process ${label.toLowerCase()}`,
-      );
-      showToast({ type: "error", message });
-      return message;
-    },
-    [label, showToast],
-  );
+  const error = (err, fallbackMessage) => {
+    const message = getErrorMessage(
+      err,
+      fallbackMessage || `Cannot process ${label.toLowerCase()}`,
+    );
+    showToast({ type: "error", message });
+    return message;
+  };
 
-  return useMemo(
-    () => ({
-      created: () => success("created"),
-      updated: () => success("updated"),
-      deleted: () => success("deleted"),
-      synced: () => success("synced"),
-      error,
-    }),
-    [error, success],
-  );
+  return {
+    created: () => success("created"),
+    updated: () => success("updated"),
+    deleted: () => success("deleted"),
+    synced: () => success("synced"),
+    error,
+  };
 };
+

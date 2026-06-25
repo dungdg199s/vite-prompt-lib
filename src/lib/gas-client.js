@@ -32,7 +32,7 @@ const _invoke = (method, url, payload) => {
 
     scriptsApi
       .withSuccessHandler((response) => {
-        if (object) {
+        if (object && method === "GET") {
           if (!caches[object]) {
             caches[object] = {};
           }

@@ -1,64 +1,28 @@
-import { useState, useCallback } from "react";
-import { ToastContext } from "../../contexts/ToastContext";
+/**
+ * MIGRATION IN PROGRESS: ToastManager now reads from Zustand toastStore.
+ * Provider is kept as no-op for backward compatibility.
+ */
+
+import { useToastStore } from "../../store/toastStore";
 
 export const ToastProvider = ({ children }) => {
-  const [toasts, setToasts] = useState([]);
-
-  const showToast = useCallback(
-    (input, legacyMessage, legacyDuration = 3000) => {
-      // Support object API: showToast({ type, message, duration }) while preserving old signature.
-      const payload =
-        typeof input === "object" && input !== null
-          ? input
-          : {
-              type: input,
-              message: legacyMessage,
-              duration: legacyDuration,
-            };
-
-      const type = payload.type || "info";
-      const message = String(payload.message || "").trim();
-      const normalizedDuration = Number.isFinite(payload.duration)
-        ? payload.duration
-        : 3000;
-      const duration =
-        type === "error" || type === "warning" ? 0 : normalizedDuration;
-
-      if (!message) {
-        return null;
-      }
-
-      const id = Date.now();
-      const toast = { id, type, message };
-
-      setToasts((prev) => [...prev, toast]);
-
-      if (duration > 0) {
-        setTimeout(() => {
-          setToasts((prev) => prev.filter((t) => t.id !== id));
-        }, duration);
-      }
-
-      return id;
-    },
-    [],
-  );
-
-  const removeToast = useCallback((id) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
-  }, []);
-
   return (
-    <ToastContext.Provider value={{ showToast, removeToast }}>
+    <>
       {children}
-      <ToastContainer toasts={toasts} onRemove={removeToast} />
-    </ToastContext.Provider>
+      <ToastContainer />
+    </>
   );
 };
 
-function ToastContainer({ toasts, onRemove }) {
+export function ToastContainer() {
+  const toasts = useToastStore((state) => state.toasts);
+  const onRemove = useToastStore((state) => state.removeToast);
+
   return (
-    <div className="fixed left-1/2 top-4 z-50 flex w-full max-w-md -translate-x-1/2 flex-col gap-2 px-4">
+    <div
+      data-testid="toast-container"
+      className="fixed left-1/2 top-4 z-50 flex w-full max-w-md -translate-x-1/2 flex-col gap-2 px-4"
+    >
       {toasts.map((toast) => (
         <Toast
           key={toast.id}
