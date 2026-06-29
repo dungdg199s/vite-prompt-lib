@@ -1,168 +1,11 @@
+import { mockData } from "./gasApiMockData";
+
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
-const mockDb = {
-  workspaces: [
-    {
-      name: "frontend-lab",
-      description: "Workspace for UI prompt experiments",
-      shareMode: "private",
-      owner: "12312",
-      createdBy: "dunglh8",
-      createdAt: new Date().toISOString(),
-      updatedBy: "dunglh8",
-      updatedAt: new Date().toISOString(),
-      shareWith: [],
-      prompts: [
-        {
-          name: "Landing Hero Copy",
-          workspace: "growth-team",
-          description: "Generate hero section copy",
-          owner: "12312",
-          createdBy: "dunglh8",
-          createdAt: new Date().toISOString(),
-          updatedBy: "dunglh8",
-          updatedAt: new Date().toISOString(),
-          content:
-            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-        },
-        {
-          name: "Landing Hero Copy 2",
-          workspace: "growth-team",
-          description: "Generate hero section copy",
-          owner: "12312",
-          createdBy: "dunglh8",
-          createdAt: new Date().toISOString(),
-          updatedBy: "dunglh8",
-          updatedAt: new Date().toISOString(),
-          content:
-            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-        },
-        {
-          name: "Landing Hero Copy 3",
-          workspace: "growth-team",
-          description: "Generate hero section copy",
-          owner: "12312",
-          createdBy: "dunglh8",
-          createdAt: new Date().toISOString(),
-          updatedBy: "dunglh8",
-          updatedAt: new Date().toISOString(),
-          content:
-            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-        },
-        {
-          name: "Landing Hero Copy 4",
-          workspace: "growth-team",
-          description: "Generate hero section copy",
-          owner: "12312",
-          createdBy: "dunglh8",
-          createdAt: new Date().toISOString(),
-          updatedBy: "dunglh8",
-          updatedAt: new Date().toISOString(),
-          content:
-            "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-        },
-        {
-          name: "Design Critic",
-          workspace: "frontend-lab",
-          description: "Review a design JSON and suggest improvements",
-          content:
-            "Analyze this design payload: ${Design JSON|textarea}. Reply in ${Language|options:English,Japan}",
-        },
-      ],
-    },
-    {
-      name: "growth-team",
-      description: "Marketing and growth prompt workspace",
-      shareMode: "shared",
-      shareWith: ["pm@example.com", "design@example.com"],
-    },
-  ],
-  prompts: [
-    {
-      name: "Landing Hero Copy",
-      workspace: "growth-team",
-      description: "Generate hero section copy",
-      owner: "12312",
-      createdBy: "dunglh8",
-      createdAt: new Date().toISOString(),
-      updatedBy: "dunglh8",
-      updatedAt: new Date().toISOString(),
-      content:
-        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-    },
-    {
-      name: "Landing Hero Copy 2",
-      workspace: "growth-team",
-      description: "Generate hero section copy",
-      owner: "12312",
-      createdBy: "dunglh8",
-      createdAt: new Date().toISOString(),
-      updatedBy: "dunglh8",
-      updatedAt: new Date().toISOString(),
-      content:
-        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-    },
-    {
-      name: "Landing Hero Copy 3",
-      workspace: "growth-team",
-      description: "Generate hero section copy",
-      owner: "12312",
-      createdBy: "dunglh8",
-      createdAt: new Date().toISOString(),
-      updatedBy: "dunglh8",
-      updatedAt: new Date().toISOString(),
-      content:
-        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-    },
-    {
-      name: "Landing Hero Copy 4",
-      workspace: "growth-team",
-      description: "Generate hero section copy",
-      owner: "12312",
-      createdBy: "dunglh8",
-      createdAt: new Date().toISOString(),
-      updatedBy: "dunglh8",
-      updatedAt: new Date().toISOString(),
-      content:
-        "Write a hero headline in ${Language|options:English,Japan} for ${Product Name|text}. Tone: ${Tone|options:Bold,Friendly,Professional}",
-    },
-    {
-      name: "Design Critic",
-      workspace: "frontend-lab",
-      description: "Review a design JSON and suggest improvements",
-      content:
-        "Analyze this design payload: ${Design JSON|textarea}. Reply in ${Language|options:English,Japan}",
-    },
-  ],
-  documents: [
-    {
-      name: "growth-sheet-doc",
-      type: "Spreadsheets",
-      workspace: "growth-team",
-      fileName: "growth-kpis",
-      preasheetId: "mock-sheet-id-001",
-      description: "Weekly marketing KPI extract",
-      contentMarkdown:
-        "# growth-kpis\n\n## Overview\n\n| Metric | Value |\n| --- | --- |\n| CTR | 3.2% |",
-      contentJSON: {
-        name: "growth-kpis",
-        sheets: [
-          {
-            name: "Overview",
-            data: [{ Metric: "CTR", Value: "3.2%" }],
-          },
-        ],
-      },
-      contentHTML: "",
-      syncOptions: {
-        includeEmptyRows: false,
-        headerRow: 1,
-        sheets: [],
-      },
-      shareMode: "private",
-      shareWith: [],
-    },
-  ],
+const mockDb = mockData || {
+  workspaces: [],
+  prompts: [],
+  documents: [],
 };
 
 const matchPath = (pattern, path) => {
@@ -192,16 +35,20 @@ const matchPath = (pattern, path) => {
   return params;
 };
 
+const findWorkspaceById = (id) => {
+  return mockDb.workspaces.find((item) => item.id === String(id));
+};
+
 const findWorkspaceByName = (name) => {
   return mockDb.workspaces.find((item) => item.name === String(name));
 };
 
-const findPromptByName = (name) => {
-  return mockDb.prompts.find((item) => item.name === String(name));
+const findPromptById = (id) => {
+  return mockDb.prompts.find((item) => item.id === String(id));
 };
 
-const findDocumentByName = (name) => {
-  return mockDb.documents.find((item) => item.name === String(name));
+const findDocumentById = (id) => {
+  return mockDb.documents.find((item) => item.id === String(id));
 };
 
 const findDocumentByPreasheetId = (preasheetId) => {
@@ -214,23 +61,49 @@ const routes = [
   {
     method: "GET",
     path: "/api/workspaces",
-    handler: () => clone(mockDb.workspaces),
+    handler: () => {
+      const workspaces = clone(mockDb.workspaces);
+      workspaces.forEach((workspace) => {
+        const prompts = mockDb.prompts.filter(
+          (prompt) => prompt.workspace === workspace.id,
+        );
+        const documents = mockDb.documents.filter(
+          (document) => document.workspace === workspace.id,
+        );
+
+        workspace.prompts = [...(workspace.prompts || []), ...prompts];
+        workspace.documents = [
+          ...(workspace.documents || []),
+          ...documents,
+        ];
+      });
+
+      return workspaces;
+    },
   },
   {
     method: "GET",
-    path: "/api/workspaces/:name",
+    path: "/api/workspaces/:id",
     handler: ({ params }) => {
-      const workspace = findWorkspaceByName(params.name);
+      const workspace = findWorkspaceById(params.id);
 
       if (!workspace) {
-        throw new Error(`Workspace "${params.name}" not found`);
+        throw new Error(`Workspace "${params.id}" not found`);
       }
 
       const prompts = mockDb.prompts.filter(
-        (prompt) => prompt.workspace === workspace.name,
+        (prompt) => prompt.workspace === workspace.id,
       );
 
-      return clone({ ...workspace, prompts });
+      const documents = mockDb.documents.filter(
+        (document) => document.workspace === workspace.id,
+      );
+
+      return clone({
+        ...workspace,
+        prompts: [...(workspace.prompts || []), ...prompts],
+        documents: [...(workspace.documents || []), ...documents],  
+      });
     },
   },
   {
@@ -246,6 +119,7 @@ const routes = [
       }
 
       const record = {
+        id: String(body.id),
         name: String(body.name),
         description: String(body.description || ""),
         shareMode: body.shareMode || "private",
@@ -258,39 +132,40 @@ const routes = [
   },
   {
     method: "PUT",
-    path: "/api/workspaces",
+    path: "/api/workspaces/:id",
     handler: ({ body }) => {
-      if (!body?.name) {
+      if (!body?.id) {
         throw new Error("Invalid payload for update-workspace");
       }
 
-      const workspace = findWorkspaceByName(body.name);
+      const workspace = findWorkspaceById(body.id);
       if (!workspace) {
-        throw new Error(`Workspace "${body.name}" not found`);
+        throw new Error(`Workspace "${body.id}" not found`);
       }
 
+      workspace.name = String(body.name || workspace.name);
       workspace.description = String(body.description || "");
       workspace.shareMode = body.shareMode || "private";
       workspace.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
-      return { success: true };
+      return workspace;
     },
   },
   {
     method: "DELETE",
-    path: "/api/workspaces/:name",
+    path: "/api/workspaces/:id",
     handler: ({ params }) => {
       const previousLength = mockDb.workspaces.length;
       mockDb.workspaces = mockDb.workspaces.filter(
-        (item) => item.name !== params.name,
+        (item) => item.id !== params.id,
       );
 
       if (mockDb.workspaces.length === previousLength) {
-        throw new Error(`Workspace "${params.name}" not found`);
+        throw new Error(`Workspace "${params.id}" not found`);
       }
 
       mockDb.prompts = mockDb.prompts.filter(
-        (prompt) => prompt.workspace !== params.name,
+        (prompt) => prompt.workspace !== params.id,
       );
 
       return { success: true };
@@ -303,11 +178,11 @@ const routes = [
   },
   {
     method: "GET",
-    path: "/api/prompts/:name",
+    path: "/api/prompts/:id",
     handler: ({ params }) => {
-      const prompt = findPromptByName(params.name);
+      const prompt = findPromptById(params.id);
       if (!prompt) {
-        throw new Error(`Prompt "${params.name}" not found`);
+        throw new Error(`Prompt "${params.id}" not found`);
       }
       return clone(prompt);
     },
@@ -319,11 +194,11 @@ const routes = [
   },
   {
     method: "GET",
-    path: "/api/documents/:name",
+    path: "/api/documents/:id",
     handler: ({ params }) => {
-      const document = findDocumentByName(params.name);
+      const document = findDocumentById(params.id);
       if (!document) {
-        throw new Error(`Document "${params.name}" not found`);
+        throw new Error(`Document "${params.id}" not found`);
       }
       return clone(document);
     },
@@ -360,11 +235,12 @@ const routes = [
         throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
-      if (findDocumentByName(body.name)) {
-        throw new Error(`Document "${body.name}" already exists`);
+      if (findDocumentById(body.id)) {
+        throw new Error(`Document "${body.id}" already exists`);
       }
 
       const record = {
+        id: String(body.id),
         name: String(body.name),
         type,
         workspace: String(body.workspace || ""),
@@ -400,9 +276,9 @@ const routes = [
         throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
-      const document = findDocumentByName(body.name);
+      const document = findDocumentById(body.id);
       if (!document) {
-        throw new Error(`Document "${body.name}" not found`);
+        throw new Error(`Document "${body.id}" not found`);
       }
 
       document.type = type;
@@ -426,15 +302,15 @@ const routes = [
   },
   {
     method: "DELETE",
-    path: "/api/documents/:name",
+    path: "/api/documents/:id",
     handler: ({ params }) => {
       const previousLength = mockDb.documents.length;
       mockDb.documents = mockDb.documents.filter(
-        (item) => item.name !== params.name,
+        (item) => item.id !== params.id,
       );
 
       if (mockDb.documents.length === previousLength) {
-        throw new Error(`Document "${params.name}" not found`);
+        throw new Error(`Document "${params.id}" not found`);
       }
 
       return { success: true };
@@ -442,11 +318,11 @@ const routes = [
   },
   {
     method: "POST",
-    path: "/api/documents/:name/sync",
+    path: "/api/documents/:id/sync",
     handler: ({ params, body }) => {
-      const document = findDocumentByName(params.name);
+      const document = findDocumentById(params.id);
       if (!document) {
-        throw new Error(`Document "${params.name}" not found`);
+        throw new Error(`Document "${params.id}" not found`);
       }
 
       if ((document.type || "Spreadsheets") !== "Spreadsheets") {
@@ -548,7 +424,7 @@ const createRunner = () => {
         } catch (error) {
           failureHandler(error);
         }
-      }, 1500);
+      }, 300);
     },
   };
 };

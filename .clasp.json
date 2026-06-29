@@ -4,6 +4,13 @@
   "scriptExtensions": [".js", ".gs"],
   "htmlExtensions": [".html"],
   "jsonExtensions": [".json"],
-  "filePushOrder": [],
+  "filePushOrder": [
+    "appscripts/index.html",
+    "appscripts/Config.js",
+    "appscripts/AppDatabase.js",
+    "appscripts/DocumentService.js",
+    "appscripts/AppRouters.js",
+    "appscripts/GasServer.js"
+  ],
   "skipSubdirectories": false
 }

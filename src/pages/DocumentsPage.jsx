@@ -3,7 +3,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import DocumentSidebar from "../components/documents/DocumentSidebar";
 import DocumentDetail from "../components/documents/DocumentDetail";
 import DocumentContentPreview from "../components/documents/DocumentContentPreview";
-import { documentsClient } from "../lib/documents-client";
 import { uiClasses } from "../components/shared/uiClasses";
 import { useCrudToast } from "../lib/toast";
 import { useDocuments } from "../store/documentStore";

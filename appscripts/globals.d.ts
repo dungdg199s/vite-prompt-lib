@@ -1,0 +1,3 @@
+type FetchOptions = {
+  enforceSharing?: boolean;
+};

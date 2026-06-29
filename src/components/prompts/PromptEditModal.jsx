@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import Modal from "../shared/Modal";
 import Button from "../shared/Button";
 import Input from "../shared/Input";
-import { workspacesClient } from "../../lib/workspaces-client";
+import { workspacesClient } from "../../lib/workspacesClient";
 
 export default function PromptEditModal({
   prompt,

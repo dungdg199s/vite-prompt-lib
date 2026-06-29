@@ -1,6 +1,5 @@
 import { useState, useMemo } from "react";
 import Modal from "../shared/Modal";
-import { documentsClient } from "../../lib/documents-client";
 import Button from "../shared/Button";
 import Input from "../shared/Input";
 import { uiClasses } from "../shared/uiClasses";

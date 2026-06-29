@@ -7,7 +7,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 export default defineConfig([
   globalIgnores(["dist"]),
   {
-    files: ["**/*.{js,jsx}"],
+    files: ["src/**/*.{js,jsx}"],
     extends: [
       js.configs.recommended,
       reactHooks.configs.flat.recommended,
@@ -16,6 +16,23 @@ export default defineConfig([
     languageOptions: {
       globals: globals.browser,
       parserOptions: { ecmaFeatures: { jsx: true } },
+    },
+  },
+  {
+    files: ["src-gs/*.{ts,tsx}"],
+    extends: [js.configs.recommended],
+    languageOptions: {
+      globals: globals.browser,
+    },
+    globals: {
+      process: "readonly",
+      SpreadsheetApp: "readonly",
+      GmailApp: "readonly",
+      DriveApp: "readonly",
+      Logger: "readonly",
+      PropertiesService: "readonly",
+      ScriptApp: "readonly",
+      UrlFetchApp: "readonly",
     },
   },
 ]);

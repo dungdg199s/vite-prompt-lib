@@ -4,7 +4,7 @@ import {
   getSpreadsheetInfo,
 } from "./document-convertor";
 import { sheetDb } from "./g-sheet-db";
-import { gasServer } from "./gas-server";
+import { gasServer } from "../_GasServer";
 
 /**
  * Document API
@@ -60,12 +60,12 @@ gasServer.post("/api/documents/:name/sync", (req) => {
   };
 
   // Convert the content based on the requested type
-  documentRecord.contentMarkdown = convertPreashetToMarkdown(
-    documentRecord.preasheetId,
+  documentRecord.contentMarkdown = convertToMarkdown(
+    documentRecord.spreadsheetId,
     options,
   );
-  documentRecord.contentJSON = convertPreashetToJSON(
-    documentRecord.preasheetId,
+  documentRecord.contentJSON = convertToJSON(
+    documentRecord.spreadsheetId,
     options,
   );
   documentRecord.syncOptions = syncOptions;
@@ -110,12 +110,12 @@ gasServer.post("/api/documents", (req) => {
   };
 
   if (type === "Spreadsheets") {
-    record.contentMarkdown = convertPreashetToMarkdown(
-      record.preasheetId,
+    record.contentMarkdown = convertToMarkdown(
+      record.spreadsheetId,
       record.syncOptions,
     );
-    record.contentJSON = convertPreashetToJSON(
-      record.preasheetId,
+    record.contentJSON = convertToJSON(
+      record.spreadsheetId,
       record.syncOptions,
     );
   }

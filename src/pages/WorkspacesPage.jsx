@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { documentsClient } from "../lib/documents-client";
-import { promptsClient } from "../lib/prompts-client";
-import { workspacesClient } from "../lib/workspaces-client";
+import { workspacesClient } from "../lib/workspacesClient";
 import WorkspaceSidebar from "../components/workspaces/WorkspaceSidebar";
 import WorkspaceDetail from "../components/workspaces/WorkspaceDetail";
 import PromptViewer from "../components/prompts/PromptViewer";
@@ -237,34 +235,34 @@ export default function WorkspacesPage() {
   }, [workspaceNameFromUrl, promptNameFromUrl, documentNameFromUrl]);
 
   // Restore state from localStorage if no URL hash
-  useEffect(() => {
-    if (hasRestoredState.current) {
-      return;
-    }
+  // useEffect(() => {
+  //   if (hasRestoredState.current) {
+  //     return;
+  //   }
 
-    hasRestoredState.current = true;
+  //   hasRestoredState.current = true;
 
-    if (!workspaceNameFromUrl && !promptNameFromUrl && !documentNameFromUrl) {
-      try {
-        const savedState = localStorage.getItem(STORAGE_KEY);
-        if (savedState) {
-          const { workspace, prompt, document } = JSON.parse(savedState);
-          if (workspace) {
-            const targetQuery = prompt
-              ? `?prompt=${encodeURIComponent(prompt)}`
-              : document
-                ? `?document=${encodeURIComponent(document)}`
-                : "";
-            const targetUrl = `/workspaces/${encodeURIComponent(workspace)}${targetQuery}`;
-            navigate(targetUrl, { replace: true });
-          }
-        }
-      } catch (error) {
-        console.log(error);
-        console.error("Failed to restore state from localStorage:", error);
-      }
-    }
-  }, [workspaceNameFromUrl, promptNameFromUrl, documentNameFromUrl, navigate]);
+  //   if (!workspaceNameFromUrl && !promptNameFromUrl && !documentNameFromUrl) {
+  //     try {
+  //       const savedState = localStorage.getItem(STORAGE_KEY);
+  //       if (savedState) {
+  //         const { workspace, prompt, document } = JSON.parse(savedState);
+  //         if (workspace) {
+  //           const targetQuery = prompt
+  //             ? `?prompt=${encodeURIComponent(prompt)}`
+  //             : document
+  //               ? `?document=${encodeURIComponent(document)}`
+  //               : "";
+  //           const targetUrl = `/workspaces/${encodeURIComponent(workspace)}${targetQuery}`;
+  //           navigate(targetUrl, { replace: true });
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.log(error);
+  //       console.error("Failed to restore state from localStorage:", error);
+  //     }
+  //   }
+  // }, [workspaceNameFromUrl, promptNameFromUrl, documentNameFromUrl, navigate]);
 
   const workspaceToast = useCrudToast("Workspace");
   const promptToast = useCrudToast("Prompt");

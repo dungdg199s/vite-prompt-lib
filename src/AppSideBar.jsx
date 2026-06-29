@@ -1,0 +1,165 @@
+import Button from './components/shared/Button';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useMemo } from 'react';
+import { uiClasses } from './components/shared/uiClasses';
+import { useWorkspaceTabsStore } from './store/tabsStore';
+import { useWorkspace, useWorkspaces } from './hooks/useWorkspaces';
+
+export default function AppSidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { workspaceId, promptId, documentId } = useParams();
+  const { workspaces, isLoading, fetchWorkspaces } = useWorkspaces();
+  const { workspace } = useWorkspace(workspaceId);
+
+  const addTab = useWorkspaceTabsStore((s) => s.addTab);
+
+  const [selectedWorkspace, promptList, documentList] = useMemo(() => {
+    if (workspace) {
+      return [workspace, workspace.prompts || [], workspace.documents || []];
+    }
+    return [null, [], []];
+  }, [workspace]);
+
+  return (
+    <aside className={uiClasses.sidebar}>
+      <div className="mb-4 flex items-center gap-2.5">
+        <h2 className="text-lg font-semibold tracking-tight">{workspace?.name || 'Workspaces'}</h2>
+        <Button type="button" variant="secondary" onClick={() => fetchWorkspaces()} className="ml-auto">
+          ↻
+        </Button>
+      </div>
+
+      {workspaceId ? (
+        <>
+          {/* <div className="mb-4 flex items-center justify-between gap-2.5">
+            <button type="button" className={buttonClassName} onClick={onBack}>
+              ←
+            </button>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600">{selectedWorkspaceName}</h3>
+          </div> */}
+          <div className="mb-2 flex items-center justify-between gap-2.5">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600">Prompts</h3>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                navigate(`/workspaces/${workspaceId}/prompts/new`, {
+                  state: { backgroundLocation: location },
+                })
+              }
+            >
+              New
+            </Button>
+          </div>
+          {isLoading ? <p className="text-sm text-slate-600">Loading prompts...</p> : null}
+          {!isLoading && !promptList.length ? (
+            <p className="p-2.5 text-sm text-slate-600">No prompt in this workspace.</p>
+          ) : null}
+          <div className="mb-4 max-h-[calc(50vh-120px)] overflow-y-auto rounded-md border border-stone-300 bg-[#fffef8]">
+            {promptList.map((prompt) => (
+              <button
+                key={prompt.name}
+                type="button"
+                className={`flex w-full items-center gap-2 border-b px-2.5 py-2 text-left transition last:border-b-0 ${
+                  prompt.id === promptId
+                    ? 'border-stone-200 bg-teal-100 text-slate-900'
+                    : 'border-stone-200 bg-[#fffef8] text-slate-800 hover:bg-stone-100'
+                }`}
+                onClick={() => {
+                  navigate(`/workspaces/${workspaceId}/prompts/${prompt.id}/view`);
+                  addTab(workspaceId, {
+                    id: prompt.id,
+                    type: 'prompt',
+                    label: prompt.name,
+                  });
+                }}
+                aria-current={prompt.id === promptId ? 'page' : undefined}
+              >
+                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-teal-700/30 bg-teal-100 text-[10px] font-semibold text-teal-900">
+                  P
+                </span>
+                <span className="truncate text-sm font-medium text-slate-800">{prompt.name}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="mb-2 flex items-center justify-between gap-2.5">
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-slate-600">Documents</h3>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() =>
+                navigate(`/workspaces/${workspaceId}/documents/new`, {
+                  state: { backgroundLocation: location },
+                })
+              }
+            >
+              New
+            </Button>
+          </div>
+          {!documentList.length ? (
+            <p className="p-2.5 text-sm text-slate-600">No document in this workspace.</p>
+          ) : (
+            <div className="max-h-[calc(50vh-140px)] overflow-y-auto rounded-md border border-stone-300 bg-[#fffef8]">
+              {documentList.map((document) => (
+                <button
+                  key={document.name}
+                  type="button"
+                  className={`flex w-full items-center gap-2 border-b px-2.5 py-2 text-left transition last:border-b-0 ${
+                    document.id === documentId
+                      ? 'border-stone-200 bg-teal-100 text-slate-900'
+                      : 'border-stone-200 bg-[#fffef8] text-slate-800 hover:bg-stone-100'
+                  }`}
+                  onClick={() => {
+                    navigate(`/workspaces/${workspaceId}/documents/${document.id}/view`);
+                    addTab(workspaceId, {
+                      id: document.id,
+                      type: 'document',
+                      label: document.name,
+                    });
+                  }}
+                  aria-current={document.id === documentId ? 'page' : undefined}
+                >
+                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-sky-700/30 bg-sky-100 text-[10px] font-semibold text-sky-900">
+                    D
+                  </span>
+                  <span className="truncate text-sm font-medium text-slate-800">{document.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="flex max-h-[calc(100vh-180px)] flex-col gap-2 overflow-y-auto pr-1">
+          {isLoading ? <p className="text-sm text-slate-600">Loading workspaces...</p> : null}
+          {!isLoading && !workspaces.length ? <p className="text-sm text-slate-600">No workspace found.</p> : null}
+          {workspaces.map((workspace) => (
+            <button
+              key={workspace.name}
+              type="button"
+              className={`grid cursor-pointer gap-1 rounded-xl border px-3 py-2 text-left transition ${
+                workspace.name === selectedWorkspace?.name
+                  ? 'border-teal-700 bg-teal-100'
+                  : 'border-stone-300 bg-[#fffef8] hover:border-teal-700/40'
+              }`}
+              onClick={() => {
+                navigate(`/workspaces/${workspace.id}/view`);
+                addTab(workspace.id, {
+                  id: workspace.id,
+                  type: 'workspace',
+                  label: workspace.name,
+                });
+              }}
+            >
+              <span className="font-medium">{workspace.name}</span>
+              <small className="text-xs text-slate-500">{workspace.description || 'No description'}</small>
+            </button>
+          ))}
+        </div>
+      )}
+    </aside>
+  );
+}

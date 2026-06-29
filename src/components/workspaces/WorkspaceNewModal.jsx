@@ -1,36 +1,24 @@
 import Modal from "../shared/Modal";
 import Button from "../shared/Button";
 import Input from "../shared/Input";
-import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useWorkspace, useWorkspaces } from "../../hooks/useWorkspaces";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useWorkspaces } from "../../hooks/useWorkspaces";
 
-export default function WorkspaceEditModal() {
+const DEFAULT_WORKSPACE_FORM = {
+  name: "",
+  description: "",
+  shareMode: "private",
+  shareWith: "",
+};
+
+export default function WorkspaceNewModal() {
   const navigate = useNavigate();
-  const { workspaceId } = useParams();
+  const { createWorkspace, error } = useWorkspaces();
 
-  const { workspace, isLoading, error } = useWorkspace(workspaceId);
-  const { updateWorkspace } = useWorkspaces();
-
-  const [form, setForm] = useState({
-    name: "",
-    description: "",
-  });
+  const [form, setForm] = useState(DEFAULT_WORKSPACE_FORM);
 
   const [isSaving, setIsSaving] = useState(false);
-  const initializedRef = useRef(false);
-
-  useEffect(() => {
-    if (!workspace || initializedRef.current) return;
-
-    initializedRef.current = true;
-    setForm({
-      name: workspace.name || "",
-      description: workspace.description || "",
-      shareMode: workspace.shareMode || "private",
-      shareWith: workspace.shareWith || workspace?.shareWith?.join(", ") || "",
-    });
-  }, [workspace]);
 
   const onChange = (name, value) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -38,10 +26,8 @@ export default function WorkspaceEditModal() {
 
   const onSave = async (e) => {
     e.preventDefault();
-    if (!workspaceId) return;
 
     const payload = {
-      id: workspaceId,
       name: form.name,
       description: form.description,
       shareMode: form.shareMode,
@@ -52,23 +38,21 @@ export default function WorkspaceEditModal() {
     };
 
     setIsSaving(true);
-    const updated = await updateWorkspace(workspaceId, payload);
+    const created = await createWorkspace(payload);
     setIsSaving(false);
 
-    if (updated) {
-      navigate(`/workspaces/${workspaceId}/view`);
+    if (created) {
+      navigate(`/workspaces/${created.id}/view`);
     } else {
-      alert("Failed to update workspace. Please try again." + (error || ""));
+      alert("Failed to create workspace. Please try again." + (error || ""));
     }
   };
-
-  if (!workspaceId) return <div>Workspace ID is missing.</div>;
 
   return (
     <Modal
       isOpen={true}
       onClose={() => navigate(-1)}
-      title="Edit Workspace"
+      title="Create Workspace"
       size="lg"
       actionButtons={
         <>
@@ -82,10 +66,10 @@ export default function WorkspaceEditModal() {
           <Button
             type="button"
             onClick={onSave}
-            disabled={isLoading || isSaving}
+            disabled={isSaving}
             variant="primary"
           >
-            Update
+            Create
           </Button>
         </>
       }

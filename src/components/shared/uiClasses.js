@@ -6,7 +6,7 @@ export const uiClasses = {
   pageGrid: "mx-auto grid min-h-screen grid-cols-1 md:grid-cols-[320px_1fr]",
   sidebar:
     "border-b border-stone-300/90 bg-[#f8f1e6] p-5 md:border-r md:border-b-0",
-  card: "rounded-2xl border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5",
+  card: "border border-stone-300 bg-[#fffef8] p-4 shadow-[0_8px_24px_rgba(44,33,12,0.06)] md:p-5",
   mutedCard: "rounded-xl border border-stone-200 bg-[#fffcf7] p-3",
   dashedCard:
     "rounded-xl border border-dashed border-stone-300 bg-[#fffcf7] p-4 text-sm text-slate-600",

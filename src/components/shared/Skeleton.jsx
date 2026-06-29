@@ -1,8 +1,11 @@
+import { useWorkspaces } from "../../hooks/useWorkspaces";
+
 /**
  * Global loading overlay component with smoke/skeleton effect
  */
-export const LoadingOverlay = ({ isVisible = false }) => {
-  if (!isVisible) return null;
+export const LoadingOverlay = () => {
+  const { isLoading } = useWorkspaces();
+  if (!isLoading) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">

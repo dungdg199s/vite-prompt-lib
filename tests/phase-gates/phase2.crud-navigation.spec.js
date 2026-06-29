@@ -44,7 +44,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
 
       // Verify success
       await expect(page.getByTestId("toast-container")).toContainText(
-        "successfully"
+        "successfully",
       );
     });
 
@@ -67,7 +67,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
 
       // Verify success
       await expect(page.getByTestId("toast-container")).toContainText(
-        "successfully"
+        "successfully",
       );
     });
 
@@ -101,24 +101,22 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       await page.waitForTimeout(1000);
 
       // Verify workspace loaded
-      await expect(
-        page.getByText(/growth-team/)
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(/growth-team/)).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     test("navigate to document via URL with query parameters", async ({
       page,
     }) => {
-      await page.goto(
-        "/#/workspaces/frontend-lab?document=Design%20Notes"
-      );
+      await page.goto("/#/workspaces/frontend-lab?document=Design%20Notes");
 
       await page.waitForTimeout(1000);
 
       // Verify workspace loaded
-      await expect(
-        page.getByText(/frontend-lab/)
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText(/frontend-lab/)).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     test("navigate to workspace without params", async ({ page }) => {
@@ -127,9 +125,9 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       await page.waitForTimeout(1000);
 
       // Verify workspace loads
-      await expect(
-        page.getByText("growth-team")
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText("growth-team")).toBeVisible({
+        timeout: 5000,
+      });
     });
   });
 
@@ -233,35 +231,33 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       await page.waitForTimeout(1000);
 
       // Verify workspace loads
-      await expect(
-        page.getByText("growth-team")
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText("growth-team")).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     test("URL with prompt parameter loads both contexts", async ({ page }) => {
-      await page.goto(
-        "/#/workspaces/growth-team?prompt=Landing%20Hero%20Copy"
-      );
+      await page.goto("/#/workspaces/growth-team?prompt=Landing%20Hero%20Copy");
 
       await page.waitForTimeout(1000);
 
       // Verify workspace loads
-      await expect(
-        page.getByText("growth-team")
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText("growth-team")).toBeVisible({
+        timeout: 5000,
+      });
     });
 
-    test("URL with document parameter loads both contexts", async ({ page }) => {
-      await page.goto(
-        "/#/workspaces/frontend-lab?document=Design%20Notes"
-      );
+    test("URL with document parameter loads both contexts", async ({
+      page,
+    }) => {
+      await page.goto("/#/workspaces/frontend-lab?document=Design%20Notes");
 
       await page.waitForTimeout(1000);
 
       // Verify workspace loads
-      await expect(
-        page.getByText("frontend-lab")
-      ).toBeVisible({ timeout: 5000 });
+      await expect(page.getByText("frontend-lab")).toBeVisible({
+        timeout: 5000,
+      });
     });
 
     test("returning to root navigates back to workspaces list", async ({

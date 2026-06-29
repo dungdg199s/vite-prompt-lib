@@ -107,7 +107,6 @@ export default function DocumentEditModal({
                   className={inputClassName}
                   value={document?.name || ""}
                   onChange={(event) => onFormChange("name", event.target.value)}
-                  disabled={editMode === "edit"}
                   placeholder="my-document"
                 />
               </label>
