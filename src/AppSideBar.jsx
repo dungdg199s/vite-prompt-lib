@@ -1,6 +1,8 @@
 import Button from './components/shared/Button';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMemo } from 'react';
+import documentIcon from './assets/documents.png';
+import promptIcon from './assets/prompts.png';
 import { uiClasses } from './components/shared/uiClasses';
 import { useWorkspace, useWorkspaces } from './hooks/useWorkspaces';
 
@@ -75,9 +77,7 @@ export default function AppSidebar() {
                 }}
                 aria-current={prompt.id === promptId ? 'page' : undefined}
               >
-                <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-teal-700/30 bg-teal-100 text-[10px] font-semibold text-teal-900">
-                  P
-                </span>
+                <img src={promptIcon} alt="" className="h-5 w-5 shrink-0 rounded-md object-cover" aria-hidden="true" />
                 <span className="truncate text-sm font-medium text-slate-800">{prompt.name}</span>
               </button>
             ))}
@@ -122,9 +122,7 @@ export default function AppSidebar() {
                   }}
                   aria-current={document.id === documentId ? 'page' : undefined}
                 >
-                  <span className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-sky-700/30 bg-sky-100 text-[10px] font-semibold text-sky-900">
-                    D
-                  </span>
+                  <img src={documentIcon} alt="" className="h-5 w-5 shrink-0 rounded-md object-cover" aria-hidden="true" />
                   <span className="truncate text-sm font-medium text-slate-800">{document.name}</span>
                 </button>
               ))}

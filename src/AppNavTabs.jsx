@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import documentIcon from './assets/documents.png';
+import promptIcon from './assets/prompts.png';
 import { useWorkspace } from './hooks/useWorkspace';
 
 export default function AppNavTabs() {
@@ -23,6 +25,18 @@ export default function AppNavTabs() {
 
   const activeTabId = documentId || promptId || workspaceId;
   const activeTab = useMemo(() => tabs.find((tab) => tab.id === activeTabId), [tabs, activeTabId]);
+
+  const getTabIcon = (tab) => {
+    if (tab.type === 'prompt') {
+      return promptIcon;
+    }
+
+    if (tab.type === 'document') {
+      return documentIcon;
+    }
+
+    return null;
+  };
 
   const onTabClick = (tab) => {
     if (tab.type === 'workspace') {
@@ -68,11 +82,19 @@ export default function AppNavTabs() {
           >
             <button
               type="button"
-              className="max-w-[180px] truncate text-left"
+              className="flex max-w-[180px] items-center gap-1.5 truncate text-left"
               onClick={() => onTabClick(tab)}
               title={tab.name ?? tab.label}
             >
-              {tab.type === 'workspace' ? tab.name ?? 'Workspace' : tab.name ?? tab.label}
+              {getTabIcon(tab) ? (
+                <img
+                  src={getTabIcon(tab)}
+                  alt=""
+                  className="h-4 w-4 shrink-0 rounded-[4px] object-cover"
+                  aria-hidden="true"
+                />
+              ) : null}
+              <span className="truncate">{tab.type === 'workspace' ? tab.name ?? 'Workspace' : tab.name ?? tab.label}</span>
             </button>
             {tab.type !== 'workspace' ? (
               <button
