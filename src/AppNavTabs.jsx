@@ -23,7 +23,7 @@ export default function AppNavTabs() {
   };
 
   const closeTabHandler = (tabId) => {
-    closeTab(workspaceId, tabId);
+    closeTab(tabId);
     if (activeTab?.id === tabId) {
       const remainingTabs = tabs.filter((tab) => tab.id !== tabId);
       if (remainingTabs.length > 0) {
@@ -58,16 +58,16 @@ export default function AppNavTabs() {
               type="button"
               className="max-w-[180px] truncate text-left"
               onClick={() => onTabClick(tab)}
-              title={tab.label}
+              title={tab.name ?? tab.label}
             >
-              {tab.type === 'workspace' ? 'Workspace' : tab.label}
+              {tab.type === 'workspace' ? tab.name ?? 'Workspace' : tab.name ?? tab.label}
             </button>
             {tab.type !== 'workspace' ? (
               <button
                 type="button"
                 className="rounded px-1 text-xs text-slate-600 hover:bg-stone-200"
                 onClick={() => closeTabHandler(tab.id)}
-                aria-label={`Close ${tab.label} tab`}
+                aria-label={`Close ${tab.name ?? tab.label} tab`}
               >
                 x
               </button>

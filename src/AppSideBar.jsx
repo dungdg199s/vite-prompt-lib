@@ -66,10 +66,10 @@ export default function AppSidebar() {
                 }`}
                 onClick={() => {
                   navigate(`/workspaces/${workspace.id}/prompts/${prompt.id}/view`);
-                  addTab(workspace.id, {
+                  addTab({
                     id: prompt.id,
                     type: 'prompt',
-                    label: prompt.name,
+                    name: prompt.name,
                   });
                 }}
                 aria-current={prompt.id === promptId ? 'page' : undefined}
@@ -112,10 +112,10 @@ export default function AppSidebar() {
                   }`}
                   onClick={() => {
                     navigate(`/workspaces/${workspaceId}/documents/${document.id}/view`);
-                    addTab(workspaceId, {
+                    addTab({
                       id: document.id,
                       type: 'document',
-                      label: document.name,
+                      name: document.name,
                     });
                   }}
                   aria-current={document.id === documentId ? 'page' : undefined}
@@ -144,10 +144,10 @@ export default function AppSidebar() {
               }`}
               onClick={() => {
                 navigate(`/workspaces/${workspace.id}/view`);
-                addTab(workspace.id, {
+                addTab({
                   id: workspace.id,
                   type: 'workspace',
-                  label: workspace.name,
+                  name: workspace.name,
                 });
               }}
             >

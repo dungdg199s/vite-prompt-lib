@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { workspacesClient } from '@/api/workspacesClient';
+import { workspacesClient } from '../lib/workspacesClient';
 import { useToastStore } from './toastStore';
 
 const toMessage = (err) => {
@@ -29,8 +29,6 @@ const upsertTab = (tabs, tab) => {
   next[i] = { ...next[i], ...tab };
   return next;
 };
-
-const removeTab = (tabs, tab) => tabs.filter((t) => tabKey(t) !== tabKey(tab));
 
 const normalizeTabs = (tabs, activeTabKey = null) => {
   // Rule: workspace tab luôn đứng đầu tiên (nếu có)
@@ -89,6 +87,17 @@ export const useWorkspaceStore = create((set) => ({
 
   // ===== Error map =====
   errorByKey: {},
+
+  clearError: (key) =>
+    set((s) => {
+      if (!key) {
+        return { errorByKey: {} };
+      }
+
+      const nextErrors = { ...s.errorByKey };
+      delete nextErrors[key];
+      return { errorByKey: nextErrors };
+    }),
 
   // ===== tabs actions =====
   openTab: (tab) =>

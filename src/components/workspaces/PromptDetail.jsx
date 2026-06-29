@@ -1,5 +1,7 @@
+import { useMemo } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PromptGenerator from './PromptGenerator';
+import { useWorkspace } from '../../hooks/useWorkspaces';
 
 const secondaryButtonClassName =
   'rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50';
@@ -9,7 +11,8 @@ export default function PromptDetail() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { prompt, isLoading } = usePrompt(promptId);
+  const { prompts, isLoading } = useWorkspace(workspaceId);
+  const prompt = useMemo(() => prompts.find((item) => item.id === promptId), [promptId, prompts]);
 
   const historyFormat = (person, dateStr) => {
     if (!person) return '';
@@ -42,7 +45,11 @@ export default function PromptDetail() {
           </button>
           <button
             type="button"
-            onClick={() => navigate(`/prompts/${prompt?.id}/edit`, { state: { backgroundLocation: location } })}
+            onClick={() =>
+              navigate(`/workspaces/${workspaceId}/prompts/${prompt?.id}/edit`, {
+                state: { backgroundLocation: location },
+              })
+            }
             disabled={isLoading || !prompt}
             className={secondaryButtonClassName}
           >
@@ -51,7 +58,11 @@ export default function PromptDetail() {
           <button
             type="button"
             className="rounded-lg border border-red-700 bg-red-600 px-3 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
-            onClick={() => navigate(`/prompts/${prompt?.id}/delete`, { state: { backgroundLocation: location } })}
+            onClick={() =>
+              navigate(`/workspaces/${workspaceId}/prompts/${prompt?.id}/delete`, {
+                state: { backgroundLocation: location },
+              })
+            }
             disabled={isLoading || !prompt}
           >
             Delete

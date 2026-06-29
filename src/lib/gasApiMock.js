@@ -180,6 +180,38 @@ const routes = [
     },
   },
   {
+    method: 'PUT',
+    path: '/api/prompts/:id',
+    handler: ({ params, body }) => {
+      const prompt = findPromptById(params.id);
+      if (!prompt) {
+        throw new Error(`Prompt "${params.id}" not found`);
+      }
+
+      Object.assign(prompt, {
+        ...prompt,
+        ...clone(body),
+        id: params.id,
+      });
+
+      return clone(prompt);
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/api/prompts/:id',
+    handler: ({ params }) => {
+      const previousLength = mockDb.prompts.length;
+      mockDb.prompts = mockDb.prompts.filter((item) => item.id !== params.id);
+
+      if (mockDb.prompts.length === previousLength) {
+        throw new Error(`Prompt "${params.id}" not found`);
+      }
+
+      return { success: true };
+    },
+  },
+  {
     method: 'GET',
     path: '/api/documents',
     handler: () => clone(mockDb.documents),
@@ -250,13 +282,13 @@ const routes = [
       };
 
       mockDb.documents.push(record);
-      return { success: true };
+      return clone(record);
     },
   },
   {
     method: 'PUT',
-    path: '/api/documents',
-    handler: ({ body }) => {
+    path: '/api/documents/:id',
+    handler: ({ params, body }) => {
       if (!body?.name) {
         throw new Error('Invalid payload for update-document');
       }
@@ -266,9 +298,9 @@ const routes = [
         throw new Error('Spreadsheet ID is required for Spreadsheets type');
       }
 
-      const document = findDocumentById(body.id);
+      const document = findDocumentById(params.id);
       if (!document) {
-        throw new Error(`Document "${body.id}" not found`);
+        throw new Error(`Document "${params.id}" not found`);
       }
 
       document.type = type;
@@ -287,7 +319,7 @@ const routes = [
       document.shareMode = body.shareMode || 'private';
       document.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
-      return { success: true };
+      return clone(document);
     },
   },
   {

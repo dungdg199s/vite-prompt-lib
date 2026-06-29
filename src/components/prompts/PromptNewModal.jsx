@@ -1,14 +1,14 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Modal from '../shared/Modal';
 import Button from '../shared/Button';
 import Input from '../shared/Input';
 import { useNavigate, useParams } from 'react-router-dom';
-import { usePrompts } from '../../hooks/usePrompts';
+import { useWorkspace } from '../../hooks/useWorkspaces';
 
 export default function PromptNewModal() {
   const navigate = useNavigate();
   const { workspaceId } = useParams();
-  const { createPrompt } = usePrompts();
+  const { createPrompt } = useWorkspace(workspaceId);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -18,15 +18,6 @@ export default function PromptNewModal() {
     shareMode: 'private',
     shareWith: '',
   });
-
-  useEffect(() => {
-    if (workspaceId) {
-      setFormData((prev) => ({
-        ...prev,
-        workspace: workspaceId,
-      }));
-    }
-  }, [workspaceId]);
 
   const [isSaving, setIsSaving] = useState(false);
 
@@ -40,7 +31,7 @@ export default function PromptNewModal() {
   const onSubmit = async (e) => {
     e.preventDefault();
     setIsSaving(true);
-    const createdPrompt = await createPrompt(formData);
+    const createdPrompt = await createPrompt({ ...formData, workspace: workspaceId });
     setIsSaving(false);
     if (createdPrompt?.id) {
       navigate(`/workspaces/${workspaceId}/prompts/${createdPrompt.id}/view`);
@@ -48,7 +39,7 @@ export default function PromptNewModal() {
   };
 
   const shareOptions = useMemo(() => {
-    return ['private', 'public'].map((v) => ({ label: v, value: v }));
+    return ['private', 'shared', 'public'].map((v) => ({ label: v, value: v }));
   }, []);
 
   return (
@@ -89,6 +80,16 @@ export default function PromptNewModal() {
           options={shareOptions}
           required
         ></Input>
+
+        {formData.shareMode === 'shared' ? (
+          <Input
+            type="text"
+            label="Share With (comma separated emails)"
+            value={formData.shareWith}
+            onChange={(e) => onChange('shareWith', e.target.value)}
+            placeholder="a@company.com, b@company.com"
+          ></Input>
+        ) : null}
 
         <div className="flex flex-wrap justify-end gap-2 pt-2">
           <Button type="button" variant="secondary" onClick={() => navigate(-1)}>

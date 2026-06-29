@@ -22,7 +22,11 @@ export default function WorkspaceDeleteModal() {
           type="button"
           variant="danger"
           onClick={() =>
-            deleteWorkspace(workspaceId).then(() => navigate("/workspaces"))
+            deleteWorkspace(workspaceId).then((deleted) => {
+              if (deleted) {
+                navigate('/workspaces');
+              }
+            })
           }
           disabled={isLoading}
         >

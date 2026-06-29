@@ -5,6 +5,7 @@ import AppLayout from './AppLayout';
 import WorkspaceEditModal from './components/workspaces/WorkspaceEditModal';
 import WorkspaceDetail from './components/workspaces/WorkspaceDetail';
 import DocumentDetail from './components/documents/DocumentDetail';
+import DocumentEditModal from './components/documents/DocumentEditModal';
 import WorkspaceNewModal from './components/workspaces/WorkspaceNewModal';
 import WorkspaceDeleteModal from './components/workspaces/WorkspaceDeleteModal';
 import DocumentDeleteModal from './components/documents/DocumentDeleteModal';
@@ -57,9 +58,9 @@ function AppContent() {
               </Route>
 
               <Route path="documents">
-                <Route path="new" element={<DocumentDetail />} />
+                <Route path="new" element={<DocumentEditModal />} />
                 <Route path=":documentId">
-                  <Route path="edit" element={<DocumentDetail />} />
+                  <Route path="edit" element={<DocumentEditModal />} />
                   <Route path="delete" element={<DocumentDeleteModal />} />
                 </Route>
               </Route>

@@ -116,6 +116,67 @@ const AppRouters = [
     },
   },
   {
+    method: 'POST',
+    path: '/api/prompts',
+    handler: ({ body }) => {
+      if (!body?.name) {
+        throw new Error('Invalid payload for create-prompt');
+      }
+
+      if (!body?.workspace) {
+        throw new Error('Workspace is required for prompt');
+      }
+
+      const record = {
+        id: String(body.id || `prompt-${Date.now()}`),
+        name: String(body.name),
+        workspace: String(body.workspace || ''),
+        description: String(body.description || ''),
+        content: String(body.content || ''),
+        shareMode: body.shareMode || 'private',
+        shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
+      };
+
+      return AppDatabase.Prompts.create(record);
+    },
+  },
+  {
+    method: 'PUT',
+    path: '/api/prompts/:id',
+    handler: ({ params, body }) => {
+      if (!body?.name) {
+        throw new Error('Invalid payload for update-prompt');
+      }
+
+      const prompt = AppDatabase.Prompts.findById(params.id);
+      if (!prompt) {
+        throw new Error(`Prompt "${params.id}" not found`);
+      }
+
+      prompt.name = String(body.name || prompt.name);
+      prompt.workspace = String(body.workspace || prompt.workspace || '');
+      prompt.description = String(body.description || '');
+      prompt.content = String(body.content || '');
+      prompt.shareMode = body.shareMode || 'private';
+      prompt.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
+
+      return AppDatabase.Prompts.update(prompt);
+    },
+  },
+  {
+    method: 'DELETE',
+    path: '/api/prompts/:id',
+    handler: ({ params }) => {
+      const prompt = AppDatabase.Prompts.findById(params.id);
+      if (!prompt) {
+        throw new Error(`Prompt "${params.id}" not found`);
+      }
+
+      AppDatabase.Prompts.delete({ id: params.id });
+      return true;
+    },
+  },
+  {
     method: 'GET',
     path: '/api/documents',
     handler: () => AppDatabase.Documents.findAll(),
@@ -185,14 +246,13 @@ const AppRouters = [
         shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
       };
 
-      AppDatabase.Documents.create(record);
-      return true;
+      return AppDatabase.Documents.create(record);
     },
   },
   {
     method: 'PUT',
-    path: '/api/documents',
-    handler: ({ body }) => {
+    path: '/api/documents/:id',
+    handler: ({ params, body }) => {
       if (!body?.name) {
         throw new Error('Invalid payload for update-document');
       }
@@ -202,9 +262,9 @@ const AppRouters = [
         throw new Error('Spreadsheet ID is required for Spreadsheets type');
       }
 
-      const document = AppDatabase.Documents.getById(body.id);
+      const document = AppDatabase.Documents.findById(params.id);
       if (!document) {
-        throw new Error(`Document "${body.id}" not found`);
+        throw new Error(`Document "${params.id}" not found`);
       }
 
       document.type = type;
@@ -223,9 +283,7 @@ const AppRouters = [
       document.shareMode = body.shareMode || 'private';
       document.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
-      AppDatabase.Documents.update(document);
-
-      return true;
+      return AppDatabase.Documents.update(document);
     },
   },
   {
