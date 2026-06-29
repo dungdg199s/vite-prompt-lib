@@ -23,7 +23,7 @@ export const useWorkspacePrompts = (workspaceId) =>
     prompts: s.promptsByWorkspace[workspaceId] ?? [],
     isLoading: !!s.listLoading.promptsByWorkspace[workspaceId],
     fetch: () => s.fetchPrompts(workspaceId),
-    create: (payload) => s.createPrompt({ ...payload, workspaceId }),
+    create: (payload) => s.createPrompt({ ...payload, workspaceId, workspace: payload.workspace ?? workspaceId }),
   }));
 
 export const useWorkspaceDocuments = (workspaceId) =>
@@ -31,7 +31,7 @@ export const useWorkspaceDocuments = (workspaceId) =>
     documents: s.documentsByWorkspace[workspaceId] ?? [],
     isLoading: !!s.listLoading.documentsByWorkspace[workspaceId],
     fetch: () => s.fetchDocuments(workspaceId),
-    create: (payload) => s.createDocument({ ...payload, workspaceId }),
+    create: (payload) => s.createDocument({ ...payload, workspaceId, workspace: payload.workspace ?? workspaceId }),
   }));
 
 export const useTabs = () =>

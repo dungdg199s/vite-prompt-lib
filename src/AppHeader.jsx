@@ -22,7 +22,8 @@ function AppHeader() {
     return workspaces.flatMap((workspace) => {
       return (workspace.prompts || []).map((prompt) => ({
         ...prompt,
-        workspace: workspace.name,
+        workspaceId: workspace.id,
+        workspaceName: workspace.name,
       }));
     });
   }, [workspaces]);
@@ -34,7 +35,8 @@ function AppHeader() {
     return workspaces.flatMap((workspace) => {
       return (workspace.documents || []).map((document) => ({
         ...document,
-        workspace: workspace.name,
+        workspaceId: workspace.id,
+        workspaceName: workspace.name,
       }));
     });
   }, [workspaces]);
@@ -54,7 +56,7 @@ function AppHeader() {
       .filter((prompt) => {
         const name = String(prompt?.name || '').toLowerCase();
         const description = String(prompt?.description || '').toLowerCase();
-        const workspace = String(prompt?.workspace || '').toLowerCase();
+        const workspace = String(prompt?.workspaceName || '').toLowerCase();
         return (
           name.includes(normalizedQuery) || description.includes(normalizedQuery) || workspace.includes(normalizedQuery)
         );
@@ -71,7 +73,7 @@ function AppHeader() {
       .filter((document) => {
         const name = String(document?.name || '').toLowerCase();
         const description = String(document?.description || '').toLowerCase();
-        const workspace = String(document?.workspace || '').toLowerCase();
+        const workspace = String(document?.workspaceName || '').toLowerCase();
         return (
           name.includes(normalizedQuery) || description.includes(normalizedQuery) || workspace.includes(normalizedQuery)
         );
@@ -80,25 +82,25 @@ function AppHeader() {
   }, [documents, normalizedQuery]);
 
   const goToPrompt = (prompt) => {
-    const workspace = String(prompt?.workspace || '').trim();
-    const name = String(prompt?.name || '').trim();
-    if (!workspace || !name) {
+    const workspaceId = String(prompt?.workspaceId || '').trim();
+    const promptId = String(prompt?.id || '').trim();
+    if (!workspaceId || !promptId) {
       return;
     }
 
     setSearchQuery('');
-    navigate(`/workspaces/${encodeURIComponent(workspace)}?prompt=${encodeURIComponent(name)}`);
+    navigate(`/workspaces/${encodeURIComponent(workspaceId)}/prompts/${encodeURIComponent(promptId)}/view`);
   };
 
   const goToDocument = (document) => {
-    const workspace = String(document?.workspace || '').trim();
-    const name = String(document?.name || '').trim();
-    if (!workspace || !name) {
+    const workspaceId = String(document?.workspaceId || '').trim();
+    const documentId = String(document?.id || '').trim();
+    if (!workspaceId || !documentId) {
       return;
     }
 
     setSearchQuery('');
-    navigate(`/workspaces/${encodeURIComponent(workspace)}?document=${encodeURIComponent(name)}`);
+    navigate(`/workspaces/${encodeURIComponent(workspaceId)}/documents/${encodeURIComponent(documentId)}/view`);
   };
 
   const scopedPrompts = searchScope === SEARCH_SCOPES.DOCUMENTS ? [] : filteredPrompts;
@@ -164,7 +166,7 @@ function AppHeader() {
                         className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-stone-100"
                       >
                         <span className="truncate font-medium text-slate-800">{prompt.name}</span>
-                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{prompt.workspace || '-'}</span>
+                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{prompt.workspaceName || '-'}</span>
                       </button>
                     ))}
                   </div>
@@ -183,7 +185,7 @@ function AppHeader() {
                         className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-stone-100"
                       >
                         <span className="truncate font-medium text-slate-800">{document.name}</span>
-                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{document.workspace || '-'}</span>
+                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{document.workspaceName || '-'}</span>
                       </button>
                     ))}
                   </div>
