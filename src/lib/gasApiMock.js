@@ -1,4 +1,4 @@
-import { mockData } from "./gasApiMockData";
+import { mockData } from './gasApiMockData';
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
@@ -9,8 +9,8 @@ const mockDb = mockData || {
 };
 
 const matchPath = (pattern, path) => {
-  const patternSegments = String(pattern).split("/").filter(Boolean);
-  const pathSegments = String(path).split("/").filter(Boolean);
+  const patternSegments = String(pattern).split('/').filter(Boolean);
+  const pathSegments = String(path).split('/').filter(Boolean);
 
   if (patternSegments.length !== pathSegments.length) {
     return null;
@@ -22,7 +22,7 @@ const matchPath = (pattern, path) => {
     const patternSegment = patternSegments[i];
     const pathSegment = pathSegments[i];
 
-    if (patternSegment.startsWith(":")) {
+    if (patternSegment.startsWith(':')) {
       params[patternSegment.slice(1)] = decodeURIComponent(pathSegment);
       continue;
     }
@@ -52,38 +52,29 @@ const findDocumentById = (id) => {
 };
 
 const findDocumentByPreasheetId = (preasheetId) => {
-  return mockDb.documents.find(
-    (item) => item.preasheetId === String(preasheetId),
-  );
+  return mockDb.documents.find((item) => item.preasheetId === String(preasheetId));
 };
 
 const routes = [
   {
-    method: "GET",
-    path: "/api/workspaces",
+    method: 'GET',
+    path: '/api/workspaces',
     handler: () => {
       const workspaces = clone(mockDb.workspaces);
       workspaces.forEach((workspace) => {
-        const prompts = mockDb.prompts.filter(
-          (prompt) => prompt.workspace === workspace.id,
-        );
-        const documents = mockDb.documents.filter(
-          (document) => document.workspace === workspace.id,
-        );
+        const prompts = mockDb.prompts.filter((prompt) => prompt.workspace === workspace.id);
+        const documents = mockDb.documents.filter((document) => document.workspace === workspace.id);
 
         workspace.prompts = [...(workspace.prompts || []), ...prompts];
-        workspace.documents = [
-          ...(workspace.documents || []),
-          ...documents,
-        ];
+        workspace.documents = [...(workspace.documents || []), ...documents];
       });
 
       return workspaces;
     },
   },
   {
-    method: "GET",
-    path: "/api/workspaces/:id",
+    method: 'GET',
+    path: '/api/workspaces/:id',
     handler: ({ params }) => {
       const workspace = findWorkspaceById(params.id);
 
@@ -91,27 +82,23 @@ const routes = [
         throw new Error(`Workspace "${params.id}" not found`);
       }
 
-      const prompts = mockDb.prompts.filter(
-        (prompt) => prompt.workspace === workspace.id,
-      );
+      const prompts = mockDb.prompts.filter((prompt) => prompt.workspace === workspace.id);
 
-      const documents = mockDb.documents.filter(
-        (document) => document.workspace === workspace.id,
-      );
+      const documents = mockDb.documents.filter((document) => document.workspace === workspace.id);
 
       return clone({
         ...workspace,
         prompts: [...(workspace.prompts || []), ...prompts],
-        documents: [...(workspace.documents || []), ...documents],  
+        documents: [...(workspace.documents || []), ...documents],
       });
     },
   },
   {
-    method: "POST",
-    path: "/api/workspaces",
+    method: 'POST',
+    path: '/api/workspaces',
     handler: ({ body }) => {
       if (!body?.name) {
-        throw new Error("Invalid payload for create-workspace");
+        throw new Error('Invalid payload for create-workspace');
       }
 
       if (findWorkspaceByName(body.name)) {
@@ -121,8 +108,8 @@ const routes = [
       const record = {
         id: String(body.id),
         name: String(body.name),
-        description: String(body.description || ""),
-        shareMode: body.shareMode || "private",
+        description: String(body.description || ''),
+        shareMode: body.shareMode || 'private',
         shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
       };
 
@@ -131,11 +118,11 @@ const routes = [
     },
   },
   {
-    method: "PUT",
-    path: "/api/workspaces/:id",
+    method: 'PUT',
+    path: '/api/workspaces/:id',
     handler: ({ body }) => {
       if (!body?.id) {
-        throw new Error("Invalid payload for update-workspace");
+        throw new Error('Invalid payload for update-workspace');
       }
 
       const workspace = findWorkspaceById(body.id);
@@ -144,41 +131,46 @@ const routes = [
       }
 
       workspace.name = String(body.name || workspace.name);
-      workspace.description = String(body.description || "");
-      workspace.shareMode = body.shareMode || "private";
+      workspace.description = String(body.description || '');
+      workspace.shareMode = body.shareMode || 'private';
       workspace.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
       return workspace;
     },
   },
   {
-    method: "DELETE",
-    path: "/api/workspaces/:id",
+    method: 'DELETE',
+    path: '/api/workspaces/:id',
     handler: ({ params }) => {
       const previousLength = mockDb.workspaces.length;
-      mockDb.workspaces = mockDb.workspaces.filter(
-        (item) => item.id !== params.id,
-      );
+      mockDb.workspaces = mockDb.workspaces.filter((item) => item.id !== params.id);
 
       if (mockDb.workspaces.length === previousLength) {
         throw new Error(`Workspace "${params.id}" not found`);
       }
 
-      mockDb.prompts = mockDb.prompts.filter(
-        (prompt) => prompt.workspace !== params.id,
-      );
+      mockDb.prompts = mockDb.prompts.filter((prompt) => prompt.workspace !== params.id);
 
       return { success: true };
     },
   },
   {
-    method: "GET",
-    path: "/api/prompts",
+    method: 'GET',
+    path: '/api/prompts',
     handler: () => clone(mockDb.prompts),
   },
   {
-    method: "GET",
-    path: "/api/prompts/:id",
+    method: 'POST',
+    path: '/api/prompts',
+    handler: ({ body }) => {
+      body.id = body.id || `prompt-${Date.now()}`;
+      mockDb.prompts.push(clone(body));
+      return clone(body);
+    },
+  },
+  {
+    method: 'GET',
+    path: '/api/prompts/:id',
     handler: ({ params }) => {
       const prompt = findPromptById(params.id);
       if (!prompt) {
@@ -188,13 +180,13 @@ const routes = [
     },
   },
   {
-    method: "GET",
-    path: "/api/documents",
+    method: 'GET',
+    path: '/api/documents',
     handler: () => clone(mockDb.documents),
   },
   {
-    method: "GET",
-    path: "/api/documents/:id",
+    method: 'GET',
+    path: '/api/documents/:id',
     handler: ({ params }) => {
       const document = findDocumentById(params.id);
       if (!document) {
@@ -204,16 +196,14 @@ const routes = [
     },
   },
   {
-    method: "GET",
-    path: "/api/preasheet/:preasheetId",
+    method: 'GET',
+    path: '/api/preasheet/:preasheetId',
     handler: ({ params }) => {
       const document = findDocumentByPreasheetId(params.preasheetId);
       const sheets = document?.contentJSON?.sheets;
       const sheetNames = Array.isArray(sheets)
-        ? sheets
-            .map((sheet) => String(sheet?.name || "").trim())
-            .filter(Boolean)
-        : ["Overview", "Details"];
+        ? sheets.map((sheet) => String(sheet?.name || '').trim()).filter(Boolean)
+        : ['Overview', 'Details'];
 
       return {
         preasheetId: String(params.preasheetId),
@@ -223,16 +213,16 @@ const routes = [
     },
   },
   {
-    method: "POST",
-    path: "/api/documents",
+    method: 'POST',
+    path: '/api/documents',
     handler: ({ body }) => {
       if (!body?.name) {
-        throw new Error("Invalid payload for create-document");
+        throw new Error('Invalid payload for create-document');
       }
 
-      const type = body.type || "Spreadsheets";
-      if (type === "Spreadsheets" && !body?.preasheetId) {
-        throw new Error("Spreadsheet ID is required for Spreadsheets type");
+      const type = body.type || 'Spreadsheets';
+      if (type === 'Spreadsheets' && !body?.preasheetId) {
+        throw new Error('Spreadsheet ID is required for Spreadsheets type');
       }
 
       if (findDocumentById(body.id)) {
@@ -243,19 +233,19 @@ const routes = [
         id: String(body.id),
         name: String(body.name),
         type,
-        workspace: String(body.workspace || ""),
-        fileName: String(body.fileName || ""),
-        preasheetId: String(body.preasheetId || ""),
-        description: String(body.description || ""),
-        contentMarkdown: String(body.contentMarkdown || ""),
+        workspace: String(body.workspace || ''),
+        fileName: String(body.fileName || ''),
+        preasheetId: String(body.preasheetId || ''),
+        description: String(body.description || ''),
+        contentMarkdown: String(body.contentMarkdown || ''),
         contentJSON: body.contentJSON || null,
-        contentHTML: String(body.contentHTML || ""),
+        contentHTML: String(body.contentHTML || ''),
         syncOptions: body.syncOptions || {
           includeEmptyRows: false,
           headerRow: 1,
           sheets: [],
         },
-        shareMode: body.shareMode || "private",
+        shareMode: body.shareMode || 'private',
         shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
       };
 
@@ -264,16 +254,16 @@ const routes = [
     },
   },
   {
-    method: "PUT",
-    path: "/api/documents",
+    method: 'PUT',
+    path: '/api/documents',
     handler: ({ body }) => {
       if (!body?.name) {
-        throw new Error("Invalid payload for update-document");
+        throw new Error('Invalid payload for update-document');
       }
 
-      const type = body.type || "Spreadsheets";
-      if (type === "Spreadsheets" && !body?.preasheetId) {
-        throw new Error("Spreadsheet ID is required for Spreadsheets type");
+      const type = body.type || 'Spreadsheets';
+      if (type === 'Spreadsheets' && !body?.preasheetId) {
+        throw new Error('Spreadsheet ID is required for Spreadsheets type');
       }
 
       const document = findDocumentById(body.id);
@@ -282,32 +272,30 @@ const routes = [
       }
 
       document.type = type;
-      document.workspace = String(body.workspace || "");
-      document.fileName = String(body.fileName || "");
-      document.preasheetId = String(body.preasheetId || "");
-      document.description = String(body.description || "");
-      document.contentMarkdown = String(body.contentMarkdown || "");
+      document.workspace = String(body.workspace || '');
+      document.fileName = String(body.fileName || '');
+      document.preasheetId = String(body.preasheetId || '');
+      document.description = String(body.description || '');
+      document.contentMarkdown = String(body.contentMarkdown || '');
       document.contentJSON = body.contentJSON || null;
-      document.contentHTML = String(body.contentHTML || "");
+      document.contentHTML = String(body.contentHTML || '');
       document.syncOptions = body.syncOptions || {
         includeEmptyRows: false,
         headerRow: 1,
         sheets: [],
       };
-      document.shareMode = body.shareMode || "private";
+      document.shareMode = body.shareMode || 'private';
       document.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
       return { success: true };
     },
   },
   {
-    method: "DELETE",
-    path: "/api/documents/:id",
+    method: 'DELETE',
+    path: '/api/documents/:id',
     handler: ({ params }) => {
       const previousLength = mockDb.documents.length;
-      mockDb.documents = mockDb.documents.filter(
-        (item) => item.id !== params.id,
-      );
+      mockDb.documents = mockDb.documents.filter((item) => item.id !== params.id);
 
       if (mockDb.documents.length === previousLength) {
         throw new Error(`Document "${params.id}" not found`);
@@ -317,37 +305,33 @@ const routes = [
     },
   },
   {
-    method: "POST",
-    path: "/api/documents/:id/sync",
+    method: 'POST',
+    path: '/api/documents/:id/sync',
     handler: ({ params, body }) => {
       const document = findDocumentById(params.id);
       if (!document) {
         throw new Error(`Document "${params.id}" not found`);
       }
 
-      if ((document.type || "Spreadsheets") !== "Spreadsheets") {
-        throw new Error("Sync is only available for Spreadsheets documents");
+      if ((document.type || 'Spreadsheets') !== 'Spreadsheets') {
+        throw new Error('Sync is only available for Spreadsheets documents');
       }
 
       const options = body || {};
       const sheetNames =
-        Array.isArray(options.sheets) && options.sheets.length
-          ? options.sheets
-          : ["Overview", "Details"];
+        Array.isArray(options.sheets) && options.sheets.length ? options.sheets : ['Overview', 'Details'];
 
       document.syncOptions = {
         includeEmptyRows: options.includeEmptyRows !== false,
-        headerRow: Number.isInteger(options.headerRow)
-          ? options.headerRow
-          : null,
+        headerRow: Number.isInteger(options.headerRow) ? options.headerRow : null,
         sheets: Array.isArray(options.sheets) ? options.sheets : [],
       };
 
       document.contentMarkdown = [
         `# ${document.fileName || document.name}`,
-        "",
+        '',
         ...sheetNames.map((sheetName) => `## ${sheetName}`),
-      ].join("\n");
+      ].join('\n');
 
       document.contentJSON = {
         name: document.fileName || document.name,
@@ -361,7 +345,7 @@ const routes = [
           name: sheetName,
           data: [
             {
-              Example: "Mock synced data",
+              Example: 'Mock synced data',
               HeaderRow: options.headerRow || 1,
             },
           ],
@@ -374,13 +358,10 @@ const routes = [
 ];
 
 const executeMockRequest = (method, url, payload) => {
-  const parsedUrl = new URL(url, "http://localhost");
+  const parsedUrl = new URL(url, 'http://localhost');
 
   const route = routes.find((item) => {
-    return (
-      item.method === method &&
-      matchPath(item.path, parsedUrl.pathname) !== null
-    );
+    return item.method === method && matchPath(item.path, parsedUrl.pathname) !== null;
   });
 
   if (!route) {
@@ -398,7 +379,7 @@ const executeMockRequest = (method, url, payload) => {
   } catch (error) {
     return {
       success: false,
-      error: error?.message || "Mock request failed",
+      error: error?.message || 'Mock request failed',
     };
   }
 };
@@ -409,11 +390,11 @@ const createRunner = () => {
 
   return {
     withSuccessHandler(handler) {
-      successHandler = typeof handler === "function" ? handler : () => {};
+      successHandler = typeof handler === 'function' ? handler : () => {};
       return this;
     },
     withFailureHandler(handler) {
-      failureHandler = typeof handler === "function" ? handler : () => {};
+      failureHandler = typeof handler === 'function' ? handler : () => {};
       return this;
     },
     invoke(method, name, payload) {

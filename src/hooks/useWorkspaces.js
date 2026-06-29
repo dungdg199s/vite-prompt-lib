@@ -1,56 +1,33 @@
-import { useEffect, useRef } from 'react';
-import { useWorkspacesStore } from '../store/workspacesStore';
+import { useEffect } from 'react';
+import { useWorkspaceStore } from '../stores/workspaceStore';
 
-export function useWorkspace(workspaceId) {
-  const fetchWorkspaceById = useWorkspacesStore((s) => s.fetchWorkspaceById);
-  const record = useWorkspacesStore((s) => s.recordState[workspaceId]);
+export function useWorkspaces() {
+  const workspaces = useWorkspaceStore((s) => s.workspaces);
+  const loading = useWorkspaceStore((s) => s.loading);
+  const error = useWorkspaceStore((s) => s.error);
 
-  useEffect(() => {
-    if (!workspaceId) return;
-    if (!record) {
-      fetchWorkspaceById(workspaceId);
-    }
-  }, [workspaceId, record, fetchWorkspaceById]);
-
-  return {
-    workspaceId,
-    workspace: record?.data || null,
-    isLoading: record?.isLoading || false,
-    error: record?.error || null,
-    fetchWorkspaceById: () => fetchWorkspaceById(workspaceId),
-  };
-}
-
-export function useWorkspaces(options = {}) {
-  const autoFetchTriggeredRef = useRef(false);
-
-  const { autoFetch = true } = options;
-
-  const workspaces = useWorkspacesStore((s) => s.workspaces);
-  const isLoading = useWorkspacesStore((s) => s.isLoading);
-  const error = useWorkspacesStore((s) => s.error);
-
-  const fetchWorkspaces = useWorkspacesStore((s) => s.fetchWorkspaces);
-  const createWorkspace = useWorkspacesStore((s) => s.createWorkspace);
-  const updateWorkspace = useWorkspacesStore((s) => s.updateWorkspace);
-  const deleteWorkspace = useWorkspacesStore((s) => s.deleteWorkspace);
+  const fetchWorkspaces = useWorkspaceStore((s) => s.fetchWorkspaces);
+  const createWorkspace = useWorkspaceStore((s) => s.createWorkspace);
+  const updateWorkspace = useWorkspaceStore((s) => s.updateWorkspace);
+  const deleteWorkspace = useWorkspaceStore((s) => s.deleteWorkspace);
+  const clearError = useWorkspaceStore((s) => s.clearError);
 
   useEffect(() => {
-    if (!autoFetch) return;
-    if (autoFetchTriggeredRef.current) return;
-    if (!workspaces?.length && !isLoading) {
-      autoFetchTriggeredRef.current = true;
-      fetchWorkspaces();
-    }
-  }, [autoFetch, workspaces?.length, isLoading, fetchWorkspaces]);
+    fetchWorkspaces();
+  }, [fetchWorkspaces]);
 
   return {
+    // data
     workspaces,
-    isLoading,
+    loading,
     error,
-    fetchWorkspaces,
+    isEmpty: !loading && workspaces.length === 0,
+
+    // actions
+    refetchWorkspaces: fetchWorkspaces,
     createWorkspace,
     updateWorkspace,
     deleteWorkspace,
+    clearError,
   };
 }

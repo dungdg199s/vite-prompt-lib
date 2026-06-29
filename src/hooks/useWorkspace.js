@@ -4,7 +4,6 @@ import { useWorkspaceStore } from '../stores/workspaceStore';
 
 export function useWorkspace() {
   const { workspaceId } = useParams();
-
   const workspaces = useWorkspaceStore((s) => s.workspaces);
   const loading = useWorkspaceStore((s) => s.loading);
   const error = useWorkspaceStore((s) => s.error);

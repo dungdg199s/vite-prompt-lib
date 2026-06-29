@@ -11,6 +11,7 @@ import DocumentDeleteModal from './components/documents/DocumentDeleteModal';
 import PromptDeleteModal from './components/prompts/PromptDeleteModal';
 import PromptEditModal from './components/prompts/PromptEditModal';
 import PromptDetail from './components/workspaces/PromptDetail';
+import PromptNewModal from './components/prompts/PromptNewModal';
 
 function AppContent() {
   const location = useLocation();
@@ -48,7 +49,7 @@ function AppContent() {
               <Route path="delete" element={<WorkspaceDeleteModal />} />
 
               <Route path="prompts">
-                <Route path="new" element={<PromptEditModal />} />
+                <Route path="new" element={<PromptNewModal />} />
                 <Route path=":promptId">
                   <Route path="edit" element={<PromptEditModal />} />
                   <Route path="delete" element={<PromptDeleteModal />} />

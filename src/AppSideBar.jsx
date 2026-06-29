@@ -2,17 +2,14 @@ import Button from './components/shared/Button';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMemo } from 'react';
 import { uiClasses } from './components/shared/uiClasses';
-import { useWorkspaceTabsStore } from './store/tabsStore';
 import { useWorkspace, useWorkspaces } from './hooks/useWorkspaces';
 
 export default function AppSidebar() {
+  const { workspaceId, promptId, documentId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { workspaceId, promptId, documentId } = useParams();
   const { workspaces, isLoading, fetchWorkspaces } = useWorkspaces();
-  const { workspace } = useWorkspace(workspaceId);
-
-  const addTab = useWorkspaceTabsStore((s) => s.addTab);
+  const { workspace, addTab } = useWorkspace();
 
   const [selectedWorkspace, promptList, documentList] = useMemo(() => {
     if (workspace) {
@@ -30,7 +27,7 @@ export default function AppSidebar() {
         </Button>
       </div>
 
-      {workspaceId ? (
+      {workspace ? (
         <>
           {/* <div className="mb-4 flex items-center justify-between gap-2.5">
             <button type="button" className={buttonClassName} onClick={onBack}>
@@ -45,7 +42,7 @@ export default function AppSidebar() {
               variant="secondary"
               size="sm"
               onClick={() =>
-                navigate(`/workspaces/${workspaceId}/prompts/new`, {
+                navigate(`/workspaces/${workspace.id}/prompts/new`, {
                   state: { backgroundLocation: location },
                 })
               }
@@ -68,8 +65,8 @@ export default function AppSidebar() {
                     : 'border-stone-200 bg-[#fffef8] text-slate-800 hover:bg-stone-100'
                 }`}
                 onClick={() => {
-                  navigate(`/workspaces/${workspaceId}/prompts/${prompt.id}/view`);
-                  addTab(workspaceId, {
+                  navigate(`/workspaces/${workspace.id}/prompts/${prompt.id}/view`);
+                  addTab(workspace.id, {
                     id: prompt.id,
                     type: 'prompt',
                     label: prompt.name,

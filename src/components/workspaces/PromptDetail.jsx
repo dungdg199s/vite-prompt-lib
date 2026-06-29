@@ -1,12 +1,11 @@
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import PromptGenerator from './PromptGenerator';
-import { usePrompt } from '../../hooks/usePrompts';
 
 const secondaryButtonClassName =
   'rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50';
 
 export default function PromptDetail() {
-  const { promptId } = useParams();
+  const { promptId, workspaceId } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -34,7 +33,9 @@ export default function PromptDetail() {
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
-            onClick={() => navigate('/prompts/new', { state: { backgroundLocation: location } })}
+            onClick={() =>
+              navigate(`/workspaces/${workspaceId}/prompts/new`, { state: { backgroundLocation: location } })
+            }
             className={secondaryButtonClassName}
           >
             New Prompt

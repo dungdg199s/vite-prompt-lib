@@ -3,7 +3,7 @@
  * Provider is kept as no-op for backward compatibility.
  */
 
-import { useToastStore } from "../../store/toastStore";
+import { useToastStore } from "../../stores/toastStore";
 
 export const ToastProvider = ({ children }) => {
   return (
