@@ -69,6 +69,7 @@ export default function AppSidebar() {
                   addTab({
                     id: prompt.id,
                     type: 'prompt',
+                    workspaceId: workspace.id,
                     name: prompt.name,
                   });
                 }}
@@ -115,6 +116,7 @@ export default function AppSidebar() {
                     addTab({
                       id: document.id,
                       type: 'document',
+                      workspaceId,
                       name: document.name,
                     });
                   }}

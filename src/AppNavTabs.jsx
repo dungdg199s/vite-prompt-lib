@@ -5,27 +5,39 @@ import { useWorkspace } from './hooks/useWorkspace';
 export default function AppNavTabs() {
   const navigate = useNavigate();
   const { workspaceId, promptId, documentId } = useParams();
-  const { tabs, closeTab } = useWorkspace();
+  const { tabs: allTabs, closeTab } = useWorkspace();
 
-  const activeTab = useMemo(
-    () => tabs.find((tab) => tab.id === workspaceId || tab.id === promptId || tab.id === documentId),
-    [tabs, workspaceId, promptId, documentId]
-  );
+  const tabs = useMemo(() => {
+    if (!workspaceId) {
+      return [];
+    }
+
+    return allTabs.filter((tab) => {
+      if (tab.type === 'workspace') {
+        return tab.id === workspaceId;
+      }
+
+      return tab.workspaceId === workspaceId;
+    });
+  }, [allTabs, workspaceId]);
+
+  const activeTabId = documentId || promptId || workspaceId;
+  const activeTab = useMemo(() => tabs.find((tab) => tab.id === activeTabId), [tabs, activeTabId]);
 
   const onTabClick = (tab) => {
     if (tab.type === 'workspace') {
       navigate(`/workspaces/${tab.id}/view`);
     } else if (tab.type === 'prompt') {
-      navigate(`/workspaces/${workspaceId}/prompts/${tab.id}/view`);
+      navigate(`/workspaces/${tab.workspaceId}/prompts/${tab.id}/view`);
     } else if (tab.type === 'document') {
-      navigate(`/workspaces/${workspaceId}/documents/${tab.id}/view`);
+      navigate(`/workspaces/${tab.workspaceId}/documents/${tab.id}/view`);
     }
   };
 
-  const closeTabHandler = (tabId) => {
-    closeTab(tabId);
-    if (activeTab?.id === tabId) {
-      const remainingTabs = tabs.filter((tab) => tab.id !== tabId);
+  const closeTabHandler = (tab) => {
+    closeTab(tab);
+    if (activeTab?.id === tab.id) {
+      const remainingTabs = tabs.filter((item) => item.id !== tab.id);
       if (remainingTabs.length > 0) {
         const newActiveTab = remainingTabs[remainingTabs.length - 1];
         onTabClick(newActiveTab);
@@ -66,7 +78,7 @@ export default function AppNavTabs() {
               <button
                 type="button"
                 className="rounded px-1 text-xs text-slate-600 hover:bg-stone-200"
-                onClick={() => closeTabHandler(tab.id)}
+                onClick={() => closeTabHandler(tab)}
                 aria-label={`Close ${tab.name ?? tab.label} tab`}
               >
                 x

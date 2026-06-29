@@ -31,20 +31,12 @@ const upsertTab = (tabs, tab) => {
 };
 
 const normalizeTabs = (tabs, activeTabKey = null) => {
-  // Rule: workspace tab luôn đứng đầu tiên (nếu có)
-  const workspaceTabs = tabs.filter((t) => t.type === 'workspace');
-  const otherTabs = tabs.filter((t) => t.type !== 'workspace');
-
-  // giữ duy nhất tab workspace đầu tiên (tránh duplicated workspace tab)
-  const firstWorkspace = workspaceTabs[0];
-  const normalized = firstWorkspace ? [firstWorkspace, ...otherTabs] : otherTabs;
-
   let nextActiveKey = activeTabKey;
-  if (nextActiveKey && !normalized.some((t) => tabKey(t) === nextActiveKey)) {
-    nextActiveKey = normalized.length ? tabKey(normalized[0]) : null;
+  if (nextActiveKey && !tabs.some((t) => tabKey(t) === nextActiveKey)) {
+    nextActiveKey = tabs.length ? tabKey(tabs[0]) : null;
   }
 
-  return { tabs: normalized, activeTabKey: nextActiveKey };
+  return { tabs, activeTabKey: nextActiveKey };
 };
 
 const withTabsNormalized = (state, updater) => {
@@ -178,6 +170,7 @@ export const useWorkspaceStore = create((set) => ({
         nextTabs = upsertTab(nextTabs, {
           id: promptId,
           type: 'prompt',
+          workspaceId,
           name: p?.name || 'Prompt',
         });
         nextActiveKey = `prompt:${promptId}`;
@@ -186,6 +179,7 @@ export const useWorkspaceStore = create((set) => ({
         nextTabs = upsertTab(nextTabs, {
           id: documentId,
           type: 'document',
+          workspaceId,
           name: d?.name || 'Document',
         });
         nextActiveKey = `document:${documentId}`;
@@ -249,11 +243,41 @@ export const useWorkspaceStore = create((set) => ({
     try {
       const res = await workspacesClient.getWorkspace(id);
       const item = res?.data ?? res;
+      const promptItems = safeArray(item?.prompts);
+      const documentItems = safeArray(item?.documents);
+      const promptMap = promptItems.reduce((acc, prompt) => {
+        acc[prompt.id] = prompt;
+        return acc;
+      }, {});
+      const documentMap = documentItems.reduce((acc, document) => {
+        acc[document.id] = document;
+        return acc;
+      }, {});
 
       set((s) => {
-        const nextTabs = s.tabs.map((t) => (t.type === 'workspace' && t.id === id ? { ...t, name: item.name } : t));
+        const nextTabs = s.tabs.map((t) => {
+          if (t.type === 'workspace' && t.id === id) {
+            return { ...t, name: item.name };
+          }
+
+          if (t.type === 'prompt') {
+            const prompt = promptMap[t.id] || s.promptById[t.id];
+            return prompt ? { ...t, workspaceId: prompt.workspace || id, name: prompt.name } : t;
+          }
+
+          if (t.type === 'document') {
+            const document = documentMap[t.id] || s.documentById[t.id];
+            return document ? { ...t, workspaceId: document.workspace || id, name: document.name } : t;
+          }
+
+          return t;
+        });
         return {
           workspaceById: { ...s.workspaceById, [id]: item },
+          promptsByWorkspace: { ...s.promptsByWorkspace, [id]: promptItems },
+          promptById: { ...s.promptById, ...promptMap },
+          documentsByWorkspace: { ...s.documentsByWorkspace, [id]: documentItems },
+          documentById: { ...s.documentById, ...documentMap },
           workspaces: mergeById(s.workspaces, item),
           ...normalizeTabs(nextTabs, s.activeTabKey),
         };
