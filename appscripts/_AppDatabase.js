@@ -29,7 +29,7 @@ const AppDatabase = (function () {
       if (!sheet) {
         sheet = this.spreadsheet.insertSheet(name);
         // Add header row
-        sheet.appendRow(['id', 'isDeleted', 'data']);
+        sheet.appendRow(["id", "isDeleted", "data"]);
       }
       return new SheetTable(name, sheet);
     }
@@ -178,9 +178,9 @@ const AppDatabase = (function () {
         const effectiveUser = currentUser;
         records = records.filter(
           (record) =>
-            record.shareMode === 'public' ||
+            record.shareMode === "public" ||
             record.owner === effectiveUser ||
-            (record.shareMode === 'shared' &&
+            (record.shareMode === "shared" &&
               Array.isArray(record.shareWith) &&
               record.shareWith.includes(effectiveUser))
         );
@@ -195,10 +195,10 @@ const AppDatabase = (function () {
           const aValue = a[options.sortBy];
           const bValue = b[options.sortBy];
           if (aValue < bValue) {
-            return options.sortOrder === 'desc' ? 1 : -1;
+            return options.sortOrder === "desc" ? 1 : -1;
           }
           if (aValue > bValue) {
-            return options.sortOrder === 'desc' ? -1 : 1;
+            return options.sortOrder === "desc" ? -1 : 1;
           }
           return 0;
         });
@@ -283,8 +283,8 @@ const AppDatabase = (function () {
 
   return {
     Db: db,
-    Workspaces: db.table('workspaces'),
-    Prompts: db.table('prompts'),
-    Documents: db.table('documents'),
+    Workspaces: db.table("workspaces"),
+    Prompts: db.table("prompts"),
+    Documents: db.table("documents"),
   };
 })();

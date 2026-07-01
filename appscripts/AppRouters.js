@@ -1,7 +1,7 @@
 const AppRouters = [
   {
-    method: 'GET',
-    path: '/api/workspaces',
+    method: "GET",
+    path: "/api/workspaces",
     handler: () => {
       const workspaces = AppDatabase.Workspaces.findAll();
       const prompts = AppDatabase.Prompts.findAll();
@@ -15,8 +15,8 @@ const AppRouters = [
     },
   },
   {
-    method: 'GET',
-    path: '/api/workspaces/:id',
+    method: "GET",
+    path: "/api/workspaces/:id",
     handler: ({ params }) => {
       const workspace = AppDatabase.Workspaces.findById(params.id);
 
@@ -31,17 +31,17 @@ const AppRouters = [
     },
   },
   {
-    method: 'POST',
-    path: '/api/workspaces',
+    method: "POST",
+    path: "/api/workspaces",
     handler: ({ body }) => {
       if (!body?.name) {
-        throw new Error('Invalid payload for create-workspace');
+        throw new Error("Invalid payload for create-workspace");
       }
 
       const record = {
         name: String(body.name),
-        description: String(body.description || ''),
-        shareMode: body.shareMode || 'private',
+        description: String(body.description || ""),
+        shareMode: body.shareMode || "private",
         shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
       };
 
@@ -49,11 +49,11 @@ const AppRouters = [
     },
   },
   {
-    method: 'PUT',
-    path: '/api/workspaces/:id',
+    method: "PUT",
+    path: "/api/workspaces/:id",
     handler: ({ body }) => {
       if (!body?.id) {
-        throw new Error('Invalid payload for update-workspace');
+        throw new Error("Invalid payload for update-workspace");
       }
 
       const workspace = AppDatabase.Workspaces.findById(body.id);
@@ -61,19 +61,19 @@ const AppRouters = [
         throw new Error(`Workspace "${body.id}" not found`);
       }
       workspace.name = String(body.name || workspace.name);
-      workspace.description = String(body.description || '');
-      workspace.shareMode = body.shareMode || 'private';
+      workspace.description = String(body.description || "");
+      workspace.shareMode = body.shareMode || "private";
       workspace.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
       return AppDatabase.Workspaces.update(workspace);
     },
   },
   {
-    method: 'DELETE',
-    path: '/api/workspaces/:id',
+    method: "DELETE",
+    path: "/api/workspaces/:id",
     handler: ({ params }) => {
       if (!params?.id) {
-        throw new Error('Invalid payload for delete-workspace');
+        throw new Error("Invalid payload for delete-workspace");
       }
 
       const workspace = AppDatabase.Workspaces.findById(params.id);
@@ -89,24 +89,24 @@ const AppRouters = [
     },
   },
   {
-    method: 'GET',
-    path: '/api/workspaces/:workspaceId/prompts',
+    method: "GET",
+    path: "/api/workspaces/:workspaceId/prompts",
     handler: ({ params }) => {
       const prompts = AppDatabase.Prompts.find({ workspace: params.workspaceId });
       return prompts;
     },
   },
   {
-    method: 'GET',
-    path: '/api/workspaces/:workspaceId/documents',
+    method: "GET",
+    path: "/api/workspaces/:workspaceId/documents",
     handler: ({ params }) => {
       const documents = AppDatabase.Documents.find({ workspace: params.workspaceId });
       return documents;
     },
   },
   {
-    method: 'GET',
-    path: '/api/prompts/:id',
+    method: "GET",
+    path: "/api/prompts/:id",
     handler: ({ params }) => {
       const prompt = AppDatabase.Prompts.findById(params.id);
       if (!prompt) {
@@ -116,24 +116,24 @@ const AppRouters = [
     },
   },
   {
-    method: 'POST',
-    path: '/api/prompts',
+    method: "POST",
+    path: "/api/prompts",
     handler: ({ body }) => {
       if (!body?.name) {
-        throw new Error('Invalid payload for create-prompt');
+        throw new Error("Invalid payload for create-prompt");
       }
 
       if (!body?.workspace) {
-        throw new Error('Workspace is required for prompt');
+        throw new Error("Workspace is required for prompt");
       }
 
       const record = {
         id: String(body.id || `prompt-${Date.now()}`),
         name: String(body.name),
-        workspace: String(body.workspace || ''),
-        description: String(body.description || ''),
-        content: String(body.content || ''),
-        shareMode: body.shareMode || 'private',
+        workspace: String(body.workspace || ""),
+        description: String(body.description || ""),
+        content: String(body.content || ""),
+        shareMode: body.shareMode || "private",
         shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
       };
 
@@ -141,11 +141,11 @@ const AppRouters = [
     },
   },
   {
-    method: 'PUT',
-    path: '/api/prompts/:id',
+    method: "PUT",
+    path: "/api/prompts/:id",
     handler: ({ params, body }) => {
       if (!body?.name) {
-        throw new Error('Invalid payload for update-prompt');
+        throw new Error("Invalid payload for update-prompt");
       }
 
       const prompt = AppDatabase.Prompts.findById(params.id);
@@ -154,18 +154,18 @@ const AppRouters = [
       }
 
       prompt.name = String(body.name || prompt.name);
-      prompt.workspace = String(body.workspace || prompt.workspace || '');
-      prompt.description = String(body.description || '');
-      prompt.content = String(body.content || '');
-      prompt.shareMode = body.shareMode || 'private';
+      prompt.workspace = String(body.workspace || prompt.workspace || "");
+      prompt.description = String(body.description || "");
+      prompt.content = String(body.content || "");
+      prompt.shareMode = body.shareMode || "private";
       prompt.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
       return AppDatabase.Prompts.update(prompt);
     },
   },
   {
-    method: 'DELETE',
-    path: '/api/prompts/:id',
+    method: "DELETE",
+    path: "/api/prompts/:id",
     handler: ({ params }) => {
       const prompt = AppDatabase.Prompts.findById(params.id);
       if (!prompt) {
@@ -177,13 +177,13 @@ const AppRouters = [
     },
   },
   {
-    method: 'GET',
-    path: '/api/documents',
+    method: "GET",
+    path: "/api/documents",
     handler: () => AppDatabase.Documents.findAll(),
   },
   {
-    method: 'GET',
-    path: '/api/documents/:id',
+    method: "GET",
+    path: "/api/documents/:id",
     handler: ({ params }) => {
       const document = AppDatabase.Documents.findById(params.id);
       if (!document) {
@@ -193,14 +193,14 @@ const AppRouters = [
     },
   },
   {
-    method: 'GET',
-    path: '/api/preasheet/:preasheetId',
+    method: "GET",
+    path: "/api/preasheet/:preasheetId",
     handler: ({ params }) => {
       const document = AppDatabase.Documents.getAll().find((doc) => doc.preasheetId === params.preasheetId);
       const sheets = document?.contentJSON?.sheets;
       const sheetNames = Array.isArray(sheets)
-        ? sheets.map((sheet) => String(sheet?.name || '').trim()).filter(Boolean)
-        : ['Overview', 'Details'];
+        ? sheets.map((sheet) => String(sheet?.name || "").trim()).filter(Boolean)
+        : ["Overview", "Details"];
 
       return {
         preasheetId: String(params.preasheetId),
@@ -210,16 +210,16 @@ const AppRouters = [
     },
   },
   {
-    method: 'POST',
-    path: '/api/documents',
+    method: "POST",
+    path: "/api/documents",
     handler: ({ body }) => {
       if (!body?.name) {
-        throw new Error('Invalid payload for create-document');
+        throw new Error("Invalid payload for create-document");
       }
 
-      const type = body.type || 'Spreadsheets';
-      if (type === 'Spreadsheets' && !body?.preasheetId) {
-        throw new Error('Spreadsheet ID is required for Spreadsheets type');
+      const type = body.type || "Spreadsheets";
+      if (type === "Spreadsheets" && !body?.preasheetId) {
+        throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
       if (AppDatabase.Documents.getById(body.id)) {
@@ -230,19 +230,19 @@ const AppRouters = [
         id: String(body.id),
         name: String(body.name),
         type,
-        workspace: String(body.workspace || ''),
-        fileName: String(body.fileName || ''),
-        preasheetId: String(body.preasheetId || ''),
-        description: String(body.description || ''),
-        contentMarkdown: String(body.contentMarkdown || ''),
+        workspace: String(body.workspace || ""),
+        fileName: String(body.fileName || ""),
+        preasheetId: String(body.preasheetId || ""),
+        description: String(body.description || ""),
+        contentMarkdown: String(body.contentMarkdown || ""),
         contentJSON: body.contentJSON || null,
-        contentHTML: String(body.contentHTML || ''),
+        contentHTML: String(body.contentHTML || ""),
         syncOptions: body.syncOptions || {
           includeEmptyRows: false,
           headerRow: 1,
           sheets: [],
         },
-        shareMode: body.shareMode || 'private',
+        shareMode: body.shareMode || "private",
         shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
       };
 
@@ -250,16 +250,16 @@ const AppRouters = [
     },
   },
   {
-    method: 'PUT',
-    path: '/api/documents/:id',
+    method: "PUT",
+    path: "/api/documents/:id",
     handler: ({ params, body }) => {
       if (!body?.name) {
-        throw new Error('Invalid payload for update-document');
+        throw new Error("Invalid payload for update-document");
       }
 
-      const type = body.type || 'Spreadsheets';
-      if (type === 'Spreadsheets' && !body?.preasheetId) {
-        throw new Error('Spreadsheet ID is required for Spreadsheets type');
+      const type = body.type || "Spreadsheets";
+      if (type === "Spreadsheets" && !body?.preasheetId) {
+        throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
       const document = AppDatabase.Documents.findById(params.id);
@@ -268,27 +268,27 @@ const AppRouters = [
       }
 
       document.type = type;
-      document.workspace = String(body.workspace || '');
-      document.fileName = String(body.fileName || '');
-      document.preasheetId = String(body.preasheetId || '');
-      document.description = String(body.description || '');
-      document.contentMarkdown = String(body.contentMarkdown || '');
+      document.workspace = String(body.workspace || "");
+      document.fileName = String(body.fileName || "");
+      document.preasheetId = String(body.preasheetId || "");
+      document.description = String(body.description || "");
+      document.contentMarkdown = String(body.contentMarkdown || "");
       document.contentJSON = body.contentJSON || null;
-      document.contentHTML = String(body.contentHTML || '');
+      document.contentHTML = String(body.contentHTML || "");
       document.syncOptions = body.syncOptions || {
         includeEmptyRows: false,
         headerRow: 1,
         sheets: [],
       };
-      document.shareMode = body.shareMode || 'private';
+      document.shareMode = body.shareMode || "private";
       document.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
       return AppDatabase.Documents.update(document);
     },
   },
   {
-    method: 'DELETE',
-    path: '/api/documents/:id',
+    method: "DELETE",
+    path: "/api/documents/:id",
     handler: ({ params }) => {
       const document = AppDatabase.Documents.findById(params.id);
       if (!document) {
@@ -300,21 +300,21 @@ const AppRouters = [
     },
   },
   {
-    method: 'POST',
-    path: '/api/documents/:id/sync',
+    method: "POST",
+    path: "/api/documents/:id/sync",
     handler: ({ params, body }) => {
       const document = AppDatabase.Documents.findById(params.id);
       if (!document) {
         throw new Error(`Document "${params.id}" not found`);
       }
 
-      if ((document.type || 'Spreadsheets') !== 'Spreadsheets') {
-        throw new Error('Sync is only available for Spreadsheets documents');
+      if ((document.type || "Spreadsheets") !== "Spreadsheets") {
+        throw new Error("Sync is only available for Spreadsheets documents");
       }
 
       const options = body || {};
       const sheetNames =
-        Array.isArray(options.sheets) && options.sheets.length ? options.sheets : ['Overview', 'Details'];
+        Array.isArray(options.sheets) && options.sheets.length ? options.sheets : ["Overview", "Details"];
 
       document.syncOptions = {
         includeEmptyRows: options.includeEmptyRows !== false,
@@ -324,9 +324,9 @@ const AppRouters = [
 
       document.contentMarkdown = [
         `# ${document.fileName || document.name}`,
-        '',
+        "",
         ...sheetNames.map((sheetName) => `## ${sheetName}`),
-      ].join('\n');
+      ].join("\n");
 
       document.contentJSON = {
         name: document.fileName || document.name,
@@ -340,7 +340,7 @@ const AppRouters = [
           name: sheetName,
           data: [
             {
-              Example: 'Mock synced data',
+              Example: "Mock synced data",
               HeaderRow: options.headerRow || 1,
             },
           ],

@@ -1,6 +1,6 @@
-import { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
-import { useWorkspaceStore } from '../stores/workspaceStore';
+import { useEffect, useMemo } from "react";
+import { useParams } from "react-router-dom";
+import { useWorkspaceStore } from "../stores/workspaceStore";
 
 export function useWorkspaces() {
   const workspaces = useWorkspaceStore((s) => s.workspaces);
@@ -104,11 +104,11 @@ export function useWorkspace(explicitWorkspaceId) {
   const documents = composedWorkspace?.documents ?? [];
 
   const error = workspaceId
-    ? errorByKey[`updateWorkspace:${workspaceId}`] ??
+    ? (errorByKey[`updateWorkspace:${workspaceId}`] ??
       errorByKey[`deleteWorkspace:${workspaceId}`] ??
       errorByKey[`fetchWorkspace:${workspaceId}`] ??
       errorByKey[`fetchPrompts:${workspaceId}`] ??
-      errorByKey[`fetchDocuments:${workspaceId}`]
+      errorByKey[`fetchDocuments:${workspaceId}`])
     : undefined;
 
   const isLoading = isLoadingWorkspace || isLoadingPrompts || isLoadingDocuments;
@@ -155,8 +155,7 @@ export function useWorkspace(explicitWorkspaceId) {
           })
         : undefined,
     updatePrompt,
-    deletePrompt: (id, targetWorkspaceId = workspaceId) =>
-      id ? deletePrompt(id, targetWorkspaceId) : undefined,
+    deletePrompt: (id, targetWorkspaceId = workspaceId) => (id ? deletePrompt(id, targetWorkspaceId) : undefined),
     refetchDocuments: () => workspaceId && fetchDocuments(workspaceId),
     createDocument: (payload) =>
       workspaceId
@@ -167,8 +166,7 @@ export function useWorkspace(explicitWorkspaceId) {
           })
         : undefined,
     updateDocument,
-    deleteDocument: (id, targetWorkspaceId = workspaceId) =>
-      id ? deleteDocument(id, targetWorkspaceId) : undefined,
+    deleteDocument: (id, targetWorkspaceId = workspaceId) => (id ? deleteDocument(id, targetWorkspaceId) : undefined),
     addTab,
     openTab: addTab,
     closeTab: removeTab,

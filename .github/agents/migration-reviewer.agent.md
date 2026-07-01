@@ -53,5 +53,5 @@ Your job is to inspect migrated or legacy code and identify the smallest safe ch
 - Keep navigation aligned with [src/App.jsx](src/App.jsx) and route-driven modal behavior.
 - Keep transport logic in [src/lib/gasApi.js](src/lib/gasApi.js) and thin resource methods in [src/lib/workspacesClient.js](src/lib/workspacesClient.js).
 - Keep shared record data in Zustand under [src/stores](src/stores), not scattered across component-local caches.
-- When backend payload or route shape is involved, verify against [appscripts/AppRouters.js](appscripts/AppRouters.js) and [appscripts/_GasServer.js](appscripts/_GasServer.js).
+- When backend payload or route shape is involved, verify against [appscripts/AppRouters.js](appscripts/AppRouters.js) and [appscripts/\_GasServer.js](appscripts/_GasServer.js).
 - Prefer focused follow-up changes that can be validated with [tests/phase-gates/phase1.store-migration.spec.js](tests/phase-gates/phase1.store-migration.spec.js) or [tests/phase-gates/phase2.crud-navigation.spec.js](tests/phase-gates/phase2.crud-navigation.spec.js) when relevant.

@@ -24,7 +24,7 @@ export default function Button({
     buttonClassByVariant[variant] || buttonClassByVariant.secondary,
     size === "md" ? "" : buttonSizeClass[size],
     fullWidth ? "w-full" : "",
-    className,
+    className
   );
 
   return (

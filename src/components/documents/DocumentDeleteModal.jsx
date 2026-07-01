@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import Modal from '../shared/Modal';
-import Button from '../shared/Button';
-import { useWorkspace } from '../../hooks/useWorkspaces';
+import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import Modal from "../shared/Modal";
+import Button from "../shared/Button";
+import { useWorkspace } from "../../hooks/useWorkspaces";
 
 export default function DocumentDeleteModal() {
   const navigate = useNavigate();
@@ -19,17 +19,19 @@ export default function DocumentDeleteModal() {
 
   return (
     <Modal isOpen={true} title="Delete Document" onClose={() => navigate(-1)}>
-      <p className="mt-2 text-sm text-slate-600">
-        Delete <strong>{document?.name}</strong>? This action cannot be undone.
-      </p>
-      <div className="mt-4 flex justify-end gap-2">
-        <Button type="button" onClick={() => navigate(-1)} variant="secondary">
-          Cancel
-        </Button>
-        <Button type="button" variant="danger" onClick={handleDelete} disabled={isLoading}>
-          Delete
-        </Button>
-      </div>
+      <Modal.Content>
+        <p className="mt-2 text-sm text-slate-600">
+          Delete <strong>{document?.name}</strong>? This action cannot be undone.
+        </p>
+        <div className="mt-4 flex justify-end gap-2">
+          <Button type="button" onClick={() => navigate(-1)} variant="secondary">
+            Cancel
+          </Button>
+          <Button type="button" variant="danger" onClick={handleDelete} disabled={isLoading}>
+            Delete
+          </Button>
+        </div>
+      </Modal.Content>
     </Modal>
   );
 }

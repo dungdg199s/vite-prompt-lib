@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 const uid = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
@@ -26,11 +26,11 @@ export const useToastStore = create((set, get) => ({
 
   clear: () => set({ toasts: [] }),
 
-  success: (message, duration = 2500) => get().push({ type: 'success', message, duration }),
+  success: (message, duration = 2500) => get().push({ type: "success", message, duration }),
 
-  error: (message, duration = 4000) => get().push({ type: 'error', message, duration }),
+  error: (message, duration = 4000) => get().push({ type: "error", message, duration }),
 
-  info: (message, duration = 3000) => get().push({ type: 'info', message, duration }),
+  info: (message, duration = 3000) => get().push({ type: "info", message, duration }),
 
-  warning: (message, duration = 3000) => get().push({ type: 'warning', message, duration }),
+  warning: (message, duration = 3000) => get().push({ type: "warning", message, duration }),
 }));

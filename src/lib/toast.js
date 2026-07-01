@@ -32,10 +32,7 @@ export const useCrudToast = (entityLabel) => {
   };
 
   const error = (err, fallbackMessage) => {
-    const message = getErrorMessage(
-      err,
-      fallbackMessage || `Cannot process ${label.toLowerCase()}`,
-    );
+    const message = getErrorMessage(err, fallbackMessage || `Cannot process ${label.toLowerCase()}`);
     showToast({ type: "error", message });
     return message;
   };
@@ -48,4 +45,3 @@ export const useCrudToast = (entityLabel) => {
     error,
   };
 };
-

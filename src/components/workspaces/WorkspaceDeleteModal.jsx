@@ -7,7 +7,7 @@ export default function WorkspaceDeleteModal() {
   const navigate = useNavigate();
   const { workspaceId } = useParams();
   const { workspace: form = {}, isLoading } = useWorkspace(workspaceId);
-  
+
   const { deleteWorkspace } = useWorkspaces();
   return (
     <Modal isOpen={true} title="Delete Workspace" onClose={() => navigate(-1)}>
@@ -24,7 +24,7 @@ export default function WorkspaceDeleteModal() {
           onClick={() =>
             deleteWorkspace(workspaceId).then((deleted) => {
               if (deleted) {
-                navigate('/workspaces');
+                navigate("/workspaces");
               }
             })
           }

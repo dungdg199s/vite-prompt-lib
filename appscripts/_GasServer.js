@@ -3,7 +3,7 @@ const GasServer = (function () {
     constructor(routers) {
       this.routes = routers || [];
     }
-   
+
     invoke(method, requestUrl, payload) {
       const route = this.routes.find((route) => {
         if (route.method !== method) {
@@ -51,14 +51,14 @@ const GasServer = (function () {
      * @returns
      */
     _splitUrl(rawUrl) {
-      const normalizedUrl = String(rawUrl || '');
-      const hashIndex = normalizedUrl.indexOf('#');
+      const normalizedUrl = String(rawUrl || "");
+      const hashIndex = normalizedUrl.indexOf("#");
       const urlWithoutHash = hashIndex >= 0 ? normalizedUrl.slice(0, hashIndex) : normalizedUrl;
-      const queryStartIndex = urlWithoutHash.indexOf('?');
+      const queryStartIndex = urlWithoutHash.indexOf("?");
 
       return {
         pathname: queryStartIndex >= 0 ? urlWithoutHash.slice(0, queryStartIndex) : urlWithoutHash,
-        search: queryStartIndex >= 0 ? urlWithoutHash.slice(queryStartIndex + 1) : '',
+        search: queryStartIndex >= 0 ? urlWithoutHash.slice(queryStartIndex + 1) : "",
       };
     }
 
@@ -68,14 +68,14 @@ const GasServer = (function () {
       }
 
       const queryParams = {};
-      const pairs = String(search).split('&').filter(Boolean);
+      const pairs = String(search).split("&").filter(Boolean);
 
       for (const pair of pairs) {
-        const equalsIndex = pair.indexOf('=');
+        const equalsIndex = pair.indexOf("=");
         const rawKey = equalsIndex >= 0 ? pair.slice(0, equalsIndex) : pair;
-        const rawValue = equalsIndex >= 0 ? pair.slice(equalsIndex + 1) : '';
-        const decodedKey = this._safeDecode(rawKey.replace(/\+/g, ' '));
-        const decodedValue = this._safeDecode(rawValue.replace(/\+/g, ' '));
+        const rawValue = equalsIndex >= 0 ? pair.slice(equalsIndex + 1) : "";
+        const decodedKey = this._safeDecode(rawKey.replace(/\+/g, " "));
+        const decodedValue = this._safeDecode(rawValue.replace(/\+/g, " "));
         queryParams[decodedKey] = decodedValue;
       }
 
@@ -91,8 +91,8 @@ const GasServer = (function () {
     }
 
     _matchPath(pathPattern, requestPath) {
-      const patternSegments = String(pathPattern).split('/').filter(Boolean);
-      const requestSegments = String(requestPath).split('/').filter(Boolean);
+      const patternSegments = String(pathPattern).split("/").filter(Boolean);
+      const requestSegments = String(requestPath).split("/").filter(Boolean);
 
       if (patternSegments.length !== requestSegments.length) {
         return null;
@@ -104,7 +104,7 @@ const GasServer = (function () {
         const patternSegment = patternSegments[i];
         const requestSegment = requestSegments[i];
 
-        if (patternSegment.startsWith(':')) {
+        if (patternSegment.startsWith(":")) {
           params[patternSegment.slice(1)] = this._safeDecode(requestSegment);
           continue;
         }

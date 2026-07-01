@@ -1,20 +1,20 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-require('dotenv').config({ path: path.resolve(__dirname, '.env') });
+require("dotenv").config({ path: path.resolve(__dirname, ".env") });
 
-const outputCodeFile = path.resolve(__dirname, 'dist/Code.js');
-const appScriptJson = path.resolve(__dirname, 'appsscript.json');
-const outputAppScriptJson = path.resolve(__dirname, 'dist/appsscript.json');
+const outputCodeFile = path.resolve(__dirname, "dist/Code.js");
+const appScriptJson = path.resolve(__dirname, "appsscript.json");
+const outputAppScriptJson = path.resolve(__dirname, "dist/appsscript.json");
 
-const files = fs.readdirSync(path.resolve(__dirname, 'appscripts'));
+const files = fs.readdirSync(path.resolve(__dirname, "appscripts"));
 
 for (const file of files) {
-  const filePath = path.resolve(__dirname, 'appscripts', file);
-  const outputFilePath = path.resolve(__dirname, 'dist', file);
+  const filePath = path.resolve(__dirname, "appscripts", file);
+  const outputFilePath = path.resolve(__dirname, "dist", file);
 
-  if (fs.statSync(filePath).isFile() && path.extname(file) === '.js') {
-    const code = fs.readFileSync(filePath, 'utf-8');
+  if (fs.statSync(filePath).isFile() && path.extname(file) === ".js") {
+    const code = fs.readFileSync(filePath, "utf-8");
     const outputCode = code.replace(/process\.env\.([A-Z0-9_]+)/g, (match, p1) => {
       const envValue = process.env[p1];
       if (envValue === undefined) {

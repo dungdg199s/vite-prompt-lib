@@ -1,13 +1,13 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useWorkspaces } from './hooks/useWorkspaces';
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useWorkspaces } from "./hooks/useWorkspaces";
 
-const PAGES = [{ name: 'Workspaces', path: '/workspaces' }];
+const PAGES = [{ name: "Workspaces", path: "/workspaces" }];
 
 const SEARCH_SCOPES = {
-  ALL: 'all',
-  PROMPTS: 'prompts',
-  DOCUMENTS: 'documents',
+  ALL: "all",
+  PROMPTS: "prompts",
+  DOCUMENTS: "documents",
 };
 
 function AppHeader() {
@@ -42,9 +42,9 @@ function AppHeader() {
   }, [workspaces]);
 
   const [searchScope, setSearchScope] = useState(SEARCH_SCOPES.ALL);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
-  const activePage = 'Workspaces';
+  const activePage = "Workspaces";
   const normalizedQuery = searchQuery.trim().toLowerCase();
 
   const filteredPrompts = useMemo(() => {
@@ -54,9 +54,9 @@ function AppHeader() {
 
     return prompts
       .filter((prompt) => {
-        const name = String(prompt?.name || '').toLowerCase();
-        const description = String(prompt?.description || '').toLowerCase();
-        const workspace = String(prompt?.workspaceName || '').toLowerCase();
+        const name = String(prompt?.name || "").toLowerCase();
+        const description = String(prompt?.description || "").toLowerCase();
+        const workspace = String(prompt?.workspaceName || "").toLowerCase();
         return (
           name.includes(normalizedQuery) || description.includes(normalizedQuery) || workspace.includes(normalizedQuery)
         );
@@ -71,9 +71,9 @@ function AppHeader() {
 
     return documents
       .filter((document) => {
-        const name = String(document?.name || '').toLowerCase();
-        const description = String(document?.description || '').toLowerCase();
-        const workspace = String(document?.workspaceName || '').toLowerCase();
+        const name = String(document?.name || "").toLowerCase();
+        const description = String(document?.description || "").toLowerCase();
+        const workspace = String(document?.workspaceName || "").toLowerCase();
         return (
           name.includes(normalizedQuery) || description.includes(normalizedQuery) || workspace.includes(normalizedQuery)
         );
@@ -82,24 +82,24 @@ function AppHeader() {
   }, [documents, normalizedQuery]);
 
   const goToPrompt = (prompt) => {
-    const workspaceId = String(prompt?.workspaceId || '').trim();
-    const promptId = String(prompt?.id || '').trim();
+    const workspaceId = String(prompt?.workspaceId || "").trim();
+    const promptId = String(prompt?.id || "").trim();
     if (!workspaceId || !promptId) {
       return;
     }
 
-    setSearchQuery('');
+    setSearchQuery("");
     navigate(`/workspaces/${encodeURIComponent(workspaceId)}/prompts/${encodeURIComponent(promptId)}/view`);
   };
 
   const goToDocument = (document) => {
-    const workspaceId = String(document?.workspaceId || '').trim();
-    const documentId = String(document?.id || '').trim();
+    const workspaceId = String(document?.workspaceId || "").trim();
+    const documentId = String(document?.id || "").trim();
     if (!workspaceId || !documentId) {
       return;
     }
 
-    setSearchQuery('');
+    setSearchQuery("");
     navigate(`/workspaces/${encodeURIComponent(workspaceId)}/documents/${encodeURIComponent(documentId)}/view`);
   };
 
@@ -121,8 +121,8 @@ function AppHeader() {
               }}
               disabled={isLoading}
               className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${
-                activePage === page.name ? 'bg-teal-700 text-white shadow-sm' : 'text-slate-700 hover:bg-stone-200'
-              } ${isLoading ? 'cursor-not-allowed opacity-50' : ''}`}
+                activePage === page.name ? "bg-teal-700 text-white shadow-sm" : "text-slate-700 hover:bg-stone-200"
+              } ${isLoading ? "cursor-not-allowed opacity-50" : ""}`}
             >
               {page.name}
             </button>
@@ -166,7 +166,7 @@ function AppHeader() {
                         className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-stone-100"
                       >
                         <span className="truncate font-medium text-slate-800">{prompt.name}</span>
-                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{prompt.workspaceName || '-'}</span>
+                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{prompt.workspaceName || "-"}</span>
                       </button>
                     ))}
                   </div>
@@ -185,7 +185,7 @@ function AppHeader() {
                         className="flex items-center justify-between rounded-md px-2 py-1.5 text-left text-sm transition hover:bg-stone-100"
                       >
                         <span className="truncate font-medium text-slate-800">{document.name}</span>
-                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{document.workspaceName || '-'}</span>
+                        <span className="ml-3 shrink-0 text-xs text-slate-500">@{document.workspaceName || "-"}</span>
                       </button>
                     ))}
                   </div>

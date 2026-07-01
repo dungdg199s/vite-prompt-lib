@@ -1,10 +1,10 @@
-import { create } from 'zustand';
-import { workspacesClient } from '../lib/workspacesClient';
-import { useToastStore } from './toastStore';
+import { create } from "zustand";
+import { workspacesClient } from "../lib/workspacesClient";
+import { useToastStore } from "./toastStore";
 
 const toMessage = (err) => {
   if (err instanceof Error) return err.message;
-  return 'Something went wrong';
+  return "Something went wrong";
 };
 
 const safeArray = (val) => (Array.isArray(val) ? val : []);
@@ -101,14 +101,14 @@ export const useWorkspaceStore = create((set) => ({
 
   setActiveTab: (tabOrKey) =>
     set((s) => {
-      const key = typeof tabOrKey === 'string' ? tabOrKey : tabKey(tabOrKey);
+      const key = typeof tabOrKey === "string" ? tabOrKey : tabKey(tabOrKey);
       const exists = s.tabs.some((t) => tabKey(t) === key);
       return { activeTabKey: exists ? key : s.activeTabKey };
     }),
 
   closeTab: (tabOrKey) =>
     set((s) => {
-      const key = typeof tabOrKey === 'string' ? tabOrKey : tabKey(tabOrKey);
+      const key = typeof tabOrKey === "string" ? tabOrKey : tabKey(tabOrKey);
       const idx = s.tabs.findIndex((t) => tabKey(t) === key);
       if (idx === -1) return s;
 
@@ -130,7 +130,7 @@ export const useWorkspaceStore = create((set) => ({
 
   renameTab: (tabOrKey, name) =>
     set((s) => {
-      const key = typeof tabOrKey === 'string' ? tabOrKey : tabKey(tabOrKey);
+      const key = typeof tabOrKey === "string" ? tabOrKey : tabKey(tabOrKey);
       const nextTabs = s.tabs.map((t) => (tabKey(t) === key ? { ...t, name } : t));
       return withTabsNormalized(s, () => ({
         tabs: nextTabs,
@@ -160,8 +160,8 @@ export const useWorkspaceStore = create((set) => ({
       const ws = s.workspaceById[workspaceId];
       const workspaceTab = {
         id: workspaceId,
-        type: 'workspace',
-        name: ws?.name || 'Workspace',
+        type: "workspace",
+        name: ws?.name || "Workspace",
       };
       nextTabs = upsertTab(nextTabs, workspaceTab);
 
@@ -169,18 +169,18 @@ export const useWorkspaceStore = create((set) => ({
         const p = s.promptById[promptId];
         nextTabs = upsertTab(nextTabs, {
           id: promptId,
-          type: 'prompt',
+          type: "prompt",
           workspaceId,
-          name: p?.name || 'Prompt',
+          name: p?.name || "Prompt",
         });
         nextActiveKey = `prompt:${promptId}`;
       } else if (documentId) {
         const d = s.documentById[documentId];
         nextTabs = upsertTab(nextTabs, {
           id: documentId,
-          type: 'document',
+          type: "document",
           workspaceId,
-          name: d?.name || 'Document',
+          name: d?.name || "Document",
         });
         nextActiveKey = `document:${documentId}`;
       } else {
@@ -213,7 +213,7 @@ export const useWorkspaceStore = create((set) => ({
         workspaces: items,
         workspaceById: { ...s.workspaceById, ...byId },
         tabs: s.tabs.map((t) => {
-          if (t.type !== 'workspace') return t;
+          if (t.type !== "workspace") return t;
           const ws = byId[t.id] || s.workspaceById[t.id];
           return ws ? { ...t, name: ws.name } : t;
         }),
@@ -256,16 +256,16 @@ export const useWorkspaceStore = create((set) => ({
 
       set((s) => {
         const nextTabs = s.tabs.map((t) => {
-          if (t.type === 'workspace' && t.id === id) {
+          if (t.type === "workspace" && t.id === id) {
             return { ...t, name: item.name };
           }
 
-          if (t.type === 'prompt') {
+          if (t.type === "prompt") {
             const prompt = promptMap[t.id] || s.promptById[t.id];
             return prompt ? { ...t, workspaceId: prompt.workspace || id, name: prompt.name } : t;
           }
 
-          if (t.type === 'document') {
+          if (t.type === "document") {
             const document = documentMap[t.id] || s.documentById[t.id];
             return document ? { ...t, workspaceId: document.workspace || id, name: document.name } : t;
           }
@@ -345,7 +345,7 @@ export const useWorkspaceStore = create((set) => ({
       const updated = res?.data ?? res;
 
       set((s) => {
-        const nextTabs = s.tabs.map((t) => (t.type === 'workspace' && t.id === id ? { ...t, name: updated.name } : t));
+        const nextTabs = s.tabs.map((t) => (t.type === "workspace" && t.id === id ? { ...t, name: updated.name } : t));
         return {
           workspaceById: { ...s.workspaceById, [id]: updated },
           workspaces: mergeById(s.workspaces, updated),
@@ -393,7 +393,7 @@ export const useWorkspaceStore = create((set) => ({
         delete nextDocs[id];
 
         const nextTabs = s.tabs.filter((t) => {
-          if (t.type === 'workspace' && t.id === id) return false;
+          if (t.type === "workspace" && t.id === id) return false;
           return true;
         });
 
@@ -445,7 +445,7 @@ export const useWorkspaceStore = create((set) => ({
 
       set((s) => {
         const nextTabs = s.tabs.map((t) => {
-          if (t.type !== 'prompt') return t;
+          if (t.type !== "prompt") return t;
           const latest = map[t.id] || s.promptById[t.id];
           return latest ? { ...t, name: latest.name } : t;
         });
@@ -483,7 +483,7 @@ export const useWorkspaceStore = create((set) => ({
       const item = res?.data ?? res;
 
       set((s) => {
-        const nextTabs = s.tabs.map((t) => (t.type === 'prompt' && t.id === id ? { ...t, name: item.name } : t));
+        const nextTabs = s.tabs.map((t) => (t.type === "prompt" && t.id === id ? { ...t, name: item.name } : t));
         return {
           promptById: { ...s.promptById, [id]: item },
           ...normalizeTabs(nextTabs, s.activeTabKey),
@@ -557,7 +557,7 @@ export const useWorkspaceStore = create((set) => ({
           );
         }
 
-        const nextTabs = s.tabs.map((t) => (t.type === 'prompt' && t.id === id ? { ...t, name: updated.name } : t));
+        const nextTabs = s.tabs.map((t) => (t.type === "prompt" && t.id === id ? { ...t, name: updated.name } : t));
 
         return {
           promptById: { ...s.promptById, [id]: updated },
@@ -603,7 +603,7 @@ export const useWorkspaceStore = create((set) => ({
           }
         }
 
-        const nextTabs = s.tabs.filter((t) => !(t.type === 'prompt' && t.id === id));
+        const nextTabs = s.tabs.filter((t) => !(t.type === "prompt" && t.id === id));
 
         return {
           promptById: nextPromptById,
@@ -648,7 +648,7 @@ export const useWorkspaceStore = create((set) => ({
 
       set((s) => {
         const nextTabs = s.tabs.map((t) => {
-          if (t.type !== 'document') return t;
+          if (t.type !== "document") return t;
           const latest = map[t.id] || s.documentById[t.id];
           return latest ? { ...t, name: latest.name } : t;
         });
@@ -689,7 +689,7 @@ export const useWorkspaceStore = create((set) => ({
       const item = res?.data ?? res;
 
       set((s) => {
-        const nextTabs = s.tabs.map((t) => (t.type === 'document' && t.id === id ? { ...t, name: item.name } : t));
+        const nextTabs = s.tabs.map((t) => (t.type === "document" && t.id === id ? { ...t, name: item.name } : t));
         return {
           documentById: { ...s.documentById, [id]: item },
           ...normalizeTabs(nextTabs, s.activeTabKey),
@@ -769,7 +769,7 @@ export const useWorkspaceStore = create((set) => ({
           );
         }
 
-        const nextTabs = s.tabs.map((t) => (t.type === 'document' && t.id === id ? { ...t, name: updated.name } : t));
+        const nextTabs = s.tabs.map((t) => (t.type === "document" && t.id === id ? { ...t, name: updated.name } : t));
 
         return {
           documentById: { ...s.documentById, [id]: updated },
@@ -821,7 +821,7 @@ export const useWorkspaceStore = create((set) => ({
           }
         }
 
-        const nextTabs = s.tabs.filter((t) => !(t.type === 'document' && t.id === id));
+        const nextTabs = s.tabs.filter((t) => !(t.type === "document" && t.id === id));
 
         return {
           documentById: nextDocumentById,

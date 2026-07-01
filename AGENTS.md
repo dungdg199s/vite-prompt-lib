@@ -34,9 +34,9 @@ Purpose: help coding agents become productive quickly in this repository.
 - Zustand stores: [src/stores](src/stores)
 - State tree utilities: [src/state](src/state)
 - GAS backend source: [appscripts](appscripts)
-- GAS router/runtime entry: [appscripts/_GasServer.js](appscripts/_GasServer.js), [appscripts/Code.js](appscripts/Code.js)
+- GAS router/runtime entry: [appscripts/\_GasServer.js](appscripts/_GasServer.js), [appscripts/Code.js](appscripts/Code.js)
 - GAS route definitions: [appscripts/AppRouters.js](appscripts/AppRouters.js)
-- Data access and document helpers: [appscripts/_AppDatabase.js](appscripts/_AppDatabase.js), [appscripts/_DocumentService.js](appscripts/_DocumentService.js)
+- Data access and document helpers: [appscripts/\_AppDatabase.js](appscripts/_AppDatabase.js), [appscripts/\_DocumentService.js](appscripts/_DocumentService.js)
 - E2E tests: [tests/phase-gates](tests/phase-gates)
 
 ## Architecture Notes
@@ -44,7 +44,7 @@ Purpose: help coding agents become productive quickly in this repository.
 - Frontend navigation is router-driven. Screen changes should follow the route tree in [src/App.jsx](src/App.jsx); modal flows use `location.state.backgroundLocation` instead of ad hoc local toggles.
 - Frontend calls [src/lib/gasApi.js](src/lib/gasApi.js), which bridges to Apps Script through `window.google.script.run.invoke(method, url, payload)`.
 - Resource clients in [src/lib/workspacesClient.js](src/lib/workspacesClient.js) should stay thin and map directly to backend endpoints.
-- Backend request routing is handled by [appscripts/_GasServer.js](appscripts/_GasServer.js) and route declarations in [appscripts/AppRouters.js](appscripts/AppRouters.js), including dynamic params like `/api/workspaces/:id`.
+- Backend request routing is handled by [appscripts/\_GasServer.js](appscripts/_GasServer.js) and route declarations in [appscripts/AppRouters.js](appscripts/AppRouters.js), including dynamic params like `/api/workspaces/:id`.
 - Shared record data belongs in Zustand stores under [src/stores](src/stores). Local form state should stay inside the owning component or modal unless multiple screens truly share it.
 - State tree helpers in [src/state/treeState.js](src/state/treeState.js) support UI state shaping; use them instead of inventing new parallel tree utilities.
 
@@ -71,7 +71,7 @@ Purpose: help coding agents become productive quickly in this repository.
 
 - Cache only GET responses in [src/lib/gasApi.js](src/lib/gasApi.js).
 - Do not cache mutation responses (POST/PUT/DELETE); clear/invalidate relevant caches after mutations.
-- Keep the method, URL, and payload contract aligned between [src/lib/gasApi.js](src/lib/gasApi.js) and [appscripts/_GasServer.js](appscripts/_GasServer.js).
+- Keep the method, URL, and payload contract aligned between [src/lib/gasApi.js](src/lib/gasApi.js) and [appscripts/\_GasServer.js](appscripts/_GasServer.js).
 - Ensure GAS route definitions include dynamic segments where clients call detail/update/delete endpoints.
 - In e2e tests, avoid racey assertions around modals/dialogs; wait for UI state to settle after navigation or async list reload.
 - Import styles are mixed across the codebase. Verify path aliases and existing relative imports before standardizing them inside a feature change.

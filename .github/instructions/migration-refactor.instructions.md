@@ -13,5 +13,5 @@ applyTo: "src/**/*.js,src/**/*.jsx,appscripts/**/*.js"
 - If a component or module is getting long because it handles multiple concerns, split it by responsibility before adding more logic.
 - Prefer small focused components with one job: detail view, edit modal, delete modal, list item, or data hook.
 - Keep resource clients in [src/lib/workspacesClient.js](src/lib/workspacesClient.js) thin and endpoint-shaped. Keep transport details in [src/lib/gasApi.js](src/lib/gasApi.js).
-- When changing backend routes or payloads, verify the contract in [appscripts/AppRouters.js](appscripts/AppRouters.js) and [appscripts/_GasServer.js](appscripts/_GasServer.js) before updating UI code.
+- When changing backend routes or payloads, verify the contract in [appscripts/AppRouters.js](appscripts/AppRouters.js) and [appscripts/\_GasServer.js](appscripts/_GasServer.js) before updating UI code.
 - Reuse existing store update pathways in [src/stores](src/stores) instead of introducing a second source of truth.

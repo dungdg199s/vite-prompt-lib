@@ -9,9 +9,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
   });
 
   test.describe("Workspace Navigation & CRUD Flows", () => {
-    test("navigate to workspace shows sidebar with controls", async ({
-      page,
-    }) => {
+    test("navigate to workspace shows sidebar with controls", async ({ page }) => {
       // Click workspace button in list
       await page
         .getByRole("button", { name: /growth-team/ })
@@ -43,9 +41,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       await dialog.getByRole("button", { name: "Create" }).click();
 
       // Verify success
-      await expect(page.getByTestId("toast-container")).toContainText(
-        "successfully",
-      );
+      await expect(page.getByTestId("toast-container")).toContainText("successfully");
     });
 
     test("can create document in workspace", async ({ page }) => {
@@ -66,9 +62,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       await dialog.getByRole("button", { name: "Create" }).click();
 
       // Verify success
-      await expect(page.getByTestId("toast-container")).toContainText(
-        "successfully",
-      );
+      await expect(page.getByTestId("toast-container")).toContainText("successfully");
     });
 
     test("switching between workspaces updates context", async ({ page }) => {
@@ -93,9 +87,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
   });
 
   test.describe("Prompt and Document Navigation", () => {
-    test("navigate to prompt via URL with query parameters", async ({
-      page,
-    }) => {
+    test("navigate to prompt via URL with query parameters", async ({ page }) => {
       await page.goto("/#/workspaces/growth-team?prompt=Landing%20Hero%20Copy");
 
       await page.waitForTimeout(1000);
@@ -106,9 +98,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       });
     });
 
-    test("navigate to document via URL with query parameters", async ({
-      page,
-    }) => {
+    test("navigate to document via URL with query parameters", async ({ page }) => {
       await page.goto("/#/workspaces/frontend-lab?document=Design%20Notes");
 
       await page.waitForTimeout(1000);
@@ -187,9 +177,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
     });
 
     test("workspace buttons in sidebar are clickable", async ({ page }) => {
-      const workspaceBtn = page
-        .getByRole("button", { name: /frontend-lab/ })
-        .first();
+      const workspaceBtn = page.getByRole("button", { name: /frontend-lab/ }).first();
 
       await workspaceBtn.click();
       await page.waitForTimeout(500);
@@ -222,9 +210,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
   });
 
   test.describe("URL State Management", () => {
-    test("URL-based navigation preserves workspace context", async ({
-      page,
-    }) => {
+    test("URL-based navigation preserves workspace context", async ({ page }) => {
       // Navigate to specific workspace
       await page.goto("/#/workspaces/growth-team");
 
@@ -247,9 +233,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       });
     });
 
-    test("URL with document parameter loads both contexts", async ({
-      page,
-    }) => {
+    test("URL with document parameter loads both contexts", async ({ page }) => {
       await page.goto("/#/workspaces/frontend-lab?document=Design%20Notes");
 
       await page.waitForTimeout(1000);
@@ -260,9 +244,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       });
     });
 
-    test("returning to root navigates back to workspaces list", async ({
-      page,
-    }) => {
+    test("returning to root navigates back to workspaces list", async ({ page }) => {
       // Go to specific workspace
       await page.goto("/#/workspaces/growth-team");
       await page.waitForTimeout(500);
@@ -272,9 +254,7 @@ test.describe("Phase 2 - CRUD, Navigation & Global Search", () => {
       await page.waitForTimeout(500);
 
       // Should show workspace list with buttons
-      const workspaceBtn = page
-        .getByRole("button", { name: /frontend-lab|growth-team/ })
-        .first();
+      const workspaceBtn = page.getByRole("button", { name: /frontend-lab|growth-team/ }).first();
       await expect(workspaceBtn).toBeVisible();
     });
   });

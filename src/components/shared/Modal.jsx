@@ -8,15 +8,17 @@ const sizeClassMap = {
   xl: "max-w-4xl",
 };
 
-export default function Modal({
-  isOpen,
-  title,
-  helptext,
-  onClose,
-  children,
-  actionButtons,
-  size = "md",
-}) {
+const Header = ({ children }) => {
+  return <>{children}</>;
+};
+const Actions = ({ children }) => {
+  return <>{children}</>;
+};
+const Content = ({ children }) => {
+  return <>{children}</>;
+};
+
+export default function Modal({ isOpen, title, helptext, onClose, onSubmit, children, size = "md" }) {
   useEffect(() => {
     if (!isOpen) {
       return undefined;
@@ -35,6 +37,11 @@ export default function Modal({
     };
   }, [isOpen, onClose]);
 
+  const childrenArray = [].concat(children).filter(Boolean);
+  const headerSlot = childrenArray.find((child) => child.type === Header);
+  const contentSlot = childrenArray.filter((child) => child.type === Content);
+  const actionSlot = childrenArray.find((child) => child.type === Actions);
+
   if (!isOpen) {
     return null;
   }
@@ -52,28 +59,32 @@ export default function Modal({
         aria-modal="true"
         aria-label={title}
       >
-        <div className="flex shrink-0 items-center justify-between gap-3 mb-3">
-          <div>
-            <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
-            <p className="text-xs uppercase tracking-wider text-slate-500">
-              {helptext}
-            </p>
-          </div>
-          <Button type="button" variant="secondary" onClick={onClose}>
-            🗙
-          </Button>
-        </div>
-
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">
-          {children}
-        </div>
-
-        {actionButtons && (
-          <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
-            {actionButtons}
+        {headerSlot || (
+          <div className="flex shrink-0 items-center justify-between gap-3 mb-3">
+            <div>
+              <h3 className="text-lg font-semibold tracking-tight">{title}</h3>
+              <p className="text-xs uppercase tracking-wider text-slate-500">{helptext}</p>
+            </div>
+            <Button type="button" variant="secondary" onClick={onClose}>
+              🗙
+            </Button>
           </div>
         )}
+
+        <form onSubmit={(e) => onSubmit && onSubmit(e)}>
+          <div className="min-h-0 flex-1 space-y-3 overflow-y-auto pr-1">{contentSlot}</div>
+
+          {actionSlot && (
+            <div className="sticky bottom-0 mt-3 flex shrink-0 flex-wrap justify-end gap-2 border-t border-stone-200 bg-[#fffef8] pt-3">
+              {actionSlot}
+            </div>
+          )}
+        </form>
       </div>
     </div>
   );
 }
+
+Modal.Header = Header;
+Modal.Actions = Actions;
+Modal.Content = Content;

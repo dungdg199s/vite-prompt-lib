@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useWorkspaceStore } from './workspaceStore';
+import { useMemo } from "react";
+import { useWorkspaceStore } from "./workspaceStore";
 
 export const useWorkspaces = () =>
   useWorkspaceStore((s) => ({

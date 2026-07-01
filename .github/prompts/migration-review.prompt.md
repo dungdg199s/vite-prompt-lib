@@ -28,4 +28,4 @@ Repository-specific rules:
 - Navigation should remain router-driven and aligned with [src/App.jsx](src/App.jsx).
 - Shared record data belongs in Zustand under [src/stores](src/stores).
 - Thin endpoint-shaped client methods belong in [src/lib/workspacesClient.js](src/lib/workspacesClient.js), while transport concerns stay in [src/lib/gasApi.js](src/lib/gasApi.js).
-- If backend route or payload shape is involved, verify against [appscripts/AppRouters.js](appscripts/AppRouters.js) and [appscripts/_GasServer.js](appscripts/_GasServer.js).
+- If backend route or payload shape is involved, verify against [appscripts/AppRouters.js](appscripts/AppRouters.js) and [appscripts/\_GasServer.js](appscripts/_GasServer.js).

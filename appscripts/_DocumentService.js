@@ -1,5 +1,4 @@
 const DocumentService = (function () {
-
   /**
    *
    * @param {string} spreadsheetId - The ID of the Google Spreadsheet
@@ -23,7 +22,7 @@ const DocumentService = (function () {
       // convert sheet content to markdown table
       let data = sheet.getDataRange().getValues();
       if (options.includeEmptyRows === false) {
-        data = data.filter((row) => row.some((cell) => cell !== ''));
+        data = data.filter((row) => row.some((cell) => cell !== ""));
       }
 
       if (data.length > 0) {
@@ -31,16 +30,16 @@ const DocumentService = (function () {
         const rows = options.headerRow ? data.slice(options.headerRow) : data;
 
         if (header.length > 0) {
-          markdownContent += `| ${header.join(' | ')} |\n`;
-          markdownContent += `| ${header.map(() => '---').join(' | ')} |\n`;
+          markdownContent += `| ${header.join(" | ")} |\n`;
+          markdownContent += `| ${header.map(() => "---").join(" | ")} |\n`;
         } else {
           // Header default is Column1, Column2, ...
           const defaultHeader = rows[0].map((_, index) => `Column${index + 1}`);
-          markdownContent += `| ${defaultHeader.join(' | ')} |\n`;
-          markdownContent += `| ${defaultHeader.map(() => '---').join(' | ')} |\n`;
+          markdownContent += `| ${defaultHeader.join(" | ")} |\n`;
+          markdownContent += `| ${defaultHeader.map(() => "---").join(" | ")} |\n`;
         }
         for (const row of rows) {
-          markdownContent += `| ${row.join(' | ')} |\n`;
+          markdownContent += `| ${row.join(" | ")} |\n`;
         }
         markdownContent += `\n`;
       }
@@ -71,7 +70,7 @@ const DocumentService = (function () {
     for (const sheet of sheets) {
       let data = sheet.getDataRange().getValues();
       if (options.includeEmptyRows === false) {
-        data = data.filter((row) => row.some((cell) => cell !== ''));
+        data = data.filter((row) => row.some((cell) => cell !== ""));
       }
 
       const sheetData = {
@@ -87,7 +86,7 @@ const DocumentService = (function () {
           for (const row of rows) {
             const rowObj = {};
             for (let i = 0; i < header.length; i++) {
-              rowObj[header[i]] = row[i] || '';
+              rowObj[header[i]] = row[i] || "";
             }
             sheetData.data.push(rowObj);
           }
@@ -95,8 +94,8 @@ const DocumentService = (function () {
           for (const row of rows) {
             const rowObj = {};
             for (let i = 0; i < row.length; i++) {
-              if (row[i] !== '' && row[i] !== undefined && row[i] !== null) {
-                rowObj[`Column${i + 1}`] = row[i] || '';
+              if (row[i] !== "" && row[i] !== undefined && row[i] !== null) {
+                rowObj[`Column${i + 1}`] = row[i] || "";
               }
             }
             sheetData.data.push(rowObj);
@@ -189,7 +188,7 @@ const DocumentService = (function () {
 
       // TRƯỜNG HỢP 3: Chưa từng convert hoặc file cũ không còn khả dụng -> Tạo file mới hoàn toàn
       const resource = {
-        name: fileName.replace('.xlsx', ''),
+        name: fileName.replace(".xlsx", ""),
         mimeType: MimeType.GOOGLE_SHEETS,
         parents: [parentTempFolder.getId()],
       };
@@ -207,7 +206,7 @@ const DocumentService = (function () {
       return tempSheetId;
     }
 
-    throw new Error('File format is not supported. Check file id: ' + id);
+    throw new Error("File format is not supported. Check file id: " + id);
   }
 
   return {

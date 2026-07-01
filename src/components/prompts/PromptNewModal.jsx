@@ -1,9 +1,9 @@
-import { useMemo, useState } from 'react';
-import Modal from '../shared/Modal';
-import Button from '../shared/Button';
-import Input from '../shared/Input';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useWorkspace } from '../../hooks/useWorkspaces';
+import { useMemo, useState } from "react";
+import Modal from "../shared/Modal";
+import Button from "../shared/Button";
+import Input from "../shared/Input";
+import { useNavigate, useParams } from "react-router-dom";
+import { useWorkspace } from "../../hooks/useWorkspaces";
 
 export default function PromptNewModal() {
   const navigate = useNavigate();
@@ -11,12 +11,12 @@ export default function PromptNewModal() {
   const { createPrompt } = useWorkspace(workspaceId);
 
   const [formData, setFormData] = useState({
-    name: '',
-    workspace: workspaceId || '',
-    description: '',
-    content: '',
-    shareMode: 'private',
-    shareWith: '',
+    name: "",
+    workspace: workspaceId || "",
+    description: "",
+    content: "",
+    shareMode: "private",
+    shareWith: "",
   });
 
   const [isSaving, setIsSaving] = useState(false);
@@ -39,67 +39,68 @@ export default function PromptNewModal() {
   };
 
   const shareOptions = useMemo(() => {
-    return ['private', 'shared', 'public'].map((v) => ({ label: v, value: v }));
+    return ["private", "shared", "public"].map((v) => ({ label: v, value: v }));
   }, []);
 
   return (
-    <Modal isOpen={true} onClose={() => navigate(-1)} title="Create Prompt" size="lg">
-      <form className="grid gap-3" onSubmit={onSubmit}>
-        <Input
-          type="text"
-          label="Prompt Name"
-          value={formData.name}
-          onChange={(e) => onChange('name', e.target.value)}
-          placeholder="my-prompt-name"
-          required
-        ></Input>
-
-        <Input
-          type="text"
-          label="Description"
-          value={formData.description}
-          onChange={(e) => onChange('description', e.target.value)}
-          placeholder="Short description of this prompt"
-        ></Input>
-
-        <Input
-          type="textarea"
-          label="Content"
-          rows={8}
-          value={formData.content}
-          onChange={(e) => onChange('content', e.target.value)}
-          placeholder="Write your prompt template here.\nUse ${VariableName|description} for tokens.\nExample: ${Topic|options:React,Vue,Angular}"
-          required
-        ></Input>
-
-        <Input
-          label="Share Mode"
-          type="select"
-          value={formData.shareMode}
-          onChange={(e) => onChange('shareMode', e.target.value)}
-          options={shareOptions}
-          required
-        ></Input>
-
-        {formData.shareMode === 'shared' ? (
+    <Modal isOpen={true} onSubmit={onSubmit} onClose={() => navigate(-1)} title="Create Prompt" size="lg">
+      <Modal.Content>
+        <div className="grid gap-3">
           <Input
             type="text"
-            label="Share With (comma separated emails)"
-            value={formData.shareWith}
-            onChange={(e) => onChange('shareWith', e.target.value)}
-            placeholder="a@company.com, b@company.com"
+            label="Prompt Name"
+            value={formData.name}
+            onChange={(e) => onChange("name", e.target.value)}
+            placeholder="my-prompt-name"
+            required
           ></Input>
-        ) : null}
 
-        <div className="flex flex-wrap justify-end gap-2 pt-2">
-          <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
-            Cancel
-          </Button>
-          <Button type="submit" variant="primary" disabled={isSaving}>
-            Create
-          </Button>
+          <Input
+            type="text"
+            label="Description"
+            value={formData.description}
+            onChange={(e) => onChange("description", e.target.value)}
+            placeholder="Short description of this prompt"
+          ></Input>
+
+          <Input
+            type="textarea"
+            label="Content"
+            rows={8}
+            value={formData.content}
+            onChange={(e) => onChange("content", e.target.value)}
+            placeholder="Write your prompt template here.\nUse ${VariableName|description} for tokens.\nExample: ${Topic|options:React,Vue,Angular}"
+            required
+          ></Input>
+
+          <Input
+            label="Share Mode"
+            type="select"
+            value={formData.shareMode}
+            onChange={(e) => onChange("shareMode", e.target.value)}
+            options={shareOptions}
+            required
+          ></Input>
+
+          {formData.shareMode === "shared" ? (
+            <Input
+              type="text"
+              label="Share With (comma separated emails)"
+              value={formData.shareWith}
+              onChange={(e) => onChange("shareWith", e.target.value)}
+              placeholder="a@company.com, b@company.com"
+            ></Input>
+          ) : null}
         </div>
-      </form>
+      </Modal.Content>
+      <Modal.Actions>
+        <Button type="button" variant="secondary" onClick={() => navigate(-1)}>
+          Cancel
+        </Button>
+        <Button type="submit" variant="primary" disabled={isSaving}>
+          Create
+        </Button>
+      </Modal.Actions>
     </Modal>
   );
 }

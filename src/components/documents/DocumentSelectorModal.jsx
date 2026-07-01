@@ -1,64 +1,49 @@
 import { useState, useMemo } from "react";
 import Modal from "../shared/Modal";
-import Button from "../shared/Button";
-import Input from "../shared/Input";
-import { uiClasses } from "../shared/uiClasses";
+import { useWorkspace } from "../../hooks/useWorkspaces";
+import { useParams } from "react-router-dom";
 
-const inputClassName = uiClasses.input;
+const inputClassName =
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
+const secondaryButtonClassName =
+  "rounded-lg border border-stone-300 bg-teal-50 px-3 py-2 text-sm font-medium text-slate-800 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50";
+const primaryButtonClassName =
+  "rounded-lg border border-teal-800 bg-teal-700 px-3 py-2 text-sm font-medium text-white transition hover:bg-teal-800 disabled:cursor-not-allowed disabled:opacity-50";
 
-export default function DocumentSelectorModal({
-  isOpen,
-  documents = [],
-  workspaceList = [],
-  onDocumentCreated,
-  onClose,
-  onSelectContent,
-}) {
+export default function DocumentSelectorModal({ isOpen, onClose, onSelectContent }) {
+  const { workspaceId } = useParams();
+  const { workspace } = useWorkspace(workspaceId);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDocument, setSelectedDocument] = useState(null);
   const [selectedContentType, setSelectedContentType] = useState(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isSavingDocument, setIsSavingDocument] = useState(false);
-  const [createErrorMessage, setCreateErrorMessage] = useState("");
-  const [selectionErrorMessage, setSelectionErrorMessage] = useState("");
-  const [newDocumentDetail, setNewDocumentDetail] = useState({
-    name: "",
-    workspace: "",
-    type: "Markdown",
-    preasheetId: "",
-    description: "",
-    contentMarkdown: "",
-    contentJSON: "",
-    contentHTML: "",
-  });
+
+  const documents = useMemo(() => {
+    if (!workspace) return [];
+    return workspace.documents || [];
+  }, [workspace]);
 
   const filteredDocuments = useMemo(() => {
+    if (!documents) return [];
     if (!searchQuery.trim()) return documents;
     const query = searchQuery.toLowerCase();
     return documents.filter(
       (doc) =>
         doc.name.toLowerCase().includes(query) ||
         doc.description?.toLowerCase().includes(query) ||
-        doc.workspace?.toLowerCase().includes(query),
+        doc.workspace?.toLowerCase().includes(query)
     );
   }, [documents, searchQuery]);
 
   const getAvailableContentTypes = (doc) => {
     const types = [];
-    if (doc.contentMarkdown && String(doc.contentMarkdown).trim())
-      types.push("markdown");
-    const jsonContent =
-      typeof doc.contentJSON === "string"
-        ? doc.contentJSON
-        : JSON.stringify(doc.contentJSON || {});
-    if (jsonContent && String(jsonContent).trim() && jsonContent !== "{}")
-      types.push("json");
+    if (doc.contentMarkdown && String(doc.contentMarkdown).trim()) types.push("markdown");
+    const jsonContent = typeof doc.contentJSON === "string" ? doc.contentJSON : JSON.stringify(doc.contentJSON || {});
+    if (jsonContent && String(jsonContent).trim() && jsonContent !== "{}") types.push("json");
     if (doc.contentHTML && String(doc.contentHTML).trim()) types.push("html");
     return types;
   };
 
   const handleDocumentSelect = (doc) => {
-    setSelectionErrorMessage("");
     const availableTypes = getAvailableContentTypes(doc);
     if (availableTypes.length === 1) {
       // Auto-select if only one type available
@@ -68,7 +53,7 @@ export default function DocumentSelectorModal({
       setSelectedDocument(doc);
       setSelectedContentType(null);
     } else {
-      setSelectionErrorMessage("Document has no available content to insert.");
+      alert("Document has no content");
     }
   };
 
@@ -78,10 +63,7 @@ export default function DocumentSelectorModal({
       content = String(doc.contentMarkdown || "");
     } else if (contentType === "json") {
       const jsonData = doc.contentJSON;
-      content =
-        typeof jsonData === "string"
-          ? jsonData
-          : JSON.stringify(jsonData, null, 2);
+      content = typeof jsonData === "string" ? jsonData : JSON.stringify(jsonData, null, 2);
     } else if (contentType === "html") {
       content = String(doc.contentHTML || "");
     }
@@ -90,7 +72,7 @@ export default function DocumentSelectorModal({
       onSelectContent(content);
       resetModal();
     } else {
-      setSelectionErrorMessage(`No ${contentType} content available.`);
+      alert(`No ${contentType} content available`);
     }
   };
 
@@ -98,381 +80,100 @@ export default function DocumentSelectorModal({
     setSearchQuery("");
     setSelectedDocument(null);
     setSelectedContentType(null);
-    setIsAddModalOpen(false);
-    setCreateErrorMessage("");
-    setSelectionErrorMessage("");
-    setNewDocumentDetail({
-      name: "",
-      workspace: "",
-      type: "Markdown",
-      preasheetId: "",
-      description: "",
-      contentMarkdown: "",
-      contentJSON: "",
-      contentHTML: "",
-    });
     onClose();
   };
-
-  const handleNewDocumentChange = (field, value) => {
-    setCreateErrorMessage("");
-    setNewDocumentDetail((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const handleCreateDocument = async (event) => {
-    event.preventDefault();
-    setIsSavingDocument(true);
-    setCreateErrorMessage("");
-
-    const payload = {
-      name: String(newDocumentDetail.name || "").trim(),
-      workspace: String(newDocumentDetail.workspace || "").trim(),
-      type: newDocumentDetail.type || "Markdown",
-      preasheetId: String(newDocumentDetail.preasheetId || "").trim(),
-      fileName: String(newDocumentDetail.name || "").trim(),
-      description: String(newDocumentDetail.description || "").trim(),
-      contentMarkdown: newDocumentDetail.contentMarkdown || "",
-      contentJSON: newDocumentDetail.contentJSON || "",
-      contentHTML: newDocumentDetail.contentHTML || "",
-      shareMode: "private",
-      shareWith: [],
-      syncOptions: {
-        includeEmptyRows: false,
-        headerRow: null,
-        sheets: [],
-      },
-    };
-
-    if (!payload.name) {
-      setCreateErrorMessage("Document name is required");
-      setIsSavingDocument(false);
-      return;
-    }
-
-    if (!payload.workspace) {
-      setCreateErrorMessage("Workspace is required");
-      setIsSavingDocument(false);
-      return;
-    }
-
-    if (payload.type === "Spreadsheets" && !payload.preasheetId) {
-      setCreateErrorMessage("Spreadsheet ID is required");
-      setIsSavingDocument(false);
-      return;
-    }
-
-    try {
-      await documentsClient.createDocument(payload);
-      if (typeof onDocumentCreated === "function") {
-        await onDocumentCreated();
-      }
-      setIsAddModalOpen(false);
-      setNewDocumentDetail((prev) => ({
-        ...prev,
-        name: "",
-        preasheetId: "",
-        description: "",
-        contentMarkdown: "",
-        contentJSON: "",
-        contentHTML: "",
-      }));
-    } catch (error) {
-      console.log(error);
-      setCreateErrorMessage(error?.message || "Cannot create document");
-    } finally {
-      setIsSavingDocument(false);
-    }
-  };
-
-  if (isAddModalOpen) {
-    const isSpreadsheetType =
-      (newDocumentDetail.type || "Markdown") === "Spreadsheets";
-
-    return (
-      <Modal
-        isOpen={isOpen}
-        title="Add Document"
-        onClose={resetModal}
-        size="lg"
-      >
-        <div className="mb-3 flex items-center justify-between gap-2">
-          <h3 className="text-base font-semibold">Add Document</h3>
-          <Button
-            type="button"
-            onClick={() => setIsAddModalOpen(false)}
-            variant="secondary"
-          >
-            Back
-          </Button>
-        </div>
-
-        <form className="grid gap-3" onSubmit={handleCreateDocument}>
-          <Input
-            type="text"
-            label="Document Name"
-            value={newDocumentDetail.name}
-            onChange={(event) =>
-              handleNewDocumentChange("name", event.target.value)
-            }
-            placeholder="my-document"
-            required
-          />
-
-          <Input
-            type="select"
-            label="Workspace"
-            value={newDocumentDetail.workspace}
-            onChange={(event) =>
-              handleNewDocumentChange("workspace", event.target.value)
-            }
-            noneLabel="- Select workspace -"
-            options={workspaceList.map((workspace) => ({
-              label: workspace.name,
-              value: workspace.name,
-            }))}
-            required
-          />
-
-          <Input
-            type="select"
-            label="Type"
-            value={newDocumentDetail.type}
-            onChange={(event) =>
-              handleNewDocumentChange("type", event.target.value)
-            }
-            options={[
-              { label: "Markdown", value: "Markdown" },
-              { label: "JSON", value: "JSON" },
-              { label: "HTML", value: "HTML" },
-              { label: "Spreadsheets", value: "Spreadsheets" },
-            ]}
-          />
-
-          {isSpreadsheetType ? (
-            <label className="grid gap-1.5 text-sm">
-              Spreadsheet ID
-              <input
-                className={inputClassName}
-                value={newDocumentDetail.preasheetId}
-                onChange={(event) =>
-                  handleNewDocumentChange("preasheetId", event.target.value)
-                }
-                placeholder="1AbCdEfGh..."
-              />
-            </label>
-          ) : null}
-
-          {newDocumentDetail.type === "Markdown" ? (
-            <label className="grid gap-1.5 text-sm">
-              Markdown Content
-              <textarea
-                className={inputClassName}
-                rows={6}
-                value={newDocumentDetail.contentMarkdown}
-                onChange={(event) =>
-                  handleNewDocumentChange("contentMarkdown", event.target.value)
-                }
-                placeholder="Write markdown content..."
-              />
-            </label>
-          ) : null}
-
-          {newDocumentDetail.type === "JSON" ? (
-            <label className="grid gap-1.5 text-sm">
-              JSON Content
-              <textarea
-                className={inputClassName}
-                rows={6}
-                value={newDocumentDetail.contentJSON}
-                onChange={(event) =>
-                  handleNewDocumentChange("contentJSON", event.target.value)
-                }
-                placeholder='{"key": "value"}'
-              />
-            </label>
-          ) : null}
-
-          {newDocumentDetail.type === "HTML" ? (
-            <label className="grid gap-1.5 text-sm">
-              HTML Content
-              <textarea
-                className={inputClassName}
-                rows={6}
-                value={newDocumentDetail.contentHTML}
-                onChange={(event) =>
-                  handleNewDocumentChange("contentHTML", event.target.value)
-                }
-                placeholder="<h1>Title</h1>"
-              />
-            </label>
-          ) : null}
-
-          <label className="grid gap-1.5 text-sm">
-            Description
-            <input
-              className={inputClassName}
-              value={newDocumentDetail.description}
-              onChange={(event) =>
-                handleNewDocumentChange("description", event.target.value)
-              }
-              placeholder="Short description"
-            />
-          </label>
-
-          {createErrorMessage ? (
-            <p className="text-sm text-red-700">{createErrorMessage}</p>
-          ) : null}
-
-          <div className="flex justify-end gap-2 pt-1">
-            <Button
-              type="button"
-              onClick={() => setIsAddModalOpen(false)}
-              variant="secondary"
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSavingDocument} variant="primary">
-              Create
-            </Button>
-          </div>
-        </form>
-      </Modal>
-    );
-  }
 
   if (selectedDocument) {
     const availableTypes = getAvailableContentTypes(selectedDocument);
 
     return (
-      <Modal
-        isOpen={isOpen}
-        title="Select Content Type"
-        onClose={resetModal}
-        size="sm"
-      >
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold">
-              Document: <strong>{selectedDocument.name}</strong>
-            </h3>
-            <p className="mt-1 text-xs text-slate-600">
-              {selectedDocument.description || "No description"}
-            </p>
-          </div>
+      <Modal isOpen={isOpen} title="Select Content Type" onClose={resetModal} size="sm">
+        <Modal.Content>
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-sm font-semibold">
+                Document: <strong>{selectedDocument.name}</strong>
+              </h3>
+              <p className="mt-1 text-xs text-slate-600">{selectedDocument.description || "No description"}</p>
+            </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium">Select Content Type:</label>
-            <div className="space-y-1">
-              {availableTypes.map((type) => (
-                <button
-                  key={type}
-                  type="button"
-                  onClick={() => setSelectedContentType(type)}
-                  className={`w-full rounded-lg border-2 px-3 py-2 text-left text-sm font-medium transition ${
-                    selectedContentType === type
-                      ? "border-teal-700 bg-teal-50 text-teal-900"
-                      : "border-stone-300 bg-white text-slate-800 hover:bg-stone-100"
-                  }`}
-                >
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
-                </button>
-              ))}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Content Type:</label>
+              <div className="space-y-1">
+                {availableTypes.map((type) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => setSelectedContentType(type)}
+                    className={`w-full rounded-lg border-2 px-3 py-2 text-left text-sm font-medium transition ${
+                      selectedContentType === type
+                        ? "border-teal-700 bg-teal-50 text-teal-900"
+                        : "border-stone-300 bg-white text-slate-800 hover:bg-stone-100"
+                    }`}
+                  >
+                    {type.charAt(0).toUpperCase() + type.slice(1)}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2">
+              <button type="button" onClick={() => setSelectedDocument(null)} className={secondaryButtonClassName}>
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={() => handleContentSelect(selectedDocument, selectedContentType)}
+                disabled={!selectedContentType}
+                className={primaryButtonClassName}
+              >
+                Insert
+              </button>
             </div>
           </div>
-
-          <div className="flex gap-2 pt-2">
-            <Button
-              type="button"
-              onClick={() => setSelectedDocument(null)}
-              variant="secondary"
-            >
-              Back
-            </Button>
-            <Button
-              type="button"
-              onClick={() =>
-                handleContentSelect(selectedDocument, selectedContentType)
-              }
-              disabled={!selectedContentType}
-              variant="primary"
-            >
-              Insert
-            </Button>
-          </div>
-          {selectionErrorMessage ? (
-            <p className="text-sm text-red-700">{selectionErrorMessage}</p>
-          ) : null}
-        </div>
+        </Modal.Content>
       </Modal>
     );
   }
 
   return (
-    <Modal
-      isOpen={isOpen}
-      title="Select Document"
-      onClose={resetModal}
-      size="lg"
-    >
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search documents..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className={inputClassName}
-          />
-          <Button
-            type="button"
-            onClick={() => {
-              setCreateErrorMessage("");
-              setIsAddModalOpen(true);
-            }}
-            variant="primary"
-            size="sm"
-            title="Add document"
-          >
-            +
-          </Button>
-        </div>
+    <Modal isOpen={isOpen} title="Select Document" onClose={resetModal} size="lg">
+      <Modal.Content>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search documents..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className={inputClassName}
+            />
+          </div>
 
-        <div className="max-h-96 overflow-y-auto">
-          {filteredDocuments.length === 0 ? (
-            <p className="py-4 text-center text-sm text-slate-600">
-              {documents.length === 0
-                ? "No documents available"
-                : "No matching documents"}
-            </p>
-          ) : (
-            <div className="space-y-1">
-              {filteredDocuments.map((doc) => (
-                <button
-                  key={doc.name}
-                  type="button"
-                  onClick={() => handleDocumentSelect(doc)}
-                  className="w-full rounded-lg border border-stone-300 bg-white p-3 text-left transition hover:bg-stone-50"
-                >
-                  <div className="text-sm font-medium text-slate-800">
-                    {doc.name}
-                  </div>
-                  <div className="mt-1 text-xs text-slate-600">
-                    {doc.description || "No description"}
-                  </div>
-                  {doc.workspace && (
-                    <div className="mt-1 text-xs text-teal-700">
-                      @ {doc.workspace}
-                    </div>
-                  )}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="max-h-96 overflow-y-auto">
+            {filteredDocuments.length === 0 ? (
+              <p className="py-4 text-center text-sm text-slate-600">
+                {!documents || documents.length === 0 ? "No documents available" : "No matching documents"}
+              </p>
+            ) : (
+              <div className="space-y-1">
+                {filteredDocuments.map((doc) => (
+                  <button
+                    key={doc.name}
+                    type="button"
+                    onClick={() => handleDocumentSelect(doc)}
+                    className="w-full rounded-lg border border-stone-300 bg-white p-3 text-left transition hover:bg-stone-50"
+                  >
+                    <div className="text-sm font-medium text-slate-800">{doc.name}</div>
+                    <div className="mt-1 text-xs text-slate-600">{doc.description || "No description"}</div>
+                    {doc.workspace && <div className="mt-1 text-xs text-teal-700">@ {doc.workspace}</div>}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
-        {selectionErrorMessage ? (
-          <p className="text-sm text-red-700">{selectionErrorMessage}</p>
-        ) : null}
-      </div>
+      </Modal.Content>
     </Modal>
   );
 }

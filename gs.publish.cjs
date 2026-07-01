@@ -6,9 +6,7 @@ const deployments = runClasp(["deployments", "--json"]);
 const versions = runClasp(["versions", "--json"]);
 
 const latestDeployment = deployments[deployments.length - 1];
-const lastVersion = versions.sort(
-  (a, b) => b.versionNumber - a.versionNumber,
-)[0];
+const lastVersion = versions.sort((a, b) => b.versionNumber - a.versionNumber)[0];
 
 if (deployments.length === 0) {
   console.log("No deployments found. Create a deployment...");

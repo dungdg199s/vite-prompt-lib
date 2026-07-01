@@ -45,10 +45,7 @@ export default function WorkspaceEditModal() {
       name: form.name,
       description: form.description,
       shareMode: form.shareMode,
-      shareWith:
-        form.shareMode === "shared"
-          ? form.shareWith.split(",").map((s) => s.trim())
-          : [],
+      shareWith: form.shareMode === "shared" ? form.shareWith.split(",").map((s) => s.trim()) : [],
     };
 
     setIsSaving(true);
@@ -65,32 +62,8 @@ export default function WorkspaceEditModal() {
   if (!workspaceId) return <div>Workspace ID is missing.</div>;
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={() => navigate(-1)}
-      title="Edit Workspace"
-      size="lg"
-      actionButtons={
-        <>
-          <Button
-            type="button"
-            onClick={() => navigate(-1)}
-            variant="secondary"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={onSave}
-            disabled={isLoading || isSaving}
-            variant="primary"
-          >
-            Update
-          </Button>
-        </>
-      }
-    >
-      <form className="grid gap-3" onSubmit={onSave}>
+    <Modal isOpen={true} onSubmit={onSave} onClose={() => navigate(-1)} title="Edit Workspace" size="lg">
+      <div className="grid gap-3">
         <Input
           type="text"
           label="Workspace Name"
@@ -132,7 +105,16 @@ export default function WorkspaceEditModal() {
         ) : null}
 
         <div className="flex flex-wrap justify-end gap-2 pt-2"></div>
-      </form>
+      </div>
+
+      <Modal.Actions>
+        <Button type="button" onClick={() => navigate(-1)} variant="secondary">
+          Cancel
+        </Button>
+        <Button type="button" onClick={onSave} disabled={isLoading || isSaving} variant="primary">
+          Update
+        </Button>
+      </Modal.Actions>
     </Modal>
   );
 }

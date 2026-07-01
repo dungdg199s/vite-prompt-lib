@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import DocumentSelectorModal from '../shared/DocumentSelectorModal';
+import { useMemo, useState } from "react";
+import DocumentSelectorModal from "../documents/DocumentSelectorModal";
 
 const inputClassName =
-  'w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200';
+  "w-full rounded-lg border border-stone-300 bg-white px-3 py-2 text-sm text-slate-800 outline-none transition focus:border-teal-700 focus:ring-2 focus:ring-teal-200";
 const generatorInputClassName = `${inputClassName} h-11`;
 const generatorSelectClassName = `${generatorInputClassName} appearance-none bg-[linear-gradient(45deg,transparent_50%,#334155_50%),linear-gradient(135deg,#334155_50%,transparent_50%)] bg-[position:calc(100%-18px)_calc(50%+1px),calc(100%-12px)_calc(50%+1px)] bg-[size:6px_6px,6px_6px] bg-no-repeat pr-10`;
 
@@ -17,23 +17,23 @@ export default function PromptGenerator({ promptContent }) {
     const tokens = [];
     let match;
     while ((match = tokenRegex.exec(promptContent)) !== null) {
-      const [key, typePattern] = match[1].split('|');
-      const [type, options] = typePattern ? typePattern.split(':') : ['text', ''];
+      const [key, typePattern] = match[1].split("|");
+      const [type, options] = typePattern ? typePattern.split(":") : ["text", ""];
       tokens.push({
         id: match[1],
         label: key,
-        inputType: type || 'text',
-        options: type === 'options' ? options.split(',') : [],
+        inputType: type || "text",
+        options: type === "options" ? options.split(",") : [],
       });
     }
     return tokens;
   }, [promptContent]);
 
   const generatedPrompt = useMemo(() => {
-    if (!promptContent) return '';
+    if (!promptContent) return "";
     const tokenRegex = /\$\{([^}]+)\}/g;
     const replacedPrompt = promptContent.replace(tokenRegex, (match, id) => {
-      const value = promptInputValues[id] || '';
+      const value = promptInputValues[id] || "";
       return value;
     });
     return replacedPrompt;
@@ -68,11 +68,11 @@ export default function PromptGenerator({ promptContent }) {
   const openGeminiWithPrompt = () => {
     window.top.postMessage(
       {
-        source: 'OPEN_GEMINI_WITH_PROMPT',
-        action: 'SEND_PROMPT_TO_EXTENSION',
+        source: "OPEN_GEMINI_WITH_PROMPT",
+        action: "SEND_PROMPT_TO_EXTENSION",
         prompt: generatedPrompt,
       },
-      '*'
+      "*"
     );
   };
 
@@ -85,12 +85,12 @@ export default function PromptGenerator({ promptContent }) {
           {parsedTokens.map((token) => (
             <label key={token.id} className="grid content-start gap-1.5 text-sm">
               {token.label}
-              {token.inputType === 'textarea' ? (
+              {token.inputType === "textarea" ? (
                 <div className="relative">
                   <textarea
                     className={`${inputClassName} pr-10`}
                     rows={4}
-                    value={promptInputValues[token.id] || ''}
+                    value={promptInputValues[token.id] || ""}
                     onChange={(e) => onInputChange(token.id, e.target.value)}
                   />
                   <button
@@ -103,10 +103,10 @@ export default function PromptGenerator({ promptContent }) {
                   </button>
                 </div>
               ) : null}
-              {token.inputType === 'options' ? (
+              {token.inputType === "options" ? (
                 <select
                   className={generatorSelectClassName}
-                  value={promptInputValues[token.id] || ''}
+                  value={promptInputValues[token.id] || ""}
                   onChange={(e) => onInputChange(token.id, e.target.value)}
                 >
                   <option value="">Select an option</option>
@@ -117,12 +117,12 @@ export default function PromptGenerator({ promptContent }) {
                   ))}
                 </select>
               ) : null}
-              {token.inputType === 'text' ? (
+              {token.inputType === "text" ? (
                 <input
                   className={generatorInputClassName}
-                  value={promptInputValues[token.id] || ''}
+                  value={promptInputValues[token.id] || ""}
                   onChange={(e) => onInputChange(token.id, e.target.value)}
-                  placeholder={token.descriptor || 'Enter value'}
+                  placeholder={token.descriptor || "Enter value"}
                 />
               ) : null}
             </label>
@@ -137,7 +137,7 @@ export default function PromptGenerator({ promptContent }) {
             <button
               type="button"
               onClick={copyToClipboard}
-              disabled={!generatedPrompt || generatedPrompt === 'Generated prompt will appear here.'}
+              disabled={!generatedPrompt || generatedPrompt === "Generated prompt will appear here."}
               title="Copy to clipboard"
               className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -146,7 +146,7 @@ export default function PromptGenerator({ promptContent }) {
             <button
               type="button"
               onClick={openGeminiWithPrompt}
-              disabled={!generatedPrompt || generatedPrompt === 'Generated prompt will appear here.'}
+              disabled={!generatedPrompt || generatedPrompt === "Generated prompt will appear here."}
               title="Open gemini"
               className="rounded-lg border border-stone-300 bg-white px-2 py-1 text-xs font-medium text-slate-800 transition hover:bg-stone-100 disabled:cursor-not-allowed disabled:opacity-50"
             >
@@ -155,7 +155,7 @@ export default function PromptGenerator({ promptContent }) {
           </div>
         </div>
         <pre className="overflow-x-auto rounded-lg bg-slate-800 p-3 text-xs text-slate-50 whitespace-pre-wrap break-words">
-          {generatedPrompt || 'Generated prompt will appear here.'}
+          {generatedPrompt || "Generated prompt will appear here."}
         </pre>
       </div>
 

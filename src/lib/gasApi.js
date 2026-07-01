@@ -1,4 +1,4 @@
-import { mockScriptsApi } from './gasApiMock';
+import { mockScriptsApi } from "./gasApiMock";
 
 let caches = {};
 const isCacheEnabled = false;
@@ -11,9 +11,9 @@ const _invoke = (method, url, payload) => {
       scriptsApi = mockScriptsApi;
     }
 
-    const object = url.split('/')[2];
+    const object = url.split("/")[2];
     if (isCacheEnabled && object) {
-      if (method !== 'GET') {
+      if (method !== "GET") {
         caches[object] = {};
       } else {
         if (isCacheEnabled && caches[object] && caches[object][url]) {
@@ -26,7 +26,7 @@ const _invoke = (method, url, payload) => {
 
     scriptsApi
       .withSuccessHandler((response) => {
-        if (isCacheEnabled && object && method === 'GET') {
+        if (isCacheEnabled && object && method === "GET") {
           if (!caches[object]) {
             caches[object] = {};
           }
@@ -37,15 +37,15 @@ const _invoke = (method, url, payload) => {
       })
       .withFailureHandler((error) => {
         console.error(`_invoke_error ${method}: ${url}`, payload, error);
-        reject(new Error(error?.message || 'Google Scripts API call failed'));
+        reject(new Error(error?.message || "Google Scripts API call failed"));
       })
       .invoke(method, url, payload);
   });
 };
 
 export const gasClient = {
-  get: (url, payload) => _invoke('GET', url, payload),
-  post: (url, payload) => _invoke('POST', url, payload),
-  put: (url, payload) => _invoke('PUT', url, payload),
-  del: (url, payload) => _invoke('DELETE', url, payload),
+  get: (url, payload) => _invoke("GET", url, payload),
+  post: (url, payload) => _invoke("POST", url, payload),
+  put: (url, payload) => _invoke("PUT", url, payload),
+  del: (url, payload) => _invoke("DELETE", url, payload),
 };

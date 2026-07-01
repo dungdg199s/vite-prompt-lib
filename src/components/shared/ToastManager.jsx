@@ -24,11 +24,7 @@ export function ToastContainer() {
       className="fixed left-1/2 top-4 z-50 flex w-full max-w-md -translate-x-1/2 flex-col gap-2 px-4"
     >
       {toasts.map((toast) => (
-        <Toast
-          key={toast.id}
-          toast={toast}
-          onRemove={() => onRemove(toast.id)}
-        />
+        <Toast key={toast.id} toast={toast} onRemove={() => onRemove(toast.id)} />
       ))}
     </div>
   );

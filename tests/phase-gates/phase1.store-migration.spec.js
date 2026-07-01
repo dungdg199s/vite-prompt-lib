@@ -22,17 +22,11 @@ test.describe("Phase 1 - Zustand migration gates", () => {
     const createDialog = page.getByRole("dialog", { name: "Create Workspace" });
     await expect(createDialog).toBeVisible();
     await createDialog.getByLabel("Workspace Name").fill(workspaceName);
-    await createDialog
-      .getByLabel("Description")
-      .fill("Phase 1 migration test workspace");
+    await createDialog.getByLabel("Description").fill("Phase 1 migration test workspace");
     await createDialog.getByRole("button", { name: "Create" }).click();
 
-    await expect(page.getByTestId("toast-container")).toContainText(
-      "Workspace created successfully",
-    );
-    await expect(
-      page.getByRole("heading", { level: 2, name: workspaceName }),
-    ).toBeVisible();
+    await expect(page.getByTestId("toast-container")).toContainText("Workspace created successfully");
+    await expect(page.getByRole("heading", { level: 2, name: workspaceName })).toBeVisible();
     await expect(page).toHaveURL(new RegExp(`/#/workspaces/${workspaceName}$`));
   });
 

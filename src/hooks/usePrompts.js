@@ -1,5 +1,5 @@
-import { useMemo } from 'react';
-import { useWorkspace } from './useWorkspaces';
+import { useMemo } from "react";
+import { useWorkspace } from "./useWorkspaces";
 
 export function usePrompts(workspaceId) {
   const workspaceState = useWorkspace(workspaceId);
@@ -29,4 +29,4 @@ export function usePrompts(workspaceId) {
   );
 }
 
-export { useWorkspace } from './useWorkspaces';
+export { useWorkspace } from "./useWorkspaces";

@@ -6,7 +6,7 @@ type Workspace = {
   id: string;
   name: string;
   description?: string;
-  shareMode?: 'private' | 'shared' | 'public';
+  shareMode?: "private" | "shared" | "public";
   sharedWith?: string[];
 
   prompts?: Prompt[];
@@ -31,5 +31,5 @@ type Document = {
 type Tab = {
   id: string;
   name: string;
-  type: 'workspace' | 'prompt' | 'document';
+  type: "workspace" | "prompt" | "document";
 };

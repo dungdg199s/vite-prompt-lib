@@ -1,8 +1,4 @@
-import {
-  convertPreashetToJSON,
-  convertPreashetToMarkdown,
-  getSpreadsheetInfo,
-} from "./document-convertor";
+import { convertPreashetToJSON, convertPreashetToMarkdown, getSpreadsheetInfo } from "./document-convertor";
 import { sheetDb } from "./g-sheet-db";
 import { gasServer } from "../_GasServer";
 
@@ -60,14 +56,8 @@ gasServer.post("/api/documents/:name/sync", (req) => {
   };
 
   // Convert the content based on the requested type
-  documentRecord.contentMarkdown = convertToMarkdown(
-    documentRecord.spreadsheetId,
-    options,
-  );
-  documentRecord.contentJSON = convertToJSON(
-    documentRecord.spreadsheetId,
-    options,
-  );
+  documentRecord.contentMarkdown = convertToMarkdown(documentRecord.spreadsheetId, options);
+  documentRecord.contentJSON = convertToJSON(documentRecord.spreadsheetId, options);
   documentRecord.syncOptions = syncOptions;
 
   // update the document record in the "documents" table with the converted content
@@ -110,14 +100,8 @@ gasServer.post("/api/documents", (req) => {
   };
 
   if (type === "Spreadsheets") {
-    record.contentMarkdown = convertToMarkdown(
-      record.spreadsheetId,
-      record.syncOptions,
-    );
-    record.contentJSON = convertToJSON(
-      record.spreadsheetId,
-      record.syncOptions,
-    );
+    record.contentMarkdown = convertToMarkdown(record.spreadsheetId, record.syncOptions);
+    record.contentJSON = convertToJSON(record.spreadsheetId, record.syncOptions);
   }
 
   sheetDb.table("documents").create(record);

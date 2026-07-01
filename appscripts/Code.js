@@ -1,7 +1,7 @@
 const gasServer = new GasServer(AppRouters);
 
 function doGet(e) {
-  return HtmlService.createTemplateFromFile('index')
+  return HtmlService.createTemplateFromFile("index")
     .evaluate()
     .setTitle(process.env.WEB_APP_TITLE)
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);

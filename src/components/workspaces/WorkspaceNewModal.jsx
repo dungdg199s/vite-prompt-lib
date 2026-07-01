@@ -31,10 +31,7 @@ export default function WorkspaceNewModal() {
       name: form.name,
       description: form.description,
       shareMode: form.shareMode,
-      shareWith:
-        form.shareMode === "shared"
-          ? form.shareWith.split(",").map((s) => s.trim())
-          : [],
+      shareWith: form.shareMode === "shared" ? form.shareWith.split(",").map((s) => s.trim()) : [],
     };
 
     setIsSaving(true);
@@ -49,32 +46,8 @@ export default function WorkspaceNewModal() {
   };
 
   return (
-    <Modal
-      isOpen={true}
-      onClose={() => navigate(-1)}
-      title="Create Workspace"
-      size="lg"
-      actionButtons={
-        <>
-          <Button
-            type="button"
-            onClick={() => navigate(-1)}
-            variant="secondary"
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            onClick={onSave}
-            disabled={isSaving}
-            variant="primary"
-          >
-            Create
-          </Button>
-        </>
-      }
-    >
-      <form className="grid gap-3" onSubmit={onSave}>
+    <Modal isOpen={true} onSubmit={onSave} onClose={() => navigate(-1)} title="Create Workspace" size="lg">
+      <div className="grid gap-3">
         <Input
           type="text"
           label="Workspace Name"
@@ -116,7 +89,15 @@ export default function WorkspaceNewModal() {
         ) : null}
 
         <div className="flex flex-wrap justify-end gap-2 pt-2"></div>
-      </form>
+      </div>
+      <Modal.Actions>
+        <Button type="button" onClick={() => navigate(-1)} variant="secondary">
+          Cancel
+        </Button>
+        <Button type="submit" disabled={isSaving} variant="primary">
+          Create
+        </Button>
+      </Modal.Actions>
     </Modal>
   );
 }

@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import Button from '../shared/Button';
-import { uiClasses } from '../shared/uiClasses';
-import { useWorkspace } from '../../hooks/useWorkspaces';
+import { useMemo } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import Button from "../shared/Button";
+import { uiClasses } from "../shared/uiClasses";
+import { useWorkspace } from "../../hooks/useWorkspaces";
 
 export default function DocumentDetail() {
   const navigate = useNavigate();
@@ -11,27 +11,26 @@ export default function DocumentDetail() {
   const { documents, isLoading } = useWorkspace(workspaceId);
   const document = useMemo(() => documents.find((item) => item.id === documentId), [documentId, documents]);
 
-  const form =
-    document || {
-      name: 'Document',
-      description: 'Select a document or create a new one.',
-      type: 'Spreadsheets',
-      shareMode: 'private',
-    };
+  const form = document || {
+    name: "Document",
+    description: "Select a document or create a new one.",
+    type: "Spreadsheets",
+    shareMode: "private",
+  };
 
   return (
     <section className={uiClasses.card}>
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold tracking-tight">{form.name}</h2>
-          <p className="mt-1 text-sm text-slate-600">
-            {form.description || 'Select a document or create a new one.'}
-          </p>
+          <p className="mt-1 text-sm text-slate-600">{form.description || "Select a document or create a new one."}</p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            onClick={() => navigate(`/workspaces/${workspaceId}/documents/new`, { state: { backgroundLocation: location } })}
+            onClick={() =>
+              navigate(`/workspaces/${workspaceId}/documents/new`, { state: { backgroundLocation: location } })
+            }
             variant="secondary"
           >
             New Document
@@ -75,11 +74,11 @@ export default function DocumentDetail() {
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Type</p>
-            <p className="mt-1 text-sm font-medium text-slate-800">{document.type || 'Spreadsheets'}</p>
+            <p className="mt-1 text-sm font-medium text-slate-800">{document.type || "Spreadsheets"}</p>
           </div>
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
-            <p className="mt-1 text-sm font-medium capitalize text-slate-800">{document.shareMode || 'private'}</p>
+            <p className="mt-1 text-sm font-medium capitalize text-slate-800">{document.shareMode || "private"}</p>
           </div>
           {document.preasheetId ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">
@@ -95,7 +94,7 @@ export default function DocumentDetail() {
           ) : null}
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2 xl:col-span-4">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Description</p>
-            <p className="mt-1 text-sm text-slate-700">{document.description || 'No description'}</p>
+            <p className="mt-1 text-sm text-slate-700">{document.description || "No description"}</p>
           </div>
         </div>
       ) : (

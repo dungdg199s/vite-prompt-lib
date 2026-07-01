@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect } from "react";
 import { Outlet, useParams } from "react-router-dom";
 import AppHeader from "./AppHeader";
 import AppSidebar from "./AppSideBar";
@@ -6,11 +6,11 @@ import { LoadingOverlay } from "./components/shared/Skeleton";
 import { uiClasses } from "./components/shared/uiClasses";
 import AppNavTabs from "./AppNavTabs";
 import { useWorkspaces } from "./hooks/useWorkspaces";
-import { useWorkspaceStore } from './stores/workspaceStore';
+import { useWorkspaceStore } from "./stores/workspaceStore";
 
 export default function AppLayout() {
   const { workspaceId, promptId, documentId } = useParams();
-  const {isLoading} = useWorkspaces();
+  const { isLoading } = useWorkspaces();
   const syncTabsWithRoute = useWorkspaceStore((state) => state.syncTabsWithRoute);
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function AppLayout() {
         <div className={uiClasses.pageGrid}>
           <AppSidebar />
           <main className="grid content-start gap-0">
-            <AppNavTabs/>
+            <AppNavTabs />
             <Outlet />
           </main>
         </div>

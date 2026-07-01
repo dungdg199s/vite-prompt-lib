@@ -24,16 +24,12 @@ export default function WorkspaceDetail() {
     workspaceId && workspace
       ? workspace
       : {
-          name: 'Workspace',
-          description: 'Select a workspace or create a new one.',
+          name: "Workspace",
+          description: "Select a workspace or create a new one.",
         };
 
   const shareWithSummary =
-    form?.shareMode === "shared"
-      ? form?.shareWith?.length > 0
-        ? form.shareWith.join(", ")
-        : "No users"
-      : "";
+    form?.shareMode === "shared" ? (form?.shareWith?.length > 0 ? form.shareWith.join(", ") : "No users") : "";
 
   const promptCount = form?.prompts?.length || 0;
 
@@ -43,9 +39,7 @@ export default function WorkspaceDetail() {
         <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
           <div>
             <h2 className="text-lg font-semibold tracking-tight">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Workspace
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Workspace</p>
               {form?.name || ""}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
@@ -94,64 +88,36 @@ export default function WorkspaceDetail() {
         {workspaceId ? (
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Name
-              </p>
-              <p className="mt-1 text-sm font-medium text-slate-800">
-                {form.name}
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Name</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{form.name}</p>
             </div>
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Share Mode
-              </p>
-              <p className="mt-1 text-sm font-medium capitalize text-slate-800">
-                {form.shareMode}
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
+              <p className="mt-1 text-sm font-medium capitalize text-slate-800">{form.shareMode}</p>
             </div>
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Prompt Count
-              </p>
-              <p className="mt-1 text-sm font-medium text-slate-800">
-                {promptCount}
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Prompt Count</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{promptCount}</p>
             </div>
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                Owner
-              </p>
-              <p className="mt-1 text-sm font-medium text-slate-800">
-                {form.owner || ""}
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Owner</p>
+              <p className="mt-1 text-sm font-medium text-slate-800">{form.owner || ""}</p>
             </div>
             {form.shareMode === "shared" ? (
               <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                  Share With
-                </p>
-                <p className="mt-1 text-sm font-medium text-slate-800">
-                  {shareWithSummary}
-                </p>
+                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share With</p>
+                <p className="mt-1 text-sm font-medium text-slate-800">{shareWithSummary}</p>
               </div>
             ) : null}
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2 xl:col-span-4">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <div className="">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Create By
-                  </p>
-                  <p className="mt-1 text-sm text-slate-700">
-                    {historyFormat(form.createdBy, form.createdAt)}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Create By</p>
+                  <p className="mt-1 text-sm text-slate-700">{historyFormat(form.createdBy, form.createdAt)}</p>
                 </div>
                 <div className="">
-                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">
-                    Last Update
-                  </p>
-                  <p className="mt-1 text-sm text-slate-700">
-                    {historyFormat(form.updatedBy, form.updatedAt)}
-                  </p>
+                  <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Last Update</p>
+                  <p className="mt-1 text-sm text-slate-700">{historyFormat(form.updatedBy, form.updatedAt)}</p>
                 </div>
               </div>
             </div>

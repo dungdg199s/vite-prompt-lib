@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
-import documentIcon from './assets/documents.png';
-import promptIcon from './assets/prompts.png';
-import { useWorkspace } from './hooks/useWorkspace';
+import { useMemo } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import documentIcon from "./assets/documents.png";
+import promptIcon from "./assets/prompts.png";
+import { useWorkspace } from "./hooks/useWorkspace";
 
 export default function AppNavTabs() {
   const navigate = useNavigate();
@@ -15,7 +15,7 @@ export default function AppNavTabs() {
     }
 
     return allTabs.filter((tab) => {
-      if (tab.type === 'workspace') {
+      if (tab.type === "workspace") {
         return tab.id === workspaceId;
       }
 
@@ -27,11 +27,11 @@ export default function AppNavTabs() {
   const activeTab = useMemo(() => tabs.find((tab) => tab.id === activeTabId), [tabs, activeTabId]);
 
   const getTabIcon = (tab) => {
-    if (tab.type === 'prompt') {
+    if (tab.type === "prompt") {
       return promptIcon;
     }
 
-    if (tab.type === 'document') {
+    if (tab.type === "document") {
       return documentIcon;
     }
 
@@ -39,11 +39,11 @@ export default function AppNavTabs() {
   };
 
   const onTabClick = (tab) => {
-    if (tab.type === 'workspace') {
+    if (tab.type === "workspace") {
       navigate(`/workspaces/${tab.id}/view`);
-    } else if (tab.type === 'prompt') {
+    } else if (tab.type === "prompt") {
       navigate(`/workspaces/${tab.workspaceId}/prompts/${tab.id}/view`);
-    } else if (tab.type === 'document') {
+    } else if (tab.type === "document") {
       navigate(`/workspaces/${tab.workspaceId}/documents/${tab.id}/view`);
     }
   };
@@ -56,7 +56,7 @@ export default function AppNavTabs() {
         const newActiveTab = remainingTabs[remainingTabs.length - 1];
         onTabClick(newActiveTab);
       } else {
-        navigate('/workspaces');
+        navigate("/workspaces");
       }
     }
   };
@@ -73,8 +73,8 @@ export default function AppNavTabs() {
             key={tab.id}
             className={`flex items-center gap-1 border px-2.5 py-1.5 text-sm ${
               activeTab?.id === tab.id
-                ? 'border-teal-700 bg-teal-100 text-slate-900'
-                : 'border-stone-300 bg-white text-slate-700'
+                ? "border-teal-700 bg-teal-100 text-slate-900"
+                : "border-stone-300 bg-white text-slate-700"
             }`}
             role="tab"
             aria-selected={activeTab?.id === tab.id}
@@ -94,9 +94,11 @@ export default function AppNavTabs() {
                   aria-hidden="true"
                 />
               ) : null}
-              <span className="truncate">{tab.type === 'workspace' ? tab.name ?? 'Workspace' : tab.name ?? tab.label}</span>
+              <span className="truncate">
+                {tab.type === "workspace" ? (tab.name ?? "Workspace") : (tab.name ?? tab.label)}
+              </span>
             </button>
-            {tab.type !== 'workspace' ? (
+            {tab.type !== "workspace" ? (
               <button
                 type="button"
                 className="rounded px-1 text-xs text-slate-600 hover:bg-stone-200"

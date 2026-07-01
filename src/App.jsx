@@ -1,18 +1,18 @@
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import { uiClasses } from './components/shared/uiClasses';
-import { ToastProvider } from './components/shared/ToastManager';
-import AppLayout from './AppLayout';
-import WorkspaceEditModal from './components/workspaces/WorkspaceEditModal';
-import WorkspaceDetail from './components/workspaces/WorkspaceDetail';
-import DocumentDetail from './components/documents/DocumentDetail';
-import DocumentEditModal from './components/documents/DocumentEditModal';
-import WorkspaceNewModal from './components/workspaces/WorkspaceNewModal';
-import WorkspaceDeleteModal from './components/workspaces/WorkspaceDeleteModal';
-import DocumentDeleteModal from './components/documents/DocumentDeleteModal';
-import PromptDeleteModal from './components/prompts/PromptDeleteModal';
-import PromptEditModal from './components/prompts/PromptEditModal';
-import PromptDetail from './components/workspaces/PromptDetail';
-import PromptNewModal from './components/prompts/PromptNewModal';
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { uiClasses } from "./components/shared/uiClasses";
+import { ToastProvider } from "./components/shared/ToastManager";
+import AppLayout from "./AppLayout";
+import WorkspaceEditModal from "./components/workspaces/WorkspaceEditModal";
+import WorkspaceDetail from "./components/workspaces/WorkspaceDetail";
+import DocumentDetail from "./components/documents/DocumentDetail";
+import DocumentEditModal from "./components/documents/DocumentEditModal";
+import WorkspaceNewModal from "./components/workspaces/WorkspaceNewModal";
+import WorkspaceDeleteModal from "./components/workspaces/WorkspaceDeleteModal";
+import DocumentDeleteModal from "./components/documents/DocumentDeleteModal";
+import PromptDeleteModal from "./components/prompts/PromptDeleteModal";
+import PromptEditModal from "./components/prompts/PromptEditModal";
+import PromptNewModal from "./components/prompts/PromptNewModal";
+import PromptDetail from "./components/prompts/PromptDetail";
 
 function AppContent() {
   const location = useLocation();

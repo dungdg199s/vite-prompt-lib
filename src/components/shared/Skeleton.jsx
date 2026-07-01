@@ -13,9 +13,7 @@ export const LoadingOverlay = () => {
         <div className="flex items-center justify-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-teal-200 border-t-teal-700"></div>
         </div>
-        <div className="animate-pulse text-center text-sm font-medium text-slate-600">
-          Loading data...
-        </div>
+        <div className="animate-pulse text-center text-sm font-medium text-slate-600">Loading data...</div>
       </div>
     </div>
   );
@@ -47,10 +45,7 @@ export const SkeletonContent = () => {
 
       <div className="space-y-3 pt-4">
         {[...Array(3)].map((_, i) => (
-          <div
-            key={i}
-            className="space-y-2 rounded-lg border border-slate-200 p-3"
-          >
+          <div key={i} className="space-y-2 rounded-lg border border-slate-200 p-3">
             <div className="h-4 w-2/3 animate-pulse rounded bg-gradient-to-r from-slate-100 via-slate-50 to-slate-100"></div>
             <div className="h-3 w-1/2 animate-pulse rounded bg-gradient-to-r from-slate-50 via-slate-30 to-slate-50"></div>
           </div>
