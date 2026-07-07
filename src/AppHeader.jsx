@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { useWorkspaces } from "./hooks/useWorkspaces";
+import { useAppNavigate } from "./hooks/useAppNavigate";
 
 const PAGES = [{ name: "Workspaces", path: "/workspaces" }];
 
@@ -13,7 +13,7 @@ const SEARCH_SCOPES = {
 function AppHeader() {
   const { workspaces, isLoading } = useWorkspaces();
 
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
 
   const prompts = useMemo(() => {
     if (!workspaces) {
@@ -89,7 +89,7 @@ function AppHeader() {
     }
 
     setSearchQuery("");
-    navigate(`/workspaces/${encodeURIComponent(workspaceId)}/prompts/${encodeURIComponent(promptId)}/view`);
+    navigate({ object: "prompt", recordId: promptId, action: "view" });
   };
 
   const goToDocument = (document) => {
@@ -100,7 +100,7 @@ function AppHeader() {
     }
 
     setSearchQuery("");
-    navigate(`/workspaces/${encodeURIComponent(workspaceId)}/documents/${encodeURIComponent(documentId)}/view`);
+    navigate({ object: "document", recordId: documentId, action: "view" });
   };
 
   const scopedPrompts = searchScope === SEARCH_SCOPES.DOCUMENTS ? [] : filteredPrompts;
@@ -117,7 +117,7 @@ function AppHeader() {
               key={page.name}
               type="button"
               onClick={() => {
-                navigate(page.path);
+                navigate({ object: "workspace", action: "home" });
               }}
               disabled={isLoading}
               className={`rounded-lg px-4 py-1.5 text-sm font-medium transition ${

@@ -48,7 +48,9 @@ export default function Input({
           {props.required ? <span className="text-red-600">*</span> : null} {label}
         </span>
         <select className={inputClassName} value={value} onChange={(e) => onChange(e)}>
-          <option value="">{noneLabel || "--None--"}</option>
+          {props.required !== true && noneLabel ? (
+            <option value="">{noneLabel}</option>
+          ) : null}
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

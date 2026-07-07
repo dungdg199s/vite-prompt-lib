@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import { uiClasses } from "./components/shared/uiClasses";
 import { ToastProvider } from "./components/shared/ToastManager";
 import AppLayout from "./AppLayout";
@@ -13,10 +13,20 @@ import PromptDeleteModal from "./components/prompts/PromptDeleteModal";
 import PromptEditModal from "./components/prompts/PromptEditModal";
 import PromptNewModal from "./components/prompts/PromptNewModal";
 import PromptDetail from "./components/prompts/PromptDetail";
+import DocumentNewModal from "./components/documents/DocumentNewModal";
+import { useAppNavigate } from "./hooks/useAppNavigate";
+import { useEffect } from "react";
+
+function AppDefaultNav() {
+  const navigate = useAppNavigate();
+  useEffect(() => {
+    navigate();
+  }, [navigate]);
+  return null;
+}
 
 function AppContent() {
   const location = useLocation();
-
   const backgroundLocation = location.state?.backgroundLocation;
 
   return (
@@ -38,7 +48,7 @@ function AppContent() {
             </Route>
           </Route>
         </Route>
-        <Route path="/" element={<Navigate to="/workspaces" replace />} />
+        <Route path="/" element={<AppDefaultNav />} />
       </Routes>
 
       {backgroundLocation && (
@@ -58,7 +68,7 @@ function AppContent() {
               </Route>
 
               <Route path="documents">
-                <Route path="new" element={<DocumentEditModal />} />
+                <Route path="new" element={<DocumentNewModal />} />
                 <Route path=":documentId">
                   <Route path="edit" element={<DocumentEditModal />} />
                   <Route path="delete" element={<DocumentDeleteModal />} />

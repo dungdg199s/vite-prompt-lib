@@ -1,15 +1,15 @@
 import Button from "./components/shared/Button";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useMemo } from "react";
 import documentIcon from "./assets/documents.png";
 import promptIcon from "./assets/prompts.png";
 import { uiClasses } from "./components/shared/uiClasses";
 import { useWorkspace, useWorkspaces } from "./hooks/useWorkspaces";
+import { useAppNavigate } from "./hooks/useAppNavigate";
 
 export default function AppSidebar() {
   const { workspaceId, promptId, documentId } = useParams();
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useAppNavigate();
   const { workspaces, isLoading, fetchWorkspaces } = useWorkspaces();
   const { workspace, addTab } = useWorkspace();
 
@@ -43,11 +43,7 @@ export default function AppSidebar() {
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() =>
-                navigate(`/workspaces/${workspace.id}/prompts/new`, {
-                  state: { backgroundLocation: location },
-                })
-              }
+              onClick={() => navigate({ object: "prompt", action: "new" })}
             >
               New
             </Button>
@@ -67,7 +63,7 @@ export default function AppSidebar() {
                     : "border-stone-200 bg-[#fffef8] text-slate-800 hover:bg-stone-100"
                 }`}
                 onClick={() => {
-                  navigate(`/workspaces/${workspace.id}/prompts/${prompt.id}/view`);
+                  navigate({ object: "prompt", recordId: prompt.id, action: "view" });
                   addTab({
                     id: prompt.id,
                     type: "prompt",
@@ -89,11 +85,7 @@ export default function AppSidebar() {
               type="button"
               variant="secondary"
               size="sm"
-              onClick={() =>
-                navigate(`/workspaces/${workspaceId}/documents/new`, {
-                  state: { backgroundLocation: location },
-                })
-              }
+              onClick={() => navigate({ object: "document", action: "new" })}
             >
               New
             </Button>
@@ -112,7 +104,7 @@ export default function AppSidebar() {
                       : "border-stone-200 bg-[#fffef8] text-slate-800 hover:bg-stone-100"
                   }`}
                   onClick={() => {
-                    navigate(`/workspaces/${workspaceId}/documents/${document.id}/view`);
+                    navigate({ object: "document", recordId: document.id, action: "view" });
                     addTab({
                       id: document.id,
                       type: "document",
@@ -148,7 +140,7 @@ export default function AppSidebar() {
                   : "border-stone-300 bg-[#fffef8] hover:border-teal-700/40"
               }`}
               onClick={() => {
-                navigate(`/workspaces/${workspace.id}/view`);
+                navigate({ object: "workspace", recordId: workspace.id, action: "view" });
                 addTab({
                   id: workspace.id,
                   type: "workspace",

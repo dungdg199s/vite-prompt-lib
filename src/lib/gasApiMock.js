@@ -257,12 +257,8 @@ const routes = [
         throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
-      if (findDocumentById(body.id)) {
-        throw new Error(`Document "${body.id}" already exists`);
-      }
-
       const record = {
-        id: String(body.id),
+        id: String(body.id || `document-${Date.now()}`),
         name: String(body.name),
         type,
         workspace: String(body.workspace || ""),

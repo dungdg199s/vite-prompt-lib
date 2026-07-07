@@ -47,14 +47,14 @@ const AppDatabase = (function () {
 
     set headerRow(rowNumber) {
       this._headerRow = rowNumber;
-      this.dict = this.genDict();
+      this.dict = this._genDict();
     }
 
     get headerRow() {
       return this._headerRow || 1;
     }
 
-    genDict() {
+    _genDict() {
       const map = {};
       if (this.lastColumn > 0) {
         this.worksheet
@@ -153,20 +153,13 @@ const AppDatabase = (function () {
       return updated;
     }
 
-    _toRecord(row) {
-      const { id, isDeleted, data: dataStr } = row;
-      const data = dataStr ? JSON.parse(dataStr) : {};
-      return { ...data, id, isDeleted };
-    }
-
     /**
      * Retrieves all records from the sheet.
      * @param {FetchOptions} options
      * @returns {Array<Record<string, any>>}
      */
     findAll(options = { enforceSharing: true, allowDeleted: false }) {
-      const rows = this._findAll();
-      let records = rows.map(this._toRecord.bind(this));
+      let records = this._findAll();
 
       if (!options.allowDeleted) {
         records = records.filter((r) => !r.isDeleted);
@@ -227,12 +220,12 @@ const AppDatabase = (function () {
 
     find(conditions = {}) {
       const all = this._find(conditions);
-      return all.map(this._toRecord.bind(this));
+      return all;
     }
 
     findById(id) {
       const all = this._find({ id: String(id) });
-      return all.length > 0 ? this._toRecord(all[0]) : null;
+      return all.length > 0 ? all[0] : null;
     }
 
     create(record) {
@@ -240,23 +233,20 @@ const AppDatabase = (function () {
       const sysDate = new Date().toISOString();
       const sysUser = Session.getActiveUser().getEmail();
 
+      record.id = uuid;
+      record.isDeleted = false;
       record.owner = sysUser;
       record.createdAt = sysDate;
       record.createdBy = sysUser;
       record.updatedAt = sysDate;
       record.updatedBy = sysUser;
 
-      const newRow = {
-        id: uuid,
-        isDeleted: false,
-        data: JSON.stringify(record),
-      };
-      this._insert(newRow);
-      return this.findById(uuid);
+      this._insert(record);
+      return this.findById(record.id);
     }
 
     update(record) {
-      const { id, isDeleted, ...data } = record;
+      const { id, ...data } = record;
 
       const sysDate = new Date().toISOString();
       const sysUser = Session.getActiveUser().getEmail();
@@ -269,7 +259,7 @@ const AppDatabase = (function () {
         throw new Error(`Record with id "${record.id}" not found`);
       }
 
-      this._update({ data: JSON.stringify({ ...JSON.parse(row.data), ...data }) }, { id });
+      this._update({ ...row, ...data }, { id });
 
       return this.findById(record.id);
     }

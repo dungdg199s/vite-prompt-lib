@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import documentIcon from "./assets/documents.png";
 import promptIcon from "./assets/prompts.png";
-import { useWorkspace } from "./hooks/useWorkspace";
+import { useWorkspace } from "./hooks/useWorkspaces";
+import { useAppNavigate } from "./hooks/useAppNavigate";
 
 export default function AppNavTabs() {
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
   const { workspaceId, promptId, documentId } = useParams();
   const { tabs: allTabs, closeTab } = useWorkspace();
 
@@ -40,11 +41,11 @@ export default function AppNavTabs() {
 
   const onTabClick = (tab) => {
     if (tab.type === "workspace") {
-      navigate(`/workspaces/${tab.id}/view`);
+      navigate({ object: "workspace", recordId: tab.id, action: "home" });
     } else if (tab.type === "prompt") {
-      navigate(`/workspaces/${tab.workspaceId}/prompts/${tab.id}/view`);
+      navigate({ object: "prompt", recordId: tab.id, action: "view" });
     } else if (tab.type === "document") {
-      navigate(`/workspaces/${tab.workspaceId}/documents/${tab.id}/view`);
+      navigate({ object: "document", recordId: tab.id, action: "view" });
     }
   };
 
@@ -56,7 +57,7 @@ export default function AppNavTabs() {
         const newActiveTab = remainingTabs[remainingTabs.length - 1];
         onTabClick(newActiveTab);
       } else {
-        navigate("/workspaces");
+        navigate({ object: "workspace", action: "home" });
       }
     }
   };

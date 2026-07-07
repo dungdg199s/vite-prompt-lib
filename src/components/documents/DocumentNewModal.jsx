@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Modal from "../shared/Modal";
 import Button from "../shared/Button";
@@ -12,55 +12,54 @@ const shareModeOptions = [
 
 const documentTypeOptions = ["Spreadsheets", "Markdown", "JSON", "HTML"].map((value) => ({ label: value, value }));
 
-export default function DocumentEditModal() {
+const DEFAULT_DOCUMENT_FORM = {
+  name: "",
+  workspace: "",
+  type: "Spreadsheets",
+  fileName: "",
+  preasheetId: "",
+  description: "",
+  contentMarkdown: "",
+  contentJSON: "",
+  contentHTML: "",
+  shareMode: "private",
+  shareWith: "",
+};
+
+export default function DocumentNewModal() {
   const navigate = useNavigate();
-  const { workspaceId, documentId } = useParams();
-  const { documents, updateDocument, isLoading } = useWorkspace(workspaceId);
+  const { workspaceId } = useParams();
+  const { createDocument, isLoading } = useWorkspace(workspaceId);
 
-  const [form, setForm] = useState({});
-
-  useEffect(() => {
-    if (!documentId || !documents) return;
-    const currentDocument = documents.find((item) => item.id === documentId);
-    setForm({ ...currentDocument });
-  }, [documentId, documents]);
-
+  const [form, setForm] = useState(DEFAULT_DOCUMENT_FORM);
   const [isSaving, setIsSaving] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleChange = (field, value) => {
     setForm((prev) => {
-      const base = prev ?? form;
       return {
-        ...base,
+        ...prev,
         [field]: value,
-        fileName: field === "name" && base.type === "Spreadsheets" ? value : base.fileName,
       };
     });
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    setErrorMessage("");
-
     const payload = {
       ...form,
-      id: documentId,
       workspace: workspaceId,
     };
-
     setIsSaving(true);
-    const saved = await updateDocument(documentId, payload);
+    const saved = await createDocument(payload);
     setIsSaving(false);
-
     if (saved?.id || saved === true) {
-      navigate(`/workspaces/${workspaceId}/documents/${documentId}/view`);
+      navigate(`/workspaces/${workspaceId}/documents/${saved?.id}/view`);
       return;
     }
   };
 
   return (
-    <Modal isOpen={true} onSubmit={handleSubmit} onClose={() => navigate(-1)} title="Edit Document" size="lg">
+    <Modal isOpen={true} onSubmit={handleSubmit} onClose={() => navigate(-1)} title="Create Document" size="lg">
       <Modal.Content className="grid gap-3">
         <Input
           type="text"
@@ -70,7 +69,6 @@ export default function DocumentEditModal() {
           placeholder="my-document"
           required
         />
-
         <Input
           label="Document Type"
           type="select"
@@ -79,7 +77,6 @@ export default function DocumentEditModal() {
           options={documentTypeOptions}
           required
         />
-
         {form.type === "Spreadsheets" ? (
           <Input
             type="text"
@@ -99,6 +96,7 @@ export default function DocumentEditModal() {
             value={form.contentMarkdown}
             onChange={(event) => handleChange("contentMarkdown", event.target.value)}
             placeholder="Write markdown content..."
+            required
           />
         ) : null}
 
@@ -110,6 +108,7 @@ export default function DocumentEditModal() {
             value={form.contentJSON}
             onChange={(event) => handleChange("contentJSON", event.target.value)}
             placeholder='{"key": "value"}'
+            required
           />
         ) : null}
 
@@ -121,6 +120,7 @@ export default function DocumentEditModal() {
             value={form.contentHTML}
             onChange={(event) => handleChange("contentHTML", event.target.value)}
             placeholder="<h1>Title</h1>"
+            required
           />
         ) : null}
 
@@ -142,14 +142,22 @@ export default function DocumentEditModal() {
           required
         />
 
-        {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}
+        {form.shareMode === "shared" ? (
+          <Input
+            type="text"
+            label="Share With (comma separated emails)"
+            value={form.shareWith}
+            onChange={(event) => handleChange("shareWith", event.target.value)}
+            placeholder="a@company.com, b@company.com"
+          />
+        ) : null}
       </Modal.Content>
       <Modal.Actions>
         <Button type="button" onClick={() => navigate(-1)} variant="secondary">
           Cancel
         </Button>
         <Button type="submit" disabled={isLoading || isSaving} variant="primary">
-          Update
+          Create
         </Button>
       </Modal.Actions>
     </Modal>

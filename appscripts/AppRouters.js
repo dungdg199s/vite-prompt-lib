@@ -222,12 +222,7 @@ const AppRouters = [
         throw new Error("Spreadsheet ID is required for Spreadsheets type");
       }
 
-      if (AppDatabase.Documents.getById(body.id)) {
-        throw new Error(`Document "${body.id}" already exists`);
-      }
-
       const record = {
-        id: String(body.id),
         name: String(body.name),
         type,
         workspace: String(body.workspace || ""),

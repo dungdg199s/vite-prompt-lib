@@ -63,50 +63,51 @@ export default function WorkspaceEditModal() {
 
   return (
     <Modal isOpen={true} onSubmit={onSave} onClose={() => navigate(-1)} title="Edit Workspace" size="lg">
-      <div className="grid gap-3">
-        <Input
-          type="text"
-          label="Workspace Name"
-          value={form?.name || ""}
-          onChange={(e) => onChange("name", e.target.value)}
-          placeholder="workspace-name"
-          required
-        />
-
-        <Input
-          type="textarea"
-          label="Description"
-          value={form?.description || ""}
-          onChange={(e) => onChange("description", e.target.value)}
-          rows={3}
-          placeholder="Workspace description"
-        />
-
-        <Input
-          type="select"
-          label="Share Mode"
-          value={form?.shareMode || "private"}
-          onChange={(e) => onChange("shareMode", e.target.value)}
-          options={[
-            { label: "private", value: "private" },
-            { label: "shared", value: "shared" },
-            { label: "public", value: "public" },
-          ]}
-        />
-
-        {form?.shareMode === "shared" ? (
+      <Modal.Content>
+        <div className="grid gap-3">
           <Input
             type="text"
-            label="Share With (comma separated emails)"
-            value={form?.shareWith || ""}
-            onChange={(e) => onChange("shareWith", e.target.value)}
-            placeholder="a@company.com, b@company.com"
+            label="Workspace Name"
+            value={form?.name || ""}
+            onChange={(e) => onChange("name", e.target.value)}
+            placeholder="workspace-name"
+            required
           />
-        ) : null}
 
-        <div className="flex flex-wrap justify-end gap-2 pt-2"></div>
-      </div>
+          <Input
+            type="textarea"
+            label="Description"
+            value={form?.description || ""}
+            onChange={(e) => onChange("description", e.target.value)}
+            rows={3}
+            placeholder="Workspace description"
+          />
 
+          <Input
+            type="select"
+            label="Share Mode"
+            value={form?.shareMode || "private"}
+            onChange={(e) => onChange("shareMode", e.target.value)}
+            options={[
+              { label: "private", value: "private" },
+              { label: "shared", value: "shared" },
+              { label: "public", value: "public" },
+            ]}
+          />
+
+          {form?.shareMode === "shared" ? (
+            <Input
+              type="text"
+              label="Share With (comma separated emails)"
+              value={form?.shareWith || ""}
+              onChange={(e) => onChange("shareWith", e.target.value)}
+              placeholder="a@company.com, b@company.com"
+            />
+          ) : null}
+
+          <div className="flex flex-wrap justify-end gap-2 pt-2"></div>
+        </div>
+      </Modal.Content>
       <Modal.Actions>
         <Button type="button" onClick={() => navigate(-1)} variant="secondary">
           Cancel

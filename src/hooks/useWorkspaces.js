@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { useWorkspaceStore } from "../stores/workspaceStore";
 
@@ -13,10 +13,20 @@ export function useWorkspaces() {
   const deleteWorkspace = useWorkspaceStore((s) => s.deleteWorkspace);
   const clearError = useWorkspaceStore((s) => s.clearError);
 
+  const workspacesRef = useRef(false);
   useEffect(() => {
-    if (!workspaces.length && !isLoading) {
-      fetchWorkspaces();
+    if (workspacesRef.current) {
+      return;
     }
+    if (isLoading) {
+      return;
+    }
+    if (workspaces.length > 0) {
+      workspacesRef.current = true;
+      return;
+    }
+    workspacesRef.current = true;
+    fetchWorkspaces();
   }, [fetchWorkspaces, isLoading, workspaces.length]);
 
   const error = errorByKey.createWorkspace ?? errorByKey.fetchWorkspaces;

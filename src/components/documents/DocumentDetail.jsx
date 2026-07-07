@@ -1,12 +1,12 @@
 import { useMemo } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Button from "../shared/Button";
 import { uiClasses } from "../shared/uiClasses";
 import { useWorkspace } from "../../hooks/useWorkspaces";
+import { useAppNavigate } from "../../hooks/useAppNavigate";
 
 export default function DocumentDetail() {
-  const navigate = useNavigate();
-  const location = useLocation();
+  const navigate = useAppNavigate();
   const { workspaceId, documentId } = useParams();
   const { documents, isLoading } = useWorkspace(workspaceId);
   const document = useMemo(() => documents.find((item) => item.id === documentId), [documentId, documents]);
@@ -28,20 +28,7 @@ export default function DocumentDetail() {
         <div className="flex flex-wrap gap-2">
           <Button
             type="button"
-            onClick={() =>
-              navigate(`/workspaces/${workspaceId}/documents/new`, { state: { backgroundLocation: location } })
-            }
-            variant="secondary"
-          >
-            New Document
-          </Button>
-          <Button
-            type="button"
-            onClick={() =>
-              navigate(`/workspaces/${workspaceId}/documents/${documentId}/edit`, {
-                state: { backgroundLocation: location },
-              })
-            }
+            onClick={() => navigate({ object: "document", recordId: documentId, action: "edit" })}
             disabled={isLoading || !document}
             variant="secondary"
           >
@@ -50,11 +37,7 @@ export default function DocumentDetail() {
           <Button
             type="button"
             variant="danger"
-            onClick={() =>
-              navigate(`/workspaces/${workspaceId}/documents/${documentId}/delete`, {
-                state: { backgroundLocation: location },
-              })
-            }
+            onClick={() => navigate({ object: "document", recordId: documentId, action: "delete" })}
             disabled={isLoading || !document}
           >
             Delete

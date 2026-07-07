@@ -37,15 +37,6 @@ export default function PromptDetail() {
           <button
             type="button"
             onClick={() =>
-              navigate(`/workspaces/${workspaceId}/prompts/new`, { state: { backgroundLocation: location } })
-            }
-            className={secondaryButtonClassName}
-          >
-            New Prompt
-          </button>
-          <button
-            type="button"
-            onClick={() =>
               navigate(`/workspaces/${workspaceId}/prompts/${prompt?.id}/edit`, {
                 state: { backgroundLocation: location },
               })

@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Modal from "../shared/Modal";
 import Button from "../shared/Button";
 import { useWorkspace } from "../../hooks/useWorkspaces";
+import { useAppNavigate } from "../../hooks/useAppNavigate";
 
 export default function DocumentDeleteModal() {
-  const navigate = useNavigate();
+  const navigate = useAppNavigate();
   const { workspaceId, documentId } = useParams();
   const { documents, deleteDocument, isLoading } = useWorkspace(workspaceId);
   const document = useMemo(() => documents.find((item) => item.id === documentId), [documentId, documents]);
@@ -13,7 +14,7 @@ export default function DocumentDeleteModal() {
   const handleDelete = async () => {
     const deleted = await deleteDocument(documentId, workspaceId);
     if (deleted) {
-      navigate(`/workspaces/${workspaceId}/view`);
+      navigate({ object: "workspace", recordId: workspaceId, action: "view" });
     }
   };
 
