@@ -60,6 +60,7 @@ const AppRouters = [
       if (!workspace) {
         throw new Error(`Workspace "${body.id}" not found`);
       }
+      workspace.expectedUpdatedAt = body.updatedAt;
       workspace.name = String(body.name || workspace.name);
       workspace.description = String(body.description || "");
       workspace.shareMode = body.shareMode || "private";
@@ -153,6 +154,7 @@ const AppRouters = [
         throw new Error(`Prompt "${params.id}" not found`);
       }
 
+      prompt.expectedUpdatedAt = body.updatedAt;
       prompt.name = String(body.name || prompt.name);
       prompt.workspace = String(body.workspace || prompt.workspace || "");
       prompt.description = String(body.description || "");
@@ -262,6 +264,7 @@ const AppRouters = [
         throw new Error(`Document "${params.id}" not found`);
       }
 
+      document.expectedUpdatedAt = body.updatedAt;
       document.type = type;
       document.workspace = String(body.workspace || "");
       document.fileName = String(body.fileName || "");

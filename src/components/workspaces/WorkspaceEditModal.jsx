@@ -42,6 +42,7 @@ export default function WorkspaceEditModal() {
 
     const payload = {
       id: workspaceId,
+      updatedAt: workspace?.updatedAt,
       name: form.name,
       description: form.description,
       shareMode: form.shareMode,

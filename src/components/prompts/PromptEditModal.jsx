@@ -122,6 +122,7 @@ function RoutePromptEditModal() {
   const derivedForm = useMemo(
     () => ({
       id: prompt?.id || promptId || "",
+      updatedAt: prompt?.updatedAt,
       name: prompt?.name || "",
       workspace: prompt?.workspace || workspaceId || "",
       description: prompt?.description || "",
