@@ -15,7 +15,6 @@ export default function DocumentDetail() {
     name: "Document",
     description: "Select a document or create a new one.",
     type: "Spreadsheets",
-    shareMode: "private",
   };
 
   return (
@@ -58,10 +57,6 @@ export default function DocumentDetail() {
           <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
             <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Type</p>
             <p className="mt-1 text-sm font-medium text-slate-800">{document.type || "Spreadsheets"}</p>
-          </div>
-          <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
-            <p className="mt-1 text-sm font-medium capitalize text-slate-800">{document.shareMode || "private"}</p>
           </div>
           {document.preasheetId ? (
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2">

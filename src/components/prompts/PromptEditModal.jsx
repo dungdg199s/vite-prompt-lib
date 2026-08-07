@@ -30,10 +30,6 @@ function PromptEditModalContent({
     [workspaces]
   );
 
-  const shareOptions = useMemo(() => {
-    return ["private", "shared", "public"].map((value) => ({ label: value, value }));
-  }, []);
-
   return (
     <Modal
       isOpen={isOpen}
@@ -80,25 +76,6 @@ function PromptEditModalContent({
             placeholder="Write your prompt template here.\nUse ${VariableName|description} for tokens.\nExample: ${Topic|options:React,Vue,Angular}"
             required
           ></Input>
-
-          <Input
-            label="Share Mode"
-            type="select"
-            value={prompt?.shareMode || "private"}
-            onChange={(event) => onChange("shareMode", event.target.value)}
-            options={shareOptions}
-            required
-          ></Input>
-
-          {prompt?.shareMode === "shared" ? (
-            <Input
-              type="text"
-              label="Share With (comma separated emails)"
-              value={prompt?.shareWith || ""}
-              onChange={(event) => onChange("shareWith", event.target.value)}
-              placeholder="a@company.com, b@company.com"
-            ></Input>
-          ) : null}
         </div>
       </Modal.Content>
       <Modal.Actions>
@@ -127,8 +104,6 @@ function RoutePromptEditModal() {
       workspace: prompt?.workspace || workspaceId || "",
       description: prompt?.description || "",
       content: prompt?.content || "",
-      shareMode: prompt?.shareMode || "private",
-      shareWith: Array.isArray(prompt?.shareWith) ? prompt.shareWith.join(", ") : prompt?.shareWith || "",
     }),
     [prompt, promptId, workspaceId]
   );
@@ -143,16 +118,7 @@ function RoutePromptEditModal() {
     }
 
     setIsSaving(true);
-    const updated = await updatePrompt(promptId, {
-      ...form,
-      shareWith:
-        form.shareMode === "shared"
-          ? String(form.shareWith || "")
-              .split(",")
-              .map((item) => item.trim())
-              .filter(Boolean)
-          : [],
-    });
+    const updated = await updatePrompt(promptId, form);
     setIsSaving(false);
 
     if (updated) {

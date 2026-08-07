@@ -28,9 +28,6 @@ export default function WorkspaceDetail() {
           description: "Select a workspace or create a new one.",
         };
 
-  const shareWithSummary =
-    form?.shareMode === "shared" ? (form?.shareWith?.length > 0 ? form.shareWith.join(", ") : "No users") : "";
-
   const promptCount = form?.prompts?.length || 0;
 
   return (
@@ -92,10 +89,6 @@ export default function WorkspaceDetail() {
               <p className="mt-1 text-sm font-medium text-slate-800">{form.name}</p>
             </div>
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share Mode</p>
-              <p className="mt-1 text-sm font-medium capitalize text-slate-800">{form.shareMode}</p>
-            </div>
-            <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Prompt Count</p>
               <p className="mt-1 text-sm font-medium text-slate-800">{promptCount}</p>
             </div>
@@ -103,12 +96,6 @@ export default function WorkspaceDetail() {
               <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Owner</p>
               <p className="mt-1 text-sm font-medium text-slate-800">{form.owner || ""}</p>
             </div>
-            {form.shareMode === "shared" ? (
-              <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3">
-                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500">Share With</p>
-                <p className="mt-1 text-sm font-medium text-slate-800">{shareWithSummary}</p>
-              </div>
-            ) : null}
             <div className="rounded-xl border border-stone-200 bg-[#fffcf7] p-3 md:col-span-2 xl:col-span-4">
               <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 <div className="">

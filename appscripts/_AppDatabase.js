@@ -359,29 +359,17 @@ const AppDatabase = (function () {
     }
 
     /**
-     * Retrieves records from the sheet.
+     * Retrieves records from the sheet. This is pure data access — no access-control filtering.
+     * Workspace-membership/role visibility is applied by the router layer (see
+     * appscripts/_AccessControl.js and appscripts/_ContentLifecycle.js), not here.
      * @param {FetchOptions} options
      * @returns {Array<Record<string, any>>}
      */
-    findAll(options = { enforceSharing: true, allowDeleted: false }) {
+    findAll(options = { allowDeleted: false }) {
       let records = this._findAllCached();
 
       if (!options.allowDeleted) {
         records = records.filter((r) => !r.isDeleted);
-      }
-
-      const currentUser = Session.getActiveUser().getEmail();
-
-      if (options.enforceSharing && !Config.SYSTEM_ADMIN_EMAIL.includes(currentUser)) {
-        const effectiveUser = currentUser;
-        records = records.filter(
-          (record) =>
-            record.shareMode === "public" ||
-            record.owner === effectiveUser ||
-            (record.shareMode === "shared" &&
-              Array.isArray(record.shareWith) &&
-              record.shareWith.includes(effectiveUser))
-        );
       }
 
       if (options.filter) {
@@ -438,7 +426,7 @@ const AppDatabase = (function () {
       return this._withLock(() => {
         const uuid = Utilities.getUuid();
         const sysDate = new Date().toISOString();
-        const sysUser = Session.getActiveUser().getEmail();
+        const sysUser = AccessControl.getCurrentUserEmail();
 
         record.id = uuid;
         record.isDeleted = false;
@@ -479,7 +467,7 @@ const AppDatabase = (function () {
         }
 
         const sysDate = new Date().toISOString();
-        const sysUser = Session.getActiveUser().getEmail();
+        const sysUser = AccessControl.getCurrentUserEmail();
         const merged = { ...current, ...data, updatedAt: sysDate, updatedBy: sysUser };
 
         this._writeRow(current.rI, merged, id, current);
@@ -515,9 +503,11 @@ const AppDatabase = (function () {
 
   return {
     Db: db,
-    Workspaces: db.table("workspaces", { structuredFields: ["shareWith"] }),
-    Prompts: db.table("prompts", { structuredFields: ["shareWith"] }),
-    Documents: db.table("documents", { structuredFields: ["shareWith", "contentJSON", "syncOptions"] }),
+    Workspaces: db.table("workspaces", { structuredFields: ["members"] }),
+    Prompts: db.table("prompts", {}),
+    Documents: db.table("documents", { structuredFields: ["contentJSON", "syncOptions"] }),
+    PromptVersions: db.table("prompt_versions", {}),
+    DocumentVersions: db.table("document_versions", { structuredFields: ["contentJSON"] }),
     errors,
     isBlobRef: _isBlobRef,
   };
@@ -573,6 +563,101 @@ function migrateInlineContentToBlobs() {
   });
 
   Logger.log(`migrateInlineContentToBlobs: migrated ${report.length} record(s)`);
+  Logger.log(JSON.stringify(report, null, 2));
+
+  return report;
+}
+
+/**
+ * One-time migration for the members/roles + draft-publish/version redesign. Idempotent — a
+ * workspace with `members` already set, or a prompt/document with `status` already set, is left
+ * untouched. Run manually from the Apps Script editor after backing up the spreadsheet.
+ *
+ * - Workspaces: seeds `members` from the existing `owner` field (that user becomes "owner").
+ * - Prompts/Documents: existing records default to `status: "publish"` (NOT the fresh-record
+ *   default of "draft") with one version snapshot taken from their current content, so nothing
+ *   already in use regresses to invisible for plain "member"-role viewers after migrating.
+ * @returns {{workspaces: number, versionedRecords: Array<{table: string, id: string, versionId: string}>}}
+ */
+function migrateToMembershipAndPublishModel() {
+  let migratedWorkspaces = 0;
+
+  AppDatabase.Workspaces._withLock(() => {
+    AppDatabase.Workspaces._findAll().forEach((workspace) => {
+      if (Array.isArray(workspace.members) && workspace.members.length > 0) {
+        return;
+      }
+      AppDatabase.Workspaces._writeRow(
+        workspace.rI,
+        { members: [{ email: workspace.owner, role: AccessControl.ROLES.OWNER }] },
+        workspace.id
+      );
+      migratedWorkspaces += 1;
+    });
+    AppDatabase.Workspaces._invalidateCache();
+  });
+
+  const targets = [
+    {
+      table: AppDatabase.Prompts,
+      versionsTable: AppDatabase.PromptVersions,
+      idField: "promptId",
+      contentFields: ["name", "description", "content"],
+    },
+    {
+      table: AppDatabase.Documents,
+      versionsTable: AppDatabase.DocumentVersions,
+      idField: "documentId",
+      contentFields: ["name", "fileName", "description", "contentMarkdown", "contentJSON", "contentHTML"],
+    },
+  ];
+
+  const versionedRecords = [];
+
+  targets.forEach(({ table, versionsTable, idField, contentFields }) => {
+    table._withLock(() => {
+      table._findAll().forEach((row) => {
+        if (row.status) {
+          return; // already migrated
+        }
+
+        const resolved = table._resolveBlobRefs(row); // snapshot real content, not blob-ref placeholders
+
+        const snapshot = {
+          [idField]: row.id,
+          workspace: row.workspace,
+          versionNumber: 1,
+          publishedAt: row.updatedAt || row.createdAt,
+          publishedBy: row.updatedBy || row.owner,
+        };
+        contentFields.forEach((field) => {
+          snapshot[field] = resolved[field];
+        });
+
+        const version = versionsTable.create(snapshot);
+
+        table._writeRow(
+          row.rI,
+          {
+            status: ContentLifecycle.STATUS.PUBLISH,
+            publishedVersionId: version.id,
+            publishedAt: snapshot.publishedAt,
+            publishedBy: snapshot.publishedBy,
+          },
+          row.id
+        );
+
+        versionedRecords.push({ table: table.name, id: row.id, versionId: version.id });
+      });
+
+      table._invalidateCache();
+    });
+  });
+
+  const report = { workspaces: migratedWorkspaces, versionedRecords };
+  Logger.log(
+    `migrateToMembershipAndPublishModel: ${migratedWorkspaces} workspace(s), ${versionedRecords.length} record(s) versioned`
+  );
   Logger.log(JSON.stringify(report, null, 2));
 
   return report;

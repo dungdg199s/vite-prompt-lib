@@ -5,11 +5,6 @@ import Button from "../shared/Button";
 import Input from "../shared/Input";
 import { useWorkspace } from "../../hooks/useWorkspaces";
 
-const shareModeOptions = [
-  { label: "Only me", value: "private" },
-  { label: "All workspace members", value: "public" },
-];
-
 const documentTypeOptions = ["Spreadsheets", "Markdown", "JSON", "HTML"].map((value) => ({ label: value, value }));
 
 const DEFAULT_DOCUMENT_FORM = {
@@ -22,8 +17,6 @@ const DEFAULT_DOCUMENT_FORM = {
   contentMarkdown: "",
   contentJSON: "",
   contentHTML: "",
-  shareMode: "private",
-  shareWith: "",
 };
 
 export default function DocumentNewModal() {
@@ -132,25 +125,6 @@ export default function DocumentNewModal() {
           onChange={(event) => handleChange("description", event.target.value)}
           placeholder="Short description of this document"
         />
-
-        <Input
-          label="Share Mode"
-          type="select"
-          value={form.shareMode}
-          onChange={(event) => handleChange("shareMode", event.target.value)}
-          options={shareModeOptions}
-          required
-        />
-
-        {form.shareMode === "shared" ? (
-          <Input
-            type="text"
-            label="Share With (comma separated emails)"
-            value={form.shareWith}
-            onChange={(event) => handleChange("shareWith", event.target.value)}
-            placeholder="a@company.com, b@company.com"
-          />
-        ) : null}
       </Modal.Content>
       <Modal.Actions>
         <Button type="button" onClick={() => navigate(-1)} variant="secondary">

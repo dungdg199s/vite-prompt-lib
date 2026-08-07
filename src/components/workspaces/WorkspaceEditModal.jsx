@@ -27,8 +27,6 @@ export default function WorkspaceEditModal() {
     setForm({
       name: workspace.name || "",
       description: workspace.description || "",
-      shareMode: workspace.shareMode || "private",
-      shareWith: workspace.shareWith || workspace?.shareWith?.join(", ") || "",
     });
   }, [workspace]);
 
@@ -45,8 +43,6 @@ export default function WorkspaceEditModal() {
       updatedAt: workspace?.updatedAt,
       name: form.name,
       description: form.description,
-      shareMode: form.shareMode,
-      shareWith: form.shareMode === "shared" ? form.shareWith.split(",").map((s) => s.trim()) : [],
     };
 
     setIsSaving(true);
@@ -83,28 +79,6 @@ export default function WorkspaceEditModal() {
             rows={3}
             placeholder="Workspace description"
           />
-
-          <Input
-            type="select"
-            label="Share Mode"
-            value={form?.shareMode || "private"}
-            onChange={(e) => onChange("shareMode", e.target.value)}
-            options={[
-              { label: "private", value: "private" },
-              { label: "shared", value: "shared" },
-              { label: "public", value: "public" },
-            ]}
-          />
-
-          {form?.shareMode === "shared" ? (
-            <Input
-              type="text"
-              label="Share With (comma separated emails)"
-              value={form?.shareWith || ""}
-              onChange={(e) => onChange("shareWith", e.target.value)}
-              placeholder="a@company.com, b@company.com"
-            />
-          ) : null}
 
           <div className="flex flex-wrap justify-end gap-2 pt-2"></div>
         </div>

@@ -5,11 +5,6 @@ import Button from "../shared/Button";
 import Input from "../shared/Input";
 import { useWorkspace } from "../../hooks/useWorkspaces";
 
-const shareModeOptions = [
-  { label: "Only me", value: "private" },
-  { label: "All workspace members", value: "public" },
-];
-
 const documentTypeOptions = ["Spreadsheets", "Markdown", "JSON", "HTML"].map((value) => ({ label: value, value }));
 
 export default function DocumentEditModal() {
@@ -131,15 +126,6 @@ export default function DocumentEditModal() {
           value={form.description}
           onChange={(event) => handleChange("description", event.target.value)}
           placeholder="Short description of this document"
-        />
-
-        <Input
-          label="Share Mode"
-          type="select"
-          value={form.shareMode}
-          onChange={(event) => handleChange("shareMode", event.target.value)}
-          options={shareModeOptions}
-          required
         />
 
         {errorMessage ? <p className="text-sm text-red-700">{errorMessage}</p> : null}

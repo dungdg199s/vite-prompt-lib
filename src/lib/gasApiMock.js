@@ -2,6 +2,10 @@ import { mockData } from "./gasApiMockData";
 
 const clone = (value) => JSON.parse(JSON.stringify(value));
 
+// Local dev has no real Google session — the mock always acts as this single user, who is
+// auto-seeded as the "owner" member of every workspace it creates (mirrors AppRouters.js).
+const MOCK_CURRENT_USER = "dev@example.com";
+
 const mockDb = mockData || {
   workspaces: [],
   prompts: [],
@@ -109,8 +113,7 @@ const routes = [
         id: String(body.id),
         name: String(body.name),
         description: String(body.description || ""),
-        shareMode: body.shareMode || "private",
-        shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
+        members: [{ email: MOCK_CURRENT_USER, role: "owner" }],
       };
 
       mockDb.workspaces.push(record);
@@ -132,8 +135,7 @@ const routes = [
 
       workspace.name = String(body.name || workspace.name);
       workspace.description = String(body.description || "");
-      workspace.shareMode = body.shareMode || "private";
-      workspace.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
+      // members are not editable via this route in the real backend either (members sub-resource).
 
       return workspace;
     },
@@ -164,6 +166,10 @@ const routes = [
     path: "/api/prompts",
     handler: ({ body }) => {
       body.id = body.id || `prompt-${Date.now()}`;
+      body.status = body.status || "draft";
+      body.publishedVersionId = body.publishedVersionId ?? null;
+      body.publishedAt = body.publishedAt ?? null;
+      body.publishedBy = body.publishedBy ?? null;
       mockDb.prompts.push(clone(body));
       return clone(body);
     },
@@ -273,8 +279,10 @@ const routes = [
           headerRow: 1,
           sheets: [],
         },
-        shareMode: body.shareMode || "private",
-        shareWith: Array.isArray(body.shareWith) ? body.shareWith : [],
+        status: "draft",
+        publishedVersionId: null,
+        publishedAt: null,
+        publishedBy: null,
       };
 
       mockDb.documents.push(record);
@@ -312,8 +320,6 @@ const routes = [
         headerRow: 1,
         sheets: [],
       };
-      document.shareMode = body.shareMode || "private";
-      document.shareWith = Array.isArray(body.shareWith) ? body.shareWith : [];
 
       return clone(document);
     },
