@@ -141,6 +141,75 @@ const routes = [
     },
   },
   {
+    method: "POST",
+    path: "/api/workspaces/:workspaceId/members",
+    handler: ({ params, body }) => {
+      const workspace = findWorkspaceById(params.workspaceId);
+      if (!workspace) {
+        throw new Error(`Workspace "${params.workspaceId}" not found`);
+      }
+      if (!body?.email || !["owner", "manager", "member"].includes(body.role)) {
+        throw new Error("Invalid payload for add-member");
+      }
+
+      const members = workspace.members || [];
+      if (members.some((m) => m.email === body.email)) {
+        throw new Error(`"${body.email}" is already a member of this workspace`);
+      }
+
+      workspace.members = [...members, { email: String(body.email), role: body.role }];
+      return clone(workspace.members);
+    },
+  },
+  {
+    method: "PUT",
+    path: "/api/workspaces/:workspaceId/members/:email",
+    handler: ({ params, body }) => {
+      const workspace = findWorkspaceById(params.workspaceId);
+      if (!workspace) {
+        throw new Error(`Workspace "${params.workspaceId}" not found`);
+      }
+      if (!["owner", "manager", "member"].includes(body?.role)) {
+        throw new Error("Invalid payload for update-member");
+      }
+
+      const members = workspace.members || [];
+      if (!members.some((m) => m.email === params.email)) {
+        throw new Error(`Member "${params.email}" not found`);
+      }
+
+      const nextMembers = members.map((m) => (m.email === params.email ? { ...m, role: body.role } : m));
+      if (!nextMembers.some((m) => m.role === "owner")) {
+        throw new Error(`Workspace "${params.workspaceId}" must have at least one owner`);
+      }
+
+      workspace.members = nextMembers;
+      return clone(workspace.members);
+    },
+  },
+  {
+    method: "DELETE",
+    path: "/api/workspaces/:workspaceId/members/:email",
+    handler: ({ params }) => {
+      const workspace = findWorkspaceById(params.workspaceId);
+      if (!workspace) {
+        throw new Error(`Workspace "${params.workspaceId}" not found`);
+      }
+
+      const members = workspace.members || [];
+      const nextMembers = members.filter((m) => m.email !== params.email);
+      if (nextMembers.length === members.length) {
+        throw new Error(`Member "${params.email}" not found`);
+      }
+      if (!nextMembers.some((m) => m.role === "owner")) {
+        throw new Error(`Workspace "${params.workspaceId}" must have at least one owner`);
+      }
+
+      workspace.members = nextMembers;
+      return clone(workspace.members);
+    },
+  },
+  {
     method: "DELETE",
     path: "/api/workspaces/:id",
     handler: ({ params }) => {
@@ -391,6 +460,9 @@ const routes = [
   },
 ];
 
+// Mirrors the real GAS backend contract (_GasServer.js#invoke): a matching-route failure or a
+// thrown handler error propagates as a genuine throw, letting the caller's try/catch route it to
+// withFailureHandler/reject — not a `{success:false}` value resolved through the success path.
 const executeMockRequest = (method, url, payload) => {
   const parsedUrl = new URL(url, "http://localhost");
 
@@ -399,23 +471,12 @@ const executeMockRequest = (method, url, payload) => {
   });
 
   if (!route) {
-    return {
-      success: false,
-      error: `No mock route for ${method}:${parsedUrl.pathname}`,
-    };
+    throw new Error(`No mock route for ${method}:${parsedUrl.pathname}`);
   }
 
-  try {
-    const params = matchPath(route.path, parsedUrl.pathname) || {};
-    const query = Object.fromEntries(parsedUrl.searchParams.entries());
-    const data = route.handler({ params, query, body: payload });
-    return data;
-  } catch (error) {
-    return {
-      success: false,
-      error: error?.message || "Mock request failed",
-    };
-  }
+  const params = matchPath(route.path, parsedUrl.pathname) || {};
+  const query = Object.fromEntries(parsedUrl.searchParams.entries());
+  return route.handler({ params, query, body: payload });
 };
 
 const createRunner = () => {

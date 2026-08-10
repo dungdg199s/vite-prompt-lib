@@ -18,4 +18,10 @@ export const workspacesClient = {
   createDocument: (payload) => gasClient.post("/api/documents", payload),
   updateDocument: (id, payload) => gasClient.put(`/api/documents/${id}`, payload),
   deleteDocument: (id) => gasClient.del(`/api/documents/${id}`),
+
+  createMember: (workspaceId, payload) => gasClient.post(`/api/workspaces/${workspaceId}/members`, payload),
+  updateMember: (workspaceId, email, payload) =>
+    gasClient.put(`/api/workspaces/${workspaceId}/members/${encodeURIComponent(email)}`, payload),
+  deleteMember: (workspaceId, email) =>
+    gasClient.del(`/api/workspaces/${workspaceId}/members/${encodeURIComponent(email)}`),
 };

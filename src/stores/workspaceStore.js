@@ -71,10 +71,12 @@ export const useWorkspaceStore = create((set) => ({
     workspace: {},
     prompt: {},
     document: {},
+    member: {}, // keyed by `${workspaceId}:${email}`
 
     creatingWorkspace: false,
     creatingPrompt: false,
     creatingDocument: false,
+    creatingMember: false,
   },
 
   // ===== Error map =====
@@ -844,6 +846,108 @@ export const useWorkspaceStore = create((set) => ({
           ...s.recordLoading,
           document: { ...s.recordLoading.document, [id]: false },
         },
+      }));
+    }
+  },
+
+  // ===== Member CRUD =====
+  // `members` lives embedded on the Workspace record itself (not a separate sub-resource table);
+  // every mutating route returns the full up-to-date members array, so we just overwrite
+  // workspaceById[workspaceId].members with the response instead of maintaining a parallel map.
+  createMember: async (workspaceId, payload) => {
+    set((s) => ({
+      recordLoading: { ...s.recordLoading, creatingMember: true },
+      errorByKey: { ...s.errorByKey, createMember: undefined },
+    }));
+
+    try {
+      const res = await workspacesClient.createMember(workspaceId, payload);
+      const members = res?.data ?? res;
+
+      set((s) => ({
+        workspaceById: {
+          ...s.workspaceById,
+          [workspaceId]: { ...s.workspaceById[workspaceId], members },
+        },
+      }));
+
+      return members;
+    } catch (err) {
+      const message = toMessage(err);
+      set((s) => ({
+        errorByKey: { ...s.errorByKey, createMember: message },
+      }));
+      useToastStore.getState().error(`Add member failed: ${message}`);
+      return undefined;
+    } finally {
+      set((s) => ({
+        recordLoading: { ...s.recordLoading, creatingMember: false },
+      }));
+    }
+  },
+
+  updateMember: async (workspaceId, email, payload) => {
+    const key = `${workspaceId}:${email}`;
+    set((s) => ({
+      recordLoading: { ...s.recordLoading, member: { ...s.recordLoading.member, [key]: true } },
+      errorByKey: { ...s.errorByKey, [`updateMember:${key}`]: undefined },
+    }));
+
+    try {
+      const res = await workspacesClient.updateMember(workspaceId, email, payload);
+      const members = res?.data ?? res;
+
+      set((s) => ({
+        workspaceById: {
+          ...s.workspaceById,
+          [workspaceId]: { ...s.workspaceById[workspaceId], members },
+        },
+      }));
+
+      return members;
+    } catch (err) {
+      const message = toMessage(err);
+      set((s) => ({
+        errorByKey: { ...s.errorByKey, [`updateMember:${key}`]: message },
+      }));
+      useToastStore.getState().error(`Update member failed: ${message}`);
+      return undefined;
+    } finally {
+      set((s) => ({
+        recordLoading: { ...s.recordLoading, member: { ...s.recordLoading.member, [key]: false } },
+      }));
+    }
+  },
+
+  deleteMember: async (workspaceId, email) => {
+    const key = `${workspaceId}:${email}`;
+    set((s) => ({
+      recordLoading: { ...s.recordLoading, member: { ...s.recordLoading.member, [key]: true } },
+      errorByKey: { ...s.errorByKey, [`deleteMember:${key}`]: undefined },
+    }));
+
+    try {
+      const res = await workspacesClient.deleteMember(workspaceId, email);
+      const members = res?.data ?? res;
+
+      set((s) => ({
+        workspaceById: {
+          ...s.workspaceById,
+          [workspaceId]: { ...s.workspaceById[workspaceId], members },
+        },
+      }));
+
+      return members;
+    } catch (err) {
+      const message = toMessage(err);
+      set((s) => ({
+        errorByKey: { ...s.errorByKey, [`deleteMember:${key}`]: message },
+      }));
+      useToastStore.getState().error(`Remove member failed: ${message}`);
+      return undefined;
+    } finally {
+      set((s) => ({
+        recordLoading: { ...s.recordLoading, member: { ...s.recordLoading.member, [key]: false } },
       }));
     }
   },

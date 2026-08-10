@@ -73,6 +73,11 @@ export function useWorkspace(explicitWorkspaceId) {
   const createDocument = useWorkspaceStore((s) => s.createDocument);
   const updateDocument = useWorkspaceStore((s) => s.updateDocument);
   const deleteDocument = useWorkspaceStore((s) => s.deleteDocument);
+  const createMemberAction = useWorkspaceStore((s) => s.createMember);
+  const updateMemberAction = useWorkspaceStore((s) => s.updateMember);
+  const deleteMemberAction = useWorkspaceStore((s) => s.deleteMember);
+  const memberLoadingMap = useWorkspaceStore((s) => s.recordLoading.member);
+  const isCreatingMember = useWorkspaceStore((s) => s.recordLoading.creatingMember);
   const openTab = useWorkspaceStore((s) => s.openTab);
   const closeTab = useWorkspaceStore((s) => s.closeTab);
 
@@ -112,6 +117,7 @@ export function useWorkspace(explicitWorkspaceId) {
 
   const prompts = composedWorkspace?.prompts ?? [];
   const documents = composedWorkspace?.documents ?? [];
+  const members = composedWorkspace?.members ?? [];
 
   const error = workspaceId
     ? (errorByKey[`updateWorkspace:${workspaceId}`] ??
@@ -177,6 +183,12 @@ export function useWorkspace(explicitWorkspaceId) {
         : undefined,
     updateDocument,
     deleteDocument: (id, targetWorkspaceId = workspaceId) => (id ? deleteDocument(id, targetWorkspaceId) : undefined),
+    members,
+    isCreatingMember,
+    isMemberBusy: (email) => !!memberLoadingMap[`${workspaceId}:${email}`],
+    createMember: (payload) => (workspaceId ? createMemberAction(workspaceId, payload) : undefined),
+    updateMember: (email, payload) => (workspaceId ? updateMemberAction(workspaceId, email, payload) : undefined),
+    deleteMember: (email) => (workspaceId ? deleteMemberAction(workspaceId, email) : undefined),
     addTab,
     openTab: addTab,
     closeTab: removeTab,
